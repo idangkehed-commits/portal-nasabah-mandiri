@@ -857,6 +857,95 @@ function renderTable(items, startNo) {
   });
 }
 
+// ================= PAGINATION HANDLERS =================
+function renderCardsPagination(totalItems, start, end, totalPages) {
+  const container = document.getElementById('cardsPaginationContainer');
+  if (!container) return;
+  if (totalPages <= 1) {
+    container.classList.add('hidden');
+    return;
+  }
+  container.classList.remove('hidden');
+
+  const infoEl = document.getElementById('cardsPaginationInfo');
+  if (infoEl) {
+    infoEl.textContent = `Menampilkan ${start} - ${end} dari ${totalItems} nasabah`;
+  }
+
+  const btnsContainer = document.getElementById('cardsPaginationButtons');
+  if (!btnsContainer) return;
+  btnsContainer.innerHTML = '';
+
+  // Prev Button
+  const prevBtn = document.createElement('button');
+  prevBtn.className = `px-3 py-1.5 rounded-lg border border-slate-200 bg-white font-semibold transition ${
+    currentPage === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-100'
+  }`;
+  prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left mr-1"></i> Sebelumnya';
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderContent(); scrollToTop(); } };
+  btnsContainer.appendChild(prevBtn);
+
+  // Page Numbers
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+      const pageBtn = document.createElement('button');
+      pageBtn.className = `w-8 h-8 rounded-lg font-bold text-xs transition ${
+        currentPage === i 
+          ? 'bg-mandiri-navy text-white shadow-xs' 
+          : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+      }`;
+      pageBtn.textContent = i;
+      pageBtn.onclick = () => { currentPage = i; renderContent(); scrollToTop(); };
+      btnsContainer.appendChild(pageBtn);
+    } else if (i === currentPage - 2 || i === currentPage + 2) {
+      const dots = document.createElement('span');
+      dots.className = 'px-1 text-slate-400';
+      dots.textContent = '...';
+      btnsContainer.appendChild(dots);
+    }
+  }
+
+  // Next Button
+  const nextBtn = document.createElement('button');
+  nextBtn.className = `px-3 py-1.5 rounded-lg border border-slate-200 bg-white font-semibold transition ${
+    currentPage === totalPages ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-100'
+  }`;
+  nextBtn.innerHTML = 'Selanjutnya <i class="fa-solid fa-chevron-right ml-1"></i>';
+  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; renderContent(); scrollToTop(); } };
+  btnsContainer.appendChild(nextBtn);
+}
+
+function renderTablePagination(totalPages) {
+  const container = document.getElementById('paginationControls');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const prev = document.createElement('button');
+  prev.className = 'px-2 py-1 border rounded bg-white disabled:opacity-40';
+  prev.disabled = currentPage === 1;
+  prev.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+  prev.onclick = () => { if (currentPage > 1) { currentPage--; renderContent(); } };
+  container.appendChild(prev);
+
+  const span = document.createElement('span');
+  span.className = 'px-3 py-1 font-semibold text-slate-700';
+  span.textContent = `Hal ${currentPage} / ${totalPages}`;
+  container.appendChild(span);
+
+  const next = document.createElement('button');
+  next.className = 'px-2 py-1 border rounded bg-white disabled:opacity-40';
+  next.disabled = currentPage === totalPages;
+  next.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+  next.onclick = () => { if (currentPage < totalPages) { currentPage++; renderContent(); } };
+  container.appendChild(next);
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 350, behavior: 'smooth' });
+}
+
 // ================= MODAL CATAT KUNJUNGAN & GARAPAN =================
 function openVisitModal(id) {
   const item = dbNasabah.find(n => String(n.id) === String(id));
