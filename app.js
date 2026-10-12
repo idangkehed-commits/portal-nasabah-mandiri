@@ -1,38 +1,47 @@
 /**
  * PORTAL DATA NASABAH - CEK KELAYAKAN KREDIT MIKRO MANDIRI (KUR & KUM)
- * Versi 2.0 - Mendukung Skema Pipeline Mandiri (CIF, SGP, Kawan Lama Tier, Multi-Limit, Consent)
+ * Versi 3.0 - Tracking Kunjungan Sales (Tertarik / Tidak Tertarik) & Live Cloud Team Sync
  */
 
 // ================= GLOBAL STATE =================
 let dbNasabah = [];
+let visitRecords = {}; // Key: cifno atau id -> { status: 'tertarik'|'tidak_tertarik'|'belum', sales, waktu, catatan }
 let currentFilter = 'all';
 let currentSgpFilter = 'all';
 let currentSearch = '';
-let currentView = 'cards'; // 'cards' atau 'table'
+let currentView = 'cards';
 let currentPage = 1;
 let pageSize = 24;
 let activeSort = { column: 'nama', direction: 'asc' };
 let currentActiveNasabah = null;
+let currentVisitNasabah = null;
 let pendingImportData = [];
+let isSyncing = false;
 
 const STORAGE_KEY = 'portal_nasabah_mandiri_pipeline_v2';
+const VISIT_STORAGE_KEY = 'portal_mandiri_visits_v2';
+const CLOUD_SYNC_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701a130130a5a4916';
 
 // ================= INITIALIZATION =================
 document.addEventListener('DOMContentLoaded', () => {
   loadDatabase();
+  loadVisitRecords();
   setupEventListeners();
   populateSgpDropdown();
   updateUI();
+
+  // Jalankan sinkronisasi cloud tim segera & ulangi berkala
+  syncFromCloud(true);
+  setInterval(() => syncFromCloud(false), 45000); // Sinkronisasi tim tiap 45 detik
 });
 
-// ================= STORAGE FUNCTIONS =================
+// ================= STORAGE & SYNC FUNCTIONS =================
 function loadDatabase() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       dbNasabah = JSON.parse(raw);
     } else if (window.MANDIRI_PIPELINE_DATA && window.MANDIRI_PIPELINE_DATA.length > 0) {
-      // Otomatis muat 118 data pipeline asli Mandiri dari file
       dbNasabah = [...window.MANDIRI_PIPELINE_DATA];
       saveDatabase();
     }
@@ -49,7 +58,102 @@ function saveDatabase() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(dbNasabah));
   } catch (e) {
     console.error('Error saving database:', e);
-    showToast('Gagal menyimpan ke penyimpanan lokal browser', 'error');
+    showToast('Gagal menyimpan database ke peramban', 'error');
+  }
+}
+
+function loadVisitRecords() {
+  try {
+    const raw = localStorage.getItem(VISIT_STORAGE_KEY);
+    if (raw) {
+      visitRecords = JSON.parse(raw);
+    }
+  } catch (e) {
+    console.error('Error loading visit records:', e);
+    visitRecords = {};
+  }
+}
+
+function saveVisitRecordsLocally() {
+  try {
+    localStorage.setItem(VISIT_STORAGE_KEY, JSON.stringify(visitRecords));
+  } catch (e) {
+    console.error('Error saving visit records:', e);
+  }
+}
+
+// Ambil data kunjungan untuk nasabah tertentu
+function getVisitRecord(item) {
+  const key = item.cifno || item.id;
+  const rec = visitRecords[key];
+  if (!rec || !rec.status || rec.status === 'belum') {
+    return {
+      status: 'belum',
+      sales: item.sgp || '-',
+      waktu: '-',
+      catatan: ''
+    };
+  }
+  return rec;
+}
+
+// ================= CLOUD TEAM SYNC =================
+async function syncFromCloud(showFeedback = false) {
+  if (isSyncing) return;
+  isSyncing = true;
+  const icon = document.getElementById('iconSyncSpinner');
+  if (icon) icon.classList.add('animate-spin');
+
+  try {
+    const res = await fetch(CLOUD_SYNC_URL, { cache: 'no-store' });
+    if (res.ok) {
+      const json = await res.json();
+      if (json && json.data) {
+        // Gabungkan data dari cloud dengan local records
+        let hasNew = false;
+        Object.keys(json.data).forEach(key => {
+          if (!visitRecords[key] || JSON.stringify(visitRecords[key]) !== JSON.stringify(json.data[key])) {
+            visitRecords[key] = json.data[key];
+            hasNew = true;
+          }
+        });
+
+        if (hasNew) {
+          saveVisitRecordsLocally();
+          updateUI();
+          if (showFeedback) showToast('Data kunjungan tim berhasil disinkronkan!', 'success');
+        } else if (showFeedback) {
+          showToast('Data tim sudah paling baru.', 'info');
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Cloud sync offline or unavailable:', err.message);
+  } finally {
+    isSyncing = false;
+    if (icon) icon.classList.remove('animate-spin');
+  }
+}
+
+async function pushVisitToCloud(key, record) {
+  // Simpan lokal terlebih dahulu (agar instan)
+  visitRecords[key] = record;
+  saveVisitRecordsLocally();
+  updateUI();
+
+  // Kirim ke shared cloud storage agar semua sales lain menerima
+  try {
+    const payload = {
+      name: 'mandiri_mikro_progress_leads',
+      data: visitRecords
+    };
+    await fetch(CLOUD_SYNC_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    console.warn('Gagal push ke cloud, data tetap tersimpan di lokal:', err.message);
   }
 }
 
@@ -88,7 +192,6 @@ function formatPhoneDisplay(phone) {
   return str.replace(/(\d{4})(\d{4})(\d+)/, '$1-$2-$3');
 }
 
-// Hitung simulasi cicilan bulanan
 function calculateInstallment(limit, tenorBulan, produk) {
   limit = Number(limit) || 0;
   tenorBulan = Number(tenorBulan) || 12;
@@ -96,14 +199,12 @@ function calculateInstallment(limit, tenorBulan, produk) {
 
   const isKUR = String(produk).toUpperCase().includes('KUR');
   if (isKUR) {
-    // KUR: Suku Bunga Subsidi 6% efektif per tahun (Anuitas bulanan)
     const annualRate = 0.06;
     const monthlyRate = annualRate / 12;
     const factor = Math.pow(1 + monthlyRate, tenorBulan);
     const angsuran = limit * (monthlyRate * factor) / (factor - 1);
     return Math.round(angsuran);
   } else {
-    // KUM: Suku Bunga Flat Mikro ~0.99% flat per bulan
     const flatRateMonthly = 0.0099;
     const pokok = limit / tenorBulan;
     const bunga = limit * flatRateMonthly;
@@ -111,7 +212,6 @@ function calculateInstallment(limit, tenorBulan, produk) {
   }
 }
 
-// Klasifikasi Produk & Kategori
 function isKawanLama(n) {
   const kat = String(n.kategori || '').toLowerCase();
   const elg = String(n.eligible || '').toLowerCase();
@@ -145,7 +245,6 @@ function populateSgpDropdown() {
   if (!select) return;
 
   const currentVal = select.value;
-  // Ambil daftar unik nama petugas
   const officers = Array.from(new Set(dbNasabah.map(n => n.sgp).filter(Boolean))).sort();
 
   select.innerHTML = '<option value="all">Semua Petugas SGP</option>';
@@ -160,6 +259,8 @@ function populateSgpDropdown() {
 
 function getFilteredData() {
   let list = dbNasabah.filter(item => {
+    const visit = getVisitRecord(item);
+
     // 1. Filter Petugas SGP
     if (currentSgpFilter !== 'all') {
       if (item.sgp !== currentSgpFilter) return false;
@@ -177,8 +278,10 @@ function getFilteredData() {
       const alamat = String(item.alamat || '').toLowerCase();
       const eligible = String(item.eligible || '').toLowerCase();
       const sgp = String(item.sgp || '').toLowerCase();
+      const salesVisit = String(visit.sales || '').toLowerCase();
+      const catatanVisit = String(visit.catatan || '').toLowerCase();
 
-      const matchText = nama.includes(q) || cif.includes(q) || produk.includes(q) || kategori.includes(q) || alamat.includes(q) || eligible.includes(q) || sgp.includes(q);
+      const matchText = nama.includes(q) || cif.includes(q) || produk.includes(q) || kategori.includes(q) || alamat.includes(q) || eligible.includes(q) || sgp.includes(q) || salesVisit.includes(q) || catatanVisit.includes(q);
       const matchNum = searchNum && searchNum.length >= 3 && (cif.includes(searchNum) || hp.includes(searchNum));
 
       if (!matchText && !matchNum) {
@@ -186,15 +289,17 @@ function getFilteredData() {
       }
     }
 
-    // 3. Chip filter
-    if (currentFilter === 'kawan-lama') {
+    // 3. Chip filter (Termasuk Status Kunjungan Baru!)
+    if (currentFilter === 'belum') {
+      return visit.status === 'belum';
+    } else if (currentFilter === 'tertarik') {
+      return visit.status === 'tertarik';
+    } else if (currentFilter === 'tidak_tertarik') {
+      return visit.status === 'tidak_tertarik';
+    } else if (currentFilter === 'kawan-lama') {
       return isKawanLama(item);
     } else if (currentFilter === 'both') {
       return isBothProducts(item);
-    } else if (currentFilter === 'kur') {
-      return isKUR(item) && !isBothProducts(item);
-    } else if (currentFilter === 'kum') {
-      return isKUM(item) && !isBothProducts(item);
     } else if (currentFilter === 'consent-yes') {
       return hasConsent(item);
     }
@@ -230,24 +335,53 @@ function updateUI() {
 
 function updateDashboardStats() {
   const total = dbNasabah.length;
+  let countBelum = 0;
+  let countTertarik = 0;
+  let countTidakTertarik = 0;
+
+  dbNasabah.forEach(n => {
+    const v = getVisitRecord(n);
+    if (v.status === 'tertarik') countTertarik++;
+    else if (v.status === 'tidak_tertarik') countTidakTertarik++;
+    else countBelum++;
+  });
+
   const totalKawanLama = dbNasabah.filter(isKawanLama).length;
   const totalBoth = dbNasabah.filter(isBothProducts).length;
-  const totalKur = dbNasabah.filter(isKUR).length;
-  const totalKum = dbNasabah.filter(isKUM).length;
   const totalConsent = dbNasabah.filter(hasConsent).length;
 
   document.getElementById('statTotalNasabah').textContent = total.toLocaleString('id-ID');
+  document.getElementById('statTotalBelumGarap').textContent = countBelum.toLocaleString('id-ID');
+  document.getElementById('statTotalTertarik').textContent = countTertarik.toLocaleString('id-ID');
+  document.getElementById('statTotalTidakTertarik').textContent = countTidakTertarik.toLocaleString('id-ID');
   document.getElementById('statTotalKawanLama').textContent = totalKawanLama.toLocaleString('id-ID');
   document.getElementById('statTotalBoth').textContent = totalBoth.toLocaleString('id-ID');
-  document.getElementById('statTotalKUR').textContent = totalKur.toLocaleString('id-ID');
-  document.getElementById('statTotalKUM').textContent = totalKum.toLocaleString('id-ID');
 
   document.getElementById('countAll').textContent = total;
+  document.getElementById('countBelumGarap').textContent = countBelum;
+  document.getElementById('countTertarik').textContent = countTertarik;
+  document.getElementById('countTidakTertarik').textContent = countTidakTertarik;
   document.getElementById('countKawanLama').textContent = totalKawanLama;
   document.getElementById('countBoth').textContent = totalBoth;
-  document.getElementById('countKUR').textContent = dbNasabah.filter(n => isKUR(n) && !isBothProducts(n)).length;
-  document.getElementById('countKUM').textContent = dbNasabah.filter(n => isKUM(n) && !isBothProducts(n)).length;
   document.getElementById('countConsentYes').textContent = totalConsent;
+}
+
+function filterByGarap(status) {
+  document.querySelectorAll('.filter-chip').forEach(b => {
+    b.classList.remove('active', 'bg-mandiri-navy', 'text-white', 'border-mandiri-navy');
+    b.classList.add('border-slate-200', 'bg-white', 'text-slate-700');
+  });
+
+  const targetChip = document.querySelector(`.filter-chip[data-filter="${status}"]`);
+  if (targetChip) {
+    targetChip.classList.add('active', 'bg-mandiri-navy', 'text-white', 'border-mandiri-navy');
+    targetChip.classList.remove('border-slate-200', 'bg-white', 'text-slate-700');
+  }
+
+  currentFilter = status;
+  currentPage = 1;
+  renderContent();
+  scrollToTop();
 }
 
 function renderContent() {
@@ -280,25 +414,24 @@ function renderContent() {
     document.getElementById('noMatchSearchState').classList.add('hidden');
   }
 
-  // Update Heading Text
+  // Heading text
   if (currentSearch) {
     document.getElementById('resultsHeading').textContent = `Hasil Pencarian: "${currentSearch}"`;
+  } else if (currentFilter === 'belum') {
+    document.getElementById('resultsHeading').textContent = 'Nasabah Yang Belum Digarap (Tersedia)';
+  } else if (currentFilter === 'tertarik') {
+    document.getElementById('resultsHeading').textContent = 'Nasabah Sudah Digarap: TERTARIK (Terkunci)';
+  } else if (currentFilter === 'tidak_tertarik') {
+    document.getElementById('resultsHeading').textContent = 'Nasabah Sudah Digarap: TIDAK TERTARIK';
   } else if (currentFilter === 'kawan-lama') {
     document.getElementById('resultsHeading').textContent = 'Nasabah Prioritas ⭐ Kawan Lama';
   } else if (currentFilter === 'both') {
     document.getElementById('resultsHeading').textContent = 'Nasabah Eligible KUR & KUM (Pilihan Ganda)';
-  } else if (currentFilter === 'kur') {
-    document.getElementById('resultsHeading').textContent = 'Nasabah Eligible KUR Saja';
-  } else if (currentFilter === 'kum') {
-    document.getElementById('resultsHeading').textContent = 'Nasabah Eligible KUM Saja';
-  } else if (currentFilter === 'consent-yes') {
-    document.getElementById('resultsHeading').textContent = 'Nasabah Yang Memiliki Consent WhatsApp/Telepon';
   } else {
     document.getElementById('resultsHeading').textContent = 'Menampilkan Seluruh Pipeline Debitur';
   }
   document.getElementById('badgeResultCount').textContent = `${totalFiltered} debitur`;
 
-  // Pagination
   const totalPages = Math.ceil(totalFiltered / pageSize) || 1;
   if (currentPage > totalPages) currentPage = totalPages;
   const startIndex = (currentPage - 1) * pageSize;
@@ -337,58 +470,115 @@ function renderCards(items) {
     const isBoth = isBothProducts(item);
     const isPrdKur = isKUR(item);
     const userConsent = hasConsent(item);
+    const visit = getVisitRecord(item);
+
     const initials = item.nama
       ? item.nama.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
       : 'NS';
     const grad = avatarGradients[index % avatarGradients.length];
 
     const card = document.createElement('div');
-    card.className = `group bg-white rounded-2xl p-5 border transition-all duration-200 shadow-card hover:shadow-card-hover flex flex-col justify-between ${
-      isKawan ? 'border-amber-300 ring-1 ring-amber-200/60 bg-gradient-to-b from-amber-50/20 via-white to-white' : 'border-slate-200 hover:border-blue-300'
-    }`;
+    
+    // Penyesuaian border kartu berdasarkan status garapan
+    let cardBorderClass = 'border-slate-200 hover:border-blue-300';
+    if (visit.status === 'tertarik') {
+      cardBorderClass = 'border-emerald-400 ring-2 ring-emerald-200/80 bg-gradient-to-b from-emerald-50/50 via-white to-white';
+    } else if (visit.status === 'tidak_tertarik') {
+      cardBorderClass = 'border-red-300 bg-gradient-to-b from-red-50/30 via-white to-white opacity-95';
+    } else if (isKawan) {
+      cardBorderClass = 'border-amber-300 ring-1 ring-amber-200/60 bg-gradient-to-b from-amber-50/20 via-white to-white';
+    }
+
+    card.className = `group bg-white rounded-2xl p-5 border transition-all duration-200 shadow-card hover:shadow-card-hover flex flex-col justify-between ${cardBorderClass}`;
 
     // Tag Produk Styling
     let produkTagHtml = '';
     if (isBoth) {
       produkTagHtml = `
-        <span class="both-badge px-2.5 py-1 rounded-lg text-[11px] font-extrabold text-indigo-900 uppercase tracking-wider flex items-center shadow-xs">
-          <i class="fa-solid fa-shuffle text-indigo-600 mr-1.5"></i> BISA KUR & KUM
+        <span class="both-badge px-2 py-0.5 rounded-lg text-[10px] font-extrabold text-indigo-900 uppercase tracking-wider flex items-center">
+          <i class="fa-solid fa-shuffle text-indigo-600 mr-1"></i> BISA KUR & KUM
         </span>
       `;
     } else if (isPrdKur) {
       produkTagHtml = `
-        <span class="bg-blue-100 text-blue-800 border border-blue-200 px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider">
+        <span class="bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider">
           <i class="fa-solid fa-hand-holding-dollar mr-1"></i> ${escapeHtml(item.produk)}
         </span>
       `;
     } else {
       produkTagHtml = `
-        <span class="bg-indigo-100 text-indigo-800 border border-indigo-200 px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider">
+        <span class="bg-indigo-100 text-indigo-800 border border-indigo-200 px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider">
           <i class="fa-solid fa-briefcase mr-1"></i> ${escapeHtml(item.produk)}
         </span>
       `;
     }
 
+    // Banner Status Garapan (Paling Atas)
+    let visitBannerHtml = '';
+    if (visit.status === 'tertarik') {
+      visitBannerHtml = `
+        <div class="mb-3 p-2.5 rounded-xl bg-emerald-100/90 border border-emerald-300 text-emerald-950 text-xs shadow-2xs">
+          <div class="flex items-center justify-between font-extrabold">
+            <span class="flex items-center text-emerald-900">
+              <i class="fa-solid fa-lock text-emerald-600 mr-1.5 text-sm"></i> SUDAH DIGARAP: TERTARIK
+            </span>
+            <span class="text-[10px] bg-emerald-200/80 px-2 py-0.5 rounded-md font-semibold text-emerald-900">
+              Oleh: ${escapeHtml(visit.sales || 'Sales')}
+            </span>
+          </div>
+          <div class="text-[11px] text-emerald-800 mt-1 flex items-center justify-between">
+            <span><i class="fa-solid fa-triangle-exclamation text-emerald-700 mr-1"></i> Sales lain jangan garap ulang!</span>
+            <span class="text-[10px] text-slate-500">${escapeHtml(visit.waktu || '')}</span>
+          </div>
+          ${visit.catatan ? `<div class="mt-1 text-[11px] bg-white/80 p-1.5 rounded-lg text-slate-700 border border-emerald-200"><strong>Catatan:</strong> ${escapeHtml(visit.catatan)}</div>` : ''}
+        </div>
+      `;
+    } else if (visit.status === 'tidak_tertarik') {
+      visitBannerHtml = `
+        <div class="mb-3 p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-950 text-xs shadow-2xs">
+          <div class="flex items-center justify-between font-bold">
+            <span class="flex items-center text-red-700">
+              <i class="fa-solid fa-ban text-red-500 mr-1.5 text-sm"></i> SUDAH DIGARAP: TIDAK TERTARIK
+            </span>
+            <span class="text-[10px] bg-red-100 px-2 py-0.5 rounded-md text-red-800 font-semibold">
+              Oleh: ${escapeHtml(visit.sales || 'Sales')}
+            </span>
+          </div>
+          ${visit.catatan ? `<div class="mt-1 text-[11px] bg-white p-1.5 rounded-lg text-slate-700 border border-red-100"><strong>Alasan:</strong> ${escapeHtml(visit.catatan)}</div>` : ''}
+        </div>
+      `;
+    } else {
+      visitBannerHtml = `
+        <div class="mb-3 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold flex items-center justify-between">
+          <span class="flex items-center text-slate-600">
+            <i class="fa-regular fa-circle-dot mr-1.5 text-slate-400"></i> Belum Digarap
+          </span>
+          <span class="text-[10px] text-emerald-700 bg-emerald-100/70 font-bold px-2 py-0.5 rounded">
+            Tersedia (Bebas Digarap)
+          </span>
+        </div>
+      `;
+    }
+
     card.innerHTML = `
       <div>
+        <!-- Visit Status Banner -->
+        ${visitBannerHtml}
+
         <!-- Top Badges & Tag -->
-        <div class="flex items-center justify-between gap-2 mb-3">
+        <div class="flex items-center justify-between gap-1.5 mb-3">
           <div class="flex items-center space-x-1.5 flex-wrap gap-y-1">
             ${produkTagHtml}
 
             ${isKawan ? `
-              <span class="kawan-lama-badge px-2.5 py-1 rounded-lg text-[11px] font-extrabold text-amber-800 uppercase tracking-wider flex items-center">
-                <i class="fa-solid fa-star text-amber-500 mr-1 text-[10px]"></i> KAWAN LAMA
+              <span class="kawan-lama-badge px-2 py-0.5 rounded-lg text-[10px] font-extrabold text-amber-800 uppercase tracking-wider flex items-center">
+                <i class="fa-solid fa-star text-amber-500 mr-1 text-[9px]"></i> KAWAN LAMA
               </span>
-            ` : `
-              <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md text-[11px] font-semibold">
-                ${escapeHtml(item.kategori || 'Eksisting')}
-              </span>
-            `}
+            ` : ''}
           </div>
 
           <!-- Consent Status -->
-          <div class="text-[11px] font-bold flex items-center px-2 py-0.5 rounded-md ${
+          <div class="text-[10px] font-bold flex items-center px-1.5 py-0.5 rounded ${
             userConsent ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-800 border border-amber-200'
           }">
             <i class="fa-solid ${userConsent ? 'fa-circle-check text-emerald-500' : 'fa-triangle-exclamation text-amber-600'} mr-1"></i>
@@ -397,8 +587,8 @@ function renderCards(items) {
         </div>
 
         <!-- Profil Header -->
-        <div class="flex items-start space-x-3.5 mb-3.5">
-          <div class="w-11 h-11 rounded-xl bg-gradient-to-br ${grad} text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+        <div class="flex items-start space-x-3 mb-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br ${grad} text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
             ${initials}
           </div>
           <div class="min-w-0 flex-1">
@@ -413,30 +603,30 @@ function renderCards(items) {
           </div>
         </div>
 
-        <!-- Limit Box (Highlight Utama) -->
-        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 mb-3 group-hover:bg-blue-50/30 transition">
+        <!-- Limit Box -->
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 mb-3 group-hover:bg-blue-50/30 transition">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Eligible Limit Plafon</span>
-            <span class="text-[11px] font-bold text-mandiri-blue bg-blue-100/70 px-2 py-0.5 rounded">
-              Plafon Maksimal
+            <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Eligible Limit Plafon</span>
+            <span class="text-[10px] font-bold text-mandiri-blue bg-blue-100/70 px-2 py-0.5 rounded">
+              Plafon Utama
             </span>
           </div>
-          <p class="text-xl sm:text-2xl font-extrabold text-mandiri-navy mt-1 tracking-tight">
+          <p class="text-xl font-extrabold text-mandiri-navy mt-1 tracking-tight">
             ${formatRupiah(item.limit)}
           </p>
 
           ${(item.limit2 > 0 && item.limit2 !== item.limit) ? `
             <div class="mt-1.5 pt-1.5 border-t border-slate-200/60 flex items-center justify-between text-xs text-slate-600">
-              <span>Opsi Plafon 2:</span>
-              <span class="font-bold text-indigo-700">${formatRupiah(item.limit2)}</span>
+              <span class="text-[11px]">Opsi Plafon 2:</span>
+              <span class="font-bold text-indigo-700 text-xs">${formatRupiah(item.limit2)}</span>
             </div>
           ` : ''}
         </div>
 
-        <!-- Keterangan Program Kelayakan -->
-        <div class="text-xs text-slate-600 mb-3.5 bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
-          <div class="font-bold text-slate-700 flex items-center mb-0.5">
-            <i class="fa-solid fa-file-shield text-mandiri-blue mr-1 text-[11px]"></i>
+        <!-- Program Kelayakan -->
+        <div class="text-xs text-slate-600 mb-3 bg-white p-2.5 rounded-xl border border-slate-100">
+          <div class="font-bold text-slate-700 flex items-center mb-0.5 text-[11px]">
+            <i class="fa-solid fa-file-shield text-mandiri-blue mr-1"></i>
             <span>Program Kelayakan:</span>
           </div>
           <p class="text-slate-600 line-clamp-2 leading-relaxed text-[11px]">
@@ -445,19 +635,27 @@ function renderCards(items) {
         </div>
 
         <!-- Lokasi Alamat -->
-        <div class="text-xs text-slate-500 mb-4 pt-1 border-t border-slate-100">
+        <div class="text-xs text-slate-500 mb-3 pt-1 border-t border-slate-100">
           <div class="flex items-center truncate">
-            <i class="fa-solid fa-location-dot w-4 text-slate-400 mr-1.5 shrink-0"></i>
+            <i class="fa-solid fa-location-dot w-3.5 text-slate-400 mr-1.5 shrink-0"></i>
             <span class="truncate" title="${escapeHtml(item.alamat)}">${escapeHtml(item.alamat || 'Wilayah Bandung')}</span>
           </div>
         </div>
       </div>
 
       <!-- Action Buttons -->
-      <div class="pt-3 border-t border-slate-100 flex items-center gap-2">
-        <button onclick="openDetailModal('${item.id}')" class="flex-1 py-2 px-3 rounded-xl bg-mandiri-navy hover:bg-mandiri-blue text-white text-xs font-semibold shadow-xs transition flex items-center justify-center space-x-1.5">
+      <div class="pt-3 border-t border-slate-100 flex items-center gap-1.5">
+        <!-- Tombol Catat Kunjungan -->
+        <button onclick="openVisitModal('${item.id}')" class="py-2 px-2.5 rounded-xl ${
+          visit.status === 'tertarik' ? 'bg-emerald-600 text-white' : visit.status === 'tidak_tertarik' ? 'bg-red-600 text-white' : 'bg-amber-400 hover:bg-amber-500 text-mandiri-dark'
+        } text-xs font-bold shadow-xs transition flex items-center justify-center space-x-1" title="Catat status kunjungan/garapan sales">
+          <i class="fa-solid fa-clipboard-check text-xs"></i>
+          <span>${visit.status !== 'belum' ? 'Ubah Status' : 'Catat Garapan'}</span>
+        </button>
+
+        <button onclick="openDetailModal('${item.id}')" class="flex-1 py-2 px-2 rounded-xl bg-mandiri-navy hover:bg-mandiri-blue text-white text-xs font-semibold shadow-xs transition flex items-center justify-center space-x-1">
           <i class="fa-solid fa-magnifying-glass text-xs"></i>
-          <span>Rincian & Cicilan</span>
+          <span>Rincian</span>
         </button>
 
         ${item.hp && item.hp !== '0' ? `
@@ -467,10 +665,6 @@ function renderCards(items) {
             <i class="fa-brands fa-whatsapp text-sm"></i>
           </button>
         ` : ''}
-
-        <button onclick="openEditModal('${item.id}')" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold transition" title="Edit Data">
-          <i class="fa-solid fa-pen text-xs"></i>
-        </button>
       </div>
     `;
 
@@ -488,8 +682,34 @@ function renderTable(items, startNo) {
     const isBoth = isBothProducts(item);
     const isPrdKur = isKUR(item);
     const userConsent = hasConsent(item);
+    const visit = getVisitRecord(item);
+
     const tr = document.createElement('tr');
-    tr.className = `hover:bg-blue-50/40 transition cursor-pointer ${isKawan ? 'bg-amber-50/20' : ''}`;
+    tr.className = `hover:bg-blue-50/40 transition cursor-pointer ${
+      visit.status === 'tertarik' ? 'bg-emerald-50/30' : visit.status === 'tidak_tertarik' ? 'bg-red-50/20' : isKawan ? 'bg-amber-50/20' : ''
+    }`;
+
+    // Status Garapan Badge untuk Tabel
+    let statusGarapHtml = '';
+    if (visit.status === 'tertarik') {
+      statusGarapHtml = `
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+          <i class="fa-solid fa-lock mr-1 text-[9px] text-emerald-600"></i> TERTARIK (${escapeHtml(visit.sales || 'Sales')})
+        </span>
+      `;
+    } else if (visit.status === 'tidak_tertarik') {
+      statusGarapHtml = `
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-800 border border-red-200">
+          <i class="fa-solid fa-ban mr-1 text-[9px] text-red-600"></i> TIDAK TERTARIK
+        </span>
+      `;
+    } else {
+      statusGarapHtml = `
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600">
+          ⚪ Belum Digarap
+        </span>
+      `;
+    }
 
     tr.innerHTML = `
       <td class="py-3 px-4 text-center text-slate-400">${startNo + index}</td>
@@ -499,6 +719,9 @@ function renderTable(items, startNo) {
           ${isKawan ? '<i class="fa-solid fa-star text-amber-500 text-xs" title="Kawan Lama"></i>' : ''}
         </div>
         <div class="text-[10px] text-slate-400 font-normal">${escapeHtml(item.sgp ? 'SGP: ' + item.sgp : '')}</div>
+      </td>
+      <td class="py-3 px-4" onclick="openVisitModal('${item.id}')">
+        ${statusGarapHtml}
       </td>
       <td class="py-3 px-4 font-mono text-slate-700 text-xs">${escapeHtml(item.cifno || '-')}</td>
       <td class="py-3 px-4 font-mono text-slate-600 text-xs">
@@ -535,9 +758,6 @@ function renderTable(items, startNo) {
           <span class="text-slate-600 text-xs">${escapeHtml(item.kategori || 'Eksisting')}</span>
         `}
       </td>
-      <td class="py-3 px-4 text-xs text-slate-600 max-w-xs truncate" title="${escapeHtml(item.eligible || '')}">
-        ${escapeHtml(item.eligible || '-')}
-      </td>
       <td class="py-3 px-4 text-right font-extrabold text-mandiri-navy">
         ${formatRupiah(item.limit)}
       </td>
@@ -550,11 +770,11 @@ function renderTable(items, startNo) {
       </td>
       <td class="py-3 px-4 text-center">
         <div class="flex items-center justify-center space-x-1.5">
+          <button onclick="openVisitModal('${item.id}')" class="p-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 transition" title="Catat Kunjungan">
+            <i class="fa-solid fa-clipboard-check text-xs"></i>
+          </button>
           <button onclick="openDetailModal('${item.id}')" class="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-mandiri-blue transition" title="Lihat Detail">
             <i class="fa-solid fa-eye text-xs"></i>
-          </button>
-          <button onclick="openEditModal('${item.id}')" class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition" title="Edit">
-            <i class="fa-solid fa-pen text-xs"></i>
           </button>
           <button onclick="deleteNasabah('${item.id}')" class="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition" title="Hapus">
             <i class="fa-solid fa-trash-can text-xs"></i>
@@ -567,91 +787,137 @@ function renderTable(items, startNo) {
   });
 }
 
-// ================= PAGINATION HANDLERS =================
-function renderCardsPagination(totalItems, start, end, totalPages) {
-  const container = document.getElementById('cardsPaginationContainer');
-  if (totalPages <= 1) {
-    container.classList.add('hidden');
-    return;
-  }
-  container.classList.remove('hidden');
+// ================= MODAL CATAT KUNJUNGAN & GARAPAN =================
+function openVisitModal(id) {
+  const item = dbNasabah.find(n => String(n.id) === String(id));
+  if (!item) return;
 
-  document.getElementById('cardsPaginationInfo').textContent = 
-    `Menampilkan ${start} - ${end} dari ${totalItems} nasabah`;
+  currentVisitNasabah = item;
+  const visit = getVisitRecord(item);
 
-  const btnsContainer = document.getElementById('cardsPaginationButtons');
-  btnsContainer.innerHTML = '';
+  document.getElementById('visitDebiturId').value = item.id;
+  document.getElementById('visitDebiturCIF').value = item.cifno || item.id;
+  document.getElementById('modalVisitDebiturNama').textContent = `${item.nama} (CIF: ${item.cifno || '-'})`;
 
-  // Prev Button
-  const prevBtn = document.createElement('button');
-  prevBtn.className = `px-3 py-1.5 rounded-lg border border-slate-200 bg-white font-semibold transition ${
-    currentPage === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-100'
-  }`;
-  prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left mr-1"></i> Sebelumnya';
-  prevBtn.disabled = currentPage === 1;
-  prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderContent(); scrollToTop(); } };
-  btnsContainer.appendChild(prevBtn);
+  // Set radio button status
+  const radios = document.querySelectorAll('input[name="radioVisitStatus"]');
+  radios.forEach(r => {
+    r.checked = (r.value === (visit.status || 'belum'));
+  });
 
-  // Page Numbers
-  for (let i = 1; i <= totalPages; i++) {
-    if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-      const pageBtn = document.createElement('button');
-      pageBtn.className = `w-8 h-8 rounded-lg font-bold text-xs transition ${
-        currentPage === i 
-          ? 'bg-mandiri-navy text-white shadow-xs' 
-          : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
-      }`;
-      pageBtn.textContent = i;
-      pageBtn.onclick = () => { currentPage = i; renderContent(); scrollToTop(); };
-      btnsContainer.appendChild(pageBtn);
-    } else if (i === currentPage - 2 || i === currentPage + 2) {
-      const dots = document.createElement('span');
-      dots.className = 'px-1 text-slate-400';
-      dots.textContent = '...';
-      btnsContainer.appendChild(dots);
-    }
-  }
+  // Nama sales: ambil dari visit sebelumnya, atau nama sales yang tersimpan di localStorage, atau SGP debitur
+  const savedSalesName = localStorage.getItem('last_sales_name');
+  document.getElementById('visitSalesName').value = visit.sales && visit.sales !== '-' ? visit.sales : (savedSalesName || item.sgp || '');
+  document.getElementById('visitNotes').value = visit.catatan || '';
 
-  // Next Button
-  const nextBtn = document.createElement('button');
-  nextBtn.className = `px-3 py-1.5 rounded-lg border border-slate-200 bg-white font-semibold transition ${
-    currentPage === totalPages ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-100'
-  }`;
-  nextBtn.innerHTML = 'Selanjutnya <i class="fa-solid fa-chevron-right ml-1"></i>';
-  nextBtn.disabled = currentPage === totalPages;
-  nextBtn.onclick = () => { if (currentPage < totalPages) { currentPage++; renderContent(); scrollToTop(); } };
-  btnsContainer.appendChild(nextBtn);
+  document.getElementById('modalCatatKunjungan').classList.remove('hidden');
 }
 
-function renderTablePagination(totalPages) {
-  const container = document.getElementById('paginationControls');
-  container.innerHTML = '';
-
-  const prev = document.createElement('button');
-  prev.className = 'px-2 py-1 border rounded bg-white disabled:opacity-40';
-  prev.disabled = currentPage === 1;
-  prev.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-  prev.onclick = () => { if (currentPage > 1) { currentPage--; renderContent(); } };
-  container.appendChild(prev);
-
-  const span = document.createElement('span');
-  span.className = 'px-3 py-1 font-semibold text-slate-700';
-  span.textContent = `Hal ${currentPage} / ${totalPages}`;
-  container.appendChild(span);
-
-  const next = document.createElement('button');
-  next.className = 'px-2 py-1 border rounded bg-white disabled:opacity-40';
-  next.disabled = currentPage === totalPages;
-  next.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-  next.onclick = () => { if (currentPage < totalPages) { currentPage++; renderContent(); } };
-  container.appendChild(next);
+function closeVisitModal() {
+  document.getElementById('modalCatatKunjungan').classList.add('hidden');
+  currentVisitNasabah = null;
 }
 
-function scrollToTop() {
-  window.scrollTo({ top: 350, behavior: 'smooth' });
+function handleVisitSubmit(e) {
+  e.preventDefault();
+  if (!currentVisitNasabah) return;
+
+  const key = currentVisitNasabah.cifno || currentVisitNasabah.id;
+  const selectedRadio = document.querySelector('input[name="radioVisitStatus"]:checked');
+  const status = selectedRadio ? selectedRadio.value : 'belum';
+  const sales = document.getElementById('visitSalesName').value.trim();
+  const catatan = document.getElementById('visitNotes').value.trim();
+
+  // Simpan nama sales untuk penggunaan berikutnya di HP/browser ini
+  if (sales) {
+    localStorage.setItem('last_sales_name', sales);
+  }
+
+  const now = new Date();
+  const waktuFormatted = now.toLocaleDateString('id-ID', {
+    day: 'numeric', month: 'short', year: 'numeric'
+  }) + ', ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+
+  const record = {
+    status: status,
+    sales: sales || 'Sales',
+    waktu: waktuFormatted,
+    catatan: catatan
+  };
+
+  // Push ke cloud dan simpan lokal
+  pushVisitToCloud(key, record);
+
+  closeVisitModal();
+
+  if (status === 'tertarik') {
+    showToast(`Status "${currentVisitNasabah.nama}" diset TERTARIK (Terkunci oleh ${sales})!`, 'success');
+  } else if (status === 'tidak_tertarik') {
+    showToast(`Status "${currentVisitNasabah.nama}" diset TIDAK TERTARIK.`, 'warning');
+  } else {
+    showToast(`Status "${currentVisitNasabah.nama}" di-reset ke Belum Digarap.`, 'info');
+  }
+
+  // Jika modal detail sedang terbuka untuk nasabah ini, perbarui tampilannya
+  if (currentActiveNasabah && (currentActiveNasabah.id === currentVisitNasabah.id)) {
+    updateModalDetailVisitSection(currentActiveNasabah);
+  }
 }
 
 // ================= MODAL DETAIL NASABAH & SIMULASI =================
+function updateModalDetailVisitSection(nasabah) {
+  const visitSection = document.getElementById('modalDetailVisitSection');
+  if (!visitSection) return;
+
+  const visit = getVisitRecord(nasabah);
+
+  if (visit.status === 'tertarik') {
+    visitSection.className = 'p-4 rounded-2xl border-2 border-emerald-400 bg-emerald-50 text-emerald-950 space-y-2';
+    visitSection.innerHTML = `
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-extrabold text-emerald-800 flex items-center">
+          <i class="fa-solid fa-lock text-emerald-600 mr-2 text-base"></i> SUDAH DIGARAP: TERTARIK
+        </span>
+        <span class="text-xs font-bold bg-emerald-200 px-2.5 py-1 rounded-lg text-emerald-900">
+          Oleh: ${escapeHtml(visit.sales)}
+        </span>
+      </div>
+      <div class="p-2.5 bg-emerald-100/70 border border-emerald-200 rounded-xl text-xs text-emerald-900">
+        <strong>⚠️ PEMBERITAHUAN UNTUK SALES LAIN:</strong><br>
+        Nasabah ini telah dikunjungi/dihubungi oleh rekan Anda (<strong>${escapeHtml(visit.sales)}</strong>) pada <strong>${escapeHtml(visit.waktu)}</strong> dan menyatakan <strong>TERTARIK</strong>. Harap TIDAK menggarap nasabah ini untuk menghindari duplikasi penawaran!
+      </div>
+      ${visit.catatan ? `<div class="text-xs bg-white p-2.5 rounded-xl border border-emerald-200 text-slate-700"><strong>Catatan Prospek:</strong> ${escapeHtml(visit.catatan)}</div>` : ''}
+    `;
+  } else if (visit.status === 'tidak_tertarik') {
+    visitSection.className = 'p-4 rounded-2xl border-2 border-red-300 bg-red-50 text-red-950 space-y-2';
+    visitSection.innerHTML = `
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-extrabold text-red-700 flex items-center">
+          <i class="fa-solid fa-ban text-red-600 mr-2 text-base"></i> SUDAH DIGARAP: TIDAK TERTARIK
+        </span>
+        <span class="text-xs font-bold bg-red-100 px-2.5 py-1 rounded-lg text-red-800">
+          Oleh: ${escapeHtml(visit.sales)} (${escapeHtml(visit.waktu)})
+        </span>
+      </div>
+      ${visit.catatan ? `<div class="text-xs bg-white p-2.5 rounded-xl border border-red-200 text-slate-700"><strong>Alasan Menolak / Tidak Tertarik:</strong> ${escapeHtml(visit.catatan)}</div>` : ''}
+    `;
+  } else {
+    visitSection.className = 'p-3.5 rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 flex items-center justify-between';
+    visitSection.innerHTML = `
+      <div class="flex items-center space-x-2">
+        <i class="fa-regular fa-circle-dot text-slate-400 text-base"></i>
+        <div>
+          <span class="text-xs font-bold text-slate-800 block">Status: Belum Digarap</span>
+          <span class="text-[11px] text-slate-500">Nasabah ini masih tersedia bebas untuk diprospek.</span>
+        </div>
+      </div>
+      <span class="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+        Tersedia
+      </span>
+    `;
+  }
+}
+
 function openDetailModal(id) {
   const nasabah = dbNasabah.find(n => String(n.id) === String(id));
   if (!nasabah) return;
@@ -669,6 +935,9 @@ function openDetailModal(id) {
   document.getElementById('modalDetailSGP').textContent = nasabah.sgp || '-';
   document.getElementById('modalDetailTindakan').textContent = nasabah.tindakan || (userConsent ? 'Boleh WA, SMS, Telepon, Kunjungan' : 'Hanya Boleh Kunjungan Langsung');
   document.getElementById('modalDetailAlamat').textContent = nasabah.alamat || 'Wilayah Bandung';
+
+  // Perbarui Section Status Kunjungan
+  updateModalDetailVisitSection(nasabah);
 
   // Badges
   const prdBadge = document.getElementById('modalDetailProdukBadge');
@@ -764,7 +1033,6 @@ function updateWhatsAppPreview() {
   } else if (templateType === 'singkat') {
     msg = `Halo Bapak/Ibu ${n.nama}, kami dari Bank Mandiri Mikro${namaSgp}. Fasilitas kredit modal usaha Bapak/Ibu (*${n.produk}*) terkonfirmasi eligible dengan limit plafon *${limitStr}*. Jika tertarik, silakan balas pesan ini ya. Salam sukses selalu!`;
   } else {
-    // Formal
     msg = `Yth. Bapak/Ibu ${n.nama},\n\nPerkenankan kami dari Bank Mandiri Unit Mikro${namaSgp} menyampaikan informasi kelayakan fasilitas kredit usaha Anda:\n• Nama: ${n.nama}\n• No CIF: ${n.cifno || '-'}\n• Produk Kredit: ${n.produk}\n• Kategori: ${n.kategori}\n• Eligible Limit Plafon: ${limitStr}\n• Estimasi Angsuran (36 bln): ${cicilan36}/bln\n\nPersyaratan cukup KTP, KK, dan SKU. Silakan hubungi kami untuk informasi lebih lanjut. Terima kasih.`;
   }
 
@@ -787,7 +1055,13 @@ function sendWhatsAppMessage() {
     return;
   }
 
-  // Cek jika belum ada consent, beri peringatan
+  const visit = getVisitRecord(currentActiveNasabah);
+  if (visit.status === 'tertarik') {
+    if (!confirm(`PERHATIAN KOORDINASI SALES:\nNasabah ini sudah digarap oleh "${visit.sales}" dengan status TERTARIK.\n\nApakah Anda yakin ingin tetap membuka WhatsApp nasabah ini?`)) {
+      return;
+    }
+  }
+
   if (!hasConsent(currentActiveNasabah)) {
     if (!confirm('PERINGATAN KEPATUHAN:\nData menunjukkan debitur ini "Belum Ada Consent" untuk pesan instan (hanya boleh kunjungan langsung).\n\nApakah Anda tetap ingin membuka WhatsApp?')) {
       return;
@@ -803,7 +1077,9 @@ function sendWhatsAppMessage() {
 function copySummaryToClipboard() {
   if (!currentActiveNasabah) return;
   const n = currentActiveNasabah;
-  const text = `HASIL KELAYAKAN KREDIT MIKRO MANDIRI\nNama: ${n.nama}\nCIF: ${n.cifno || '-'}\nNo HP: ${n.hp || '-'}\nProduk: ${n.produk}\nKategori: ${n.kategori}\nEligible Limit: ${formatRupiah(n.limit)}\nProgram: ${n.eligible || '-'}\nPetugas SGP: ${n.sgp || '-'}\nSimulasi Cicilan (36 bln): ${formatRupiah(calculateInstallment(n.limit, 36, n.produk))}/bln`;
+  const visit = getVisitRecord(n);
+
+  const text = `HASIL KELAYAKAN KREDIT MIKRO MANDIRI\nNama: ${n.nama}\nCIF: ${n.cifno || '-'}\nNo HP: ${n.hp || '-'}\nProduk: ${n.produk}\nKategori: ${n.kategori}\nEligible Limit: ${formatRupiah(n.limit)}\nStatus Kunjungan: ${visit.status.toUpperCase()} (Oleh: ${visit.sales})\nProgram: ${n.eligible || '-'}\nPetugas SGP: ${n.sgp || '-'}\nSimulasi Cicilan (36 bln): ${formatRupiah(calculateInstallment(n.limit, 36, n.produk))}/bln`;
 
   navigator.clipboard.writeText(text).then(() => {
     showToast('Ringkasan kelayakan berhasil disalin ke clipboard!', 'success');
@@ -815,6 +1091,7 @@ function copySummaryToClipboard() {
 function printScreeningSlip() {
   if (!currentActiveNasabah) return;
   const n = currentActiveNasabah;
+  const visit = getVisitRecord(n);
   const now = new Date();
   const dateFormatted = now.toLocaleDateString('id-ID', {
     day: 'numeric', month: 'long', year: 'numeric'
@@ -825,7 +1102,7 @@ function printScreeningSlip() {
   document.getElementById('printCIF').textContent = n.cifno || '-';
   document.getElementById('printHP').textContent = formatPhoneDisplay(n.hp);
   document.getElementById('printAlamat').textContent = n.alamat || '-';
-  document.getElementById('printSGP').textContent = n.sgp || '-';
+  document.getElementById('printSGP').textContent = `${n.sgp || '-'} (Status Garapan: ${visit.status.toUpperCase()})`;
   document.getElementById('printKategori').textContent = n.kategori || 'Kawan Lama';
   document.getElementById('printProduk').textContent = n.produk || 'Kredit Mikro';
   document.getElementById('printLimit').textContent = formatRupiah(n.limit);
@@ -838,6 +1115,66 @@ function printScreeningSlip() {
   document.getElementById('printSim48').textContent = formatRupiah(calculateInstallment(limit, 48, n.produk));
 
   window.print();
+}
+
+// ================= EKSPOR LAPORAN KUNJUNGAN SALES (EXCEL) =================
+function exportLaporanKunjunganExcel() {
+  if (dbNasabah.length === 0) {
+    showToast('Tidak ada data untuk diekspor', 'warning');
+    return;
+  }
+
+  const exportList = dbNasabah.map((item, idx) => {
+    const v = getVisitRecord(item);
+    let statusText = 'Belum Digarap';
+    if (v.status === 'tertarik') statusText = 'TERTARIK (Minat Kredit)';
+    else if (v.status === 'tidak_tertarik') statusText = 'TIDAK TERTARIK';
+
+    return {
+      'No': idx + 1,
+      'Nama Debitur': item.nama,
+      'No CIF': item.cifno,
+      'No WhatsApp / HP': item.hp,
+      'Status Kunjungan': statusText,
+      'Sales yang Menggarap': v.sales !== '-' ? v.sales : '',
+      'Waktu Kunjungan': v.waktu !== '-' ? v.waktu : '',
+      'Catatan Hasil Prospek': v.catatan || '',
+      'Petugas SGP Asal': item.sgp,
+      'Produk Kredit': item.produk,
+      'Kategori': item.kategori,
+      'Eligible Limit Utama (Rp)': item.limit,
+      'Limit Opsi 2 (Rp)': item.limit2 || '',
+      'Program Kelayakan': item.eligible,
+      'Consent': item.consent,
+      'Alamat': item.alamat
+    };
+  });
+
+  const ws = XLSX.utils.json_to_sheet(exportList);
+  ws['!cols'] = [
+    { wch: 6 },
+    { wch: 26 },
+    { wch: 16 },
+    { wch: 18 },
+    { wch: 26 },
+    { wch: 25 },
+    { wch: 22 },
+    { wch: 35 },
+    { wch: 25 },
+    { wch: 28 },
+    { wch: 22 },
+    { wch: 22 },
+    { wch: 18 },
+    { wch: 45 },
+    { wch: 16 },
+    { wch: 40 }
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Laporan Kunjungan');
+  const dateStr = new Date().toISOString().split('T')[0];
+  XLSX.writeFile(wb, `Laporan_Kunjungan_Sales_Mandiri_${dateStr}.xlsx`);
+  showToast('Laporan Kunjungan Tim berhasil diekspor ke Excel!', 'success');
 }
 
 // ================= EXCEL & CSV SMART PARSER =================
@@ -881,7 +1218,6 @@ function mapExcelRows(rawRows) {
   if (rawRows.length === 0) return [];
   const headers = Object.keys(rawRows[0]);
 
-  // Cek apakah file ini memiliki skema asli Mandiri Leads
   const isMandiriLeadsFormat = headers.some(h => h.toLowerCase().includes('cifno') || h.toLowerCase().includes('max limit eligible'));
 
   if (isMandiriLeadsFormat) {
@@ -959,7 +1295,6 @@ function mapExcelRows(rawRows) {
     });
   }
 
-  // Format umum / bebas lainnya
   const findKey = (keywords) => {
     for (const h of headers) {
       const norm = h.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -1053,13 +1388,11 @@ function processFinalImport() {
   pendingImportData = [];
 }
 
-// Download Excel File
 function downloadTemplateExcel() {
   window.open('contoh_data_nasabah.xlsx', '_blank');
   showToast('File Excel pipeline berhasil diunduh!', 'success');
 }
 
-// Ekspor database aktif ke file Excel
 function exportDatabaseToExcel() {
   if (dbNasabah.length === 0) {
     showToast('Tidak ada data untuk diekspor', 'warning');
@@ -1288,6 +1621,7 @@ function setupEventListeners() {
       searchInput.select();
     } else if (e.key === 'Escape') {
       closeDetailModal();
+      closeVisitModal();
       closeUploadModal();
       closeFormModal();
     }
@@ -1378,12 +1712,13 @@ function setupEventListeners() {
   });
 
   // Top Buttons
+  document.getElementById('btnSyncTeam').addEventListener('click', () => syncFromCloud(true));
+  document.getElementById('btnExportLaporanKunjungan').addEventListener('click', exportLaporanKunjunganExcel);
   document.getElementById('btnOpenUploadModal').addEventListener('click', openUploadModal);
   document.getElementById('btnEmptyUpload').addEventListener('click', openUploadModal);
   document.getElementById('btnCloseModalUpload').addEventListener('click', closeUploadModal);
   document.getElementById('btnCancelUpload').addEventListener('click', closeUploadModal);
 
-  document.getElementById('btnDownloadTemplate').addEventListener('click', downloadTemplateExcel);
   document.getElementById('btnDownloadTemplateFromModal').addEventListener('click', downloadTemplateExcel);
 
   document.getElementById('btnExportExcel').addEventListener('click', exportDatabaseToExcel);
@@ -1394,18 +1729,15 @@ function setupEventListeners() {
   document.getElementById('btnCancelForm').addEventListener('click', closeFormModal);
   document.getElementById('nasabahForm').addEventListener('submit', handleFormSubmit);
 
-  // Reload Original Pipeline Data
-  const loadPipelineHandler = () => {
-    if (window.MANDIRI_PIPELINE_DATA && window.MANDIRI_PIPELINE_DATA.length > 0) {
-      dbNasabah = [...window.MANDIRI_PIPELINE_DATA];
-      saveDatabase();
-      populateSgpDropdown();
-      updateUI();
-      showToast(`Data pipeline asli (${dbNasabah.length} debitur) berhasil dimuat!`, 'success');
+  // Modal Catat Kunjungan
+  document.getElementById('btnCloseModalVisit').addEventListener('click', closeVisitModal);
+  document.getElementById('btnCancelVisit').addEventListener('click', closeVisitModal);
+  document.getElementById('formVisitStatus').addEventListener('submit', handleVisitSubmit);
+  document.getElementById('btnOpenVisitFromDetail').addEventListener('click', () => {
+    if (currentActiveNasabah) {
+      openVisitModal(currentActiveNasabah.id);
     }
-  };
-  document.getElementById('btnLoadDemo').addEventListener('click', loadPipelineHandler);
-  document.getElementById('btnEmptyDemo').addEventListener('click', loadPipelineHandler);
+  });
 
   // Modal Detail Close
   document.getElementById('btnCloseModalDetail').addEventListener('click', closeDetailModal);
