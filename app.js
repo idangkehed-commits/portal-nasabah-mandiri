@@ -992,6 +992,8 @@ async function handleVisitSubmit(e) {
   }
 
   try {
+    const debtorName = currentVisitNasabah.nama || 'Debitur';
+    const debtorId = currentVisitNasabah.id;
     const key = currentVisitNasabah.cifno || currentVisitNasabah.id;
     const selectedRadio = document.querySelector('input[name="radioVisitStatus"]:checked');
     const status = selectedRadio ? selectedRadio.value : 'belum';
@@ -1022,18 +1024,18 @@ async function handleVisitSubmit(e) {
 
     if (syncRes && syncRes.success) {
       if (status === 'tertarik') {
-        showToast(`✅ Status "${currentVisitNasabah.nama}" diset TERTARIK & TERKUNCI untuk seluruh tim!`, 'success');
+        showToast(`✅ Status "${debtorName}" diset TERTARIK & TERKUNCI untuk seluruh tim!`, 'success');
       } else if (status === 'tidak_tertarik') {
-        showToast(`✅ Status "${currentVisitNasabah.nama}" diset TIDAK TERTARIK (Tersinkron ke tim).`, 'warning');
+        showToast(`✅ Status "${debtorName}" diset TIDAK TERTARIK (Tersinkron ke tim).`, 'warning');
       } else {
-        showToast(`✅ Status "${currentVisitNasabah.nama}" di-reset ke Belum Digarap.`, 'info');
+        showToast(`✅ Status "${debtorName}" di-reset ke Belum Digarap.`, 'info');
       }
     } else {
       showToast(`⚠️ Tersimpan lokal di HP ini. Sinyal cloud tersendat, klik 'Sync Tim' saat internet stabil.`, 'warning');
     }
 
     // Jika modal detail sedang terbuka untuk nasabah ini, perbarui tampilannya
-    if (currentActiveNasabah && (currentActiveNasabah.id === currentVisitNasabah.id)) {
+    if (currentActiveNasabah && (currentActiveNasabah.id === debtorId)) {
       updateModalDetailVisitSection(currentActiveNasabah);
     }
   } catch (err) {
