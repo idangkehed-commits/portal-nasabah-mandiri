@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Portal Cek Kelayakan Kredit Nasabah - KUR & KUM Mandiri</title>
+
+  <!-- Mobile PWA Meta -->
+  <meta name="theme-color" content="#002776">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            mandiri: {
+              navy: '#002776',
+              dark: '#001947',
+              blue: '#0054A6',
+              lightBlue: '#EBF4FF',
+              gold: '#F59E0B',
+              yellow: '#FFB703',
+              accent: '#F8FAFC'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif']
+          },
+          boxShadow: {
+            'card': '0 4px 20px -2px rgba(0, 39, 118, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04)',
+            'card-hover': '0 10px 30px -4px rgba(0, 39, 118, 0.16), 0 4px 10px -2px rgba(0, 0, 0, 0.06)',
+            'gold': '0 4px 14px 0 rgba(245, 158, 11, 0.35)',
+            'blue': '0 4px 14px 0 rgba(0, 84, 166, 0.35)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Font: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- SheetJS / xlsx for Excel Reading & Writing -->
+  <script src="lib/xlsx.full.min.js"></script>
+  <script>
+    if (typeof XLSX === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>');
+    }
+  </script>
+
+  <style>
+    body {
+      -webkit-tap-highlight-color: transparent;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .kawan-lama-badge {
+      background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+      border: 1px solid #FCD34D;
+      box-shadow: 0 2px 6px rgba(245, 158, 11, 0.15);
+    }
+    .both-badge {
+      background: linear-gradient(135deg, #EFF6FF 0%, #F5F3FF 100%);
+      border: 1px solid #C7D2FE;
+    }
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #printArea, #printArea * {
+        visibility: visible;
+      }
+      #printArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased selection:bg-mandiri-blue selection:text-white">
+
+  <!-- ================= TOP NAVIGATION BAR ================= -->
+  <header class="bg-gradient-to-r from-mandiri-dark via-mandiri-navy to-mandiri-blue text-white shadow-lg sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        
+        <!-- Brand & Title -->
+        <div class="flex items-center space-x-3 sm:space-x-4">
+          <div class="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md p-2 flex items-center justify-center border border-white/20 shadow-inner">
+            <svg class="w-8 h-8 text-mandiri-yellow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center">
+                Portal Data Nasabah
+                <span class="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-mandiri-yellow text-mandiri-dark uppercase tracking-wider hidden sm:inline-block">Mikro Mandiri</span>
+              </h1>
+            </div>
+            <p class="text-xs sm:text-sm text-blue-100 flex items-center">
+              <span>Cek Kelayakan: KUR • KUM • Kawan Lama • Limit Plafon</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Header Actions -->
+        <div class="flex items-center space-x-2 sm:space-x-3">
+          <!-- Button Upload Excel -->
+          <button id="btnOpenUploadModal" class="flex items-center space-x-2 px-3.5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-medium text-xs sm:text-sm shadow-md transition-all duration-200 transform hover:-translate-y-0.5">
+            <i class="fa-solid fa-file-excel text-base"></i>
+            <span class="hidden sm:inline">Upload Excel</span>
+            <span class="sm:hidden">Upload</span>
+          </button>
+
+          <!-- Button Template Excel -->
+          <button id="btnDownloadTemplate" class="flex items-center space-x-1.5 px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-medium border border-white/20 backdrop-blur transition" title="Unduh Format Excel Pipeline">
+            <i class="fa-solid fa-download"></i>
+            <span class="hidden md:inline">Download Excel</span>
+          </button>
+
+          <!-- Button Reload Pipeline -->
+          <button id="btnLoadDemo" class="flex items-center space-x-1.5 px-3 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-mandiri-dark text-xs sm:text-sm font-semibold shadow-gold transition" title="Muat Ulang Pipeline Asli">
+            <i class="fa-solid fa-rotate"></i>
+            <span class="hidden lg:inline">Muat Pipeline Asli</span>
+          </button>
+
+          <!-- Button Add Nasabah Manual -->
+          <button id="btnOpenAddModal" class="flex items-center space-x-1.5 px-3 py-2.5 rounded-xl bg-white text-mandiri-navy hover:bg-blue-50 text-xs sm:text-sm font-semibold shadow transition" title="Tambah Nasabah Baru">
+            <i class="fa-solid fa-plus"></i>
+            <span class="hidden sm:inline">Tambah</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= SUB HEADER / DASHBOARD STATS ================= -->
+  <section class="bg-white border-b border-slate-200 py-3 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5 sm:gap-3.5">
+        
+        <!-- Total Nasabah -->
+        <div class="flex items-center p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-blue-200 transition">
+          <div class="w-10 h-10 rounded-lg bg-blue-100 text-mandiri-blue flex items-center justify-center mr-3 shrink-0">
+            <i class="fa-solid fa-users text-lg"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[11px] text-slate-500 font-medium">Total Pipeline</p>
+            <p id="statTotalNasabah" class="text-base sm:text-lg font-bold text-slate-800">0</p>
+          </div>
+        </div>
+
+        <!-- Nasabah Kawan Lama -->
+        <div class="flex items-center p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 hover:border-amber-300 transition">
+          <div class="w-10 h-10 rounded-lg bg-amber-200 text-amber-800 flex items-center justify-center mr-3 shrink-0 shadow-xs">
+            <i class="fa-solid fa-award text-lg"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[11px] text-amber-700 font-medium">⭐ Kawan Lama</p>
+            <p id="statTotalKawanLama" class="text-base sm:text-lg font-bold text-amber-800">0</p>
+          </div>
+        </div>
+
+        <!-- Nasabah Bisa KUR & KUM -->
+        <div class="flex items-center p-3 rounded-xl bg-purple-50/70 border border-purple-200/80 hover:border-purple-300 transition">
+          <div class="w-10 h-10 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center mr-3 shrink-0">
+            <i class="fa-solid fa-shuffle text-lg"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[11px] text-purple-700 font-medium">Bisa KUR & KUM</p>
+            <p id="statTotalBoth" class="text-base sm:text-lg font-bold text-purple-800">0</p>
+          </div>
+        </div>
+
+        <!-- Nasabah KUR -->
+        <div class="flex items-center p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-emerald-200 transition">
+          <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center mr-3 shrink-0">
+            <i class="fa-solid fa-hand-holding-dollar text-lg"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[11px] text-slate-500 font-medium">Eligible KUR</p>
+            <p id="statTotalKUR" class="text-base sm:text-lg font-bold text-emerald-600">0</p>
+          </div>
+        </div>
+
+        <!-- Nasabah KUM -->
+        <div class="flex items-center p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-indigo-200 transition">
+          <div class="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center mr-3 shrink-0">
+            <i class="fa-solid fa-briefcase text-lg"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-[11px] text-slate-500 font-medium">Eligible KUM</p>
+            <p id="statTotalKUM" class="text-base sm:text-lg font-bold text-indigo-600">0</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= HERO SEARCH SECTION ================= -->
+  <section class="pt-6 pb-3 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+    <div class="bg-gradient-to-br from-white via-white to-blue-50/50 rounded-2xl p-4 sm:p-7 border border-slate-200 shadow-card">
+      
+      <div class="max-w-3xl mx-auto text-center mb-5">
+        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-800 tracking-tight">
+          Pencarian & Skrining Kelayakan Kredit
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">
+          Ketik Nama Debitur, Nomor CIF, Nomor HP / WhatsApp, atau Alamat untuk cek produk yang bisa diambil seketika.
+        </p>
+      </div>
+
+      <!-- Main Search Input -->
+      <div class="max-w-3xl mx-auto relative">
+        <div class="relative flex items-center">
+          <div class="absolute inset-y-0 left-0 pl-4 sm:pl-5 flex items-center pointer-events-none text-mandiri-blue">
+            <i class="fa-solid fa-magnifying-glass text-lg sm:text-xl"></i>
+          </div>
+          
+          <input 
+            type="text" 
+            id="searchInput" 
+            placeholder="Cari nama debitur (cth: Dini, Siti, Vika), no CIF, no HP, atau alamat..." 
+            class="w-full pl-12 sm:pl-14 pr-24 sm:pr-32 py-3.5 sm:py-4 bg-slate-50 focus:bg-white text-slate-800 placeholder-slate-400 border-2 border-slate-200 focus:border-mandiri-blue rounded-2xl shadow-inner focus:shadow-blue text-sm sm:text-base outline-none transition duration-200"
+            autocomplete="off"
+            spellcheck="false"
+          >
+
+          <!-- Clear Button & Keyboard Shortcut Hint -->
+          <div class="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center space-x-1.5">
+            <button id="btnClearSearch" class="hidden text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-200 transition" title="Bersihkan Pencarian">
+              <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+            <span class="hidden sm:inline-flex items-center px-2 py-1 text-xs font-semibold text-slate-400 bg-slate-200/80 rounded-md select-none">
+              Ctrl + K
+            </span>
+          </div>
+        </div>
+
+        <!-- Filter Chips & Petugas Dropdown -->
+        <div class="flex items-center flex-wrap gap-2 mt-3.5 pt-1 text-xs">
+          <span class="text-slate-400 font-medium mr-1 text-xs">Filter Cepat:</span>
+          
+          <button class="filter-chip active px-3 py-1.5 rounded-lg border text-xs font-semibold transition" data-filter="all">
+            Semua (<span id="countAll">0</span>)
+          </button>
+          
+          <button class="filter-chip px-3 py-1.5 rounded-lg border text-xs font-semibold transition" data-filter="kawan-lama">
+            <i class="fa-solid fa-award mr-1 text-amber-500"></i> ⭐ Kawan Lama (<span id="countKawanLama">0</span>)
+          </button>
+
+          <button class="filter-chip px-3 py-1.5 rounded-lg border text-xs font-semibold transition" data-filter="both">
+            <i class="fa-solid fa-shuffle mr-1 text-purple-600"></i> KUR & KUM (<span id="countBoth">0</span>)
+          </button>
+
+          <button class="filter-chip px-3 py-1.5 rounded-lg border text-xs font-semibold transition" data-filter="kur">
+            <i class="fa-solid fa-hand-holding-dollar mr-1 text-emerald-600"></i> KUR Saja (<span id="countKUR">0</span>)
+          </button>
+
+          <button class="filter-chip px-3 py-1.5 rounded-lg border text-xs font-semibold transition" data-filter="kum">
+            <i class="fa-solid fa-briefcase mr-1 text-indigo-600"></i> KUM Saja (<span id="countKUM">0</span>)
+          </button>
+
+          <button class="filter-chip px-3 py-1.5 rounded-lg border text-xs font-semibold transition" data-filter="consent-yes">
+            <i class="fa-solid fa-circle-check mr-1 text-emerald-500"></i> Ada Consent WA (<span id="countConsentYes">0</span>)
+          </button>
+
+          <!-- Dropdown Petugas SGP -->
+          <div class="ml-auto flex items-center space-x-1.5">
+            <label for="selectSgpFilter" class="text-slate-400 text-xs font-medium hidden sm:inline">Petugas SGP:</label>
+            <select id="selectSgpFilter" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-700 outline-none font-medium">
+              <option value="all">Semua Petugas</option>
+              <!-- Populated dynamically by JS -->
+            </select>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= VIEW MODE SWITCHER & RESULTS HEADER ================= -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-2">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-slate-200">
+      
+      <!-- Info Result Count -->
+      <div class="flex items-center space-x-2">
+        <h3 class="text-sm sm:text-base font-bold text-slate-700 flex items-center">
+          <span id="resultsHeading">Menampilkan Semua Nasabah</span>
+          <span id="badgeResultCount" class="ml-2 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-mandiri-blue">
+            0 data
+          </span>
+        </h3>
+      </div>
+
+      <!-- View Switcher & Action Tools -->
+      <div class="flex items-center space-x-2 self-end sm:self-auto">
+        <!-- View Toggle Buttons: Cards vs Table -->
+        <div class="bg-slate-200/80 p-1 rounded-xl flex items-center space-x-1 text-xs font-semibold">
+          <button id="btnViewCards" class="px-3 py-1.5 rounded-lg bg-white text-mandiri-navy shadow-xs flex items-center space-x-1 transition" title="Tampilan Kartu Nyaman">
+            <i class="fa-solid fa-grip text-xs"></i>
+            <span class="hidden sm:inline">Kartu Nyaman</span>
+          </button>
+          <button id="btnViewTable" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 flex items-center space-x-1 transition" title="Tampilan Tabel Lengkap">
+            <i class="fa-solid fa-table-list text-xs"></i>
+            <span class="hidden sm:inline">Tabel Lengkap</span>
+          </button>
+        </div>
+
+        <!-- Export to Excel Button -->
+        <button id="btnExportExcel" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center space-x-1.5 shadow-xs transition" title="Download data nasabah saat ini ke Excel">
+          <i class="fa-solid fa-file-export text-emerald-600"></i>
+          <span class="hidden md:inline">Ekspor Excel</span>
+        </button>
+
+        <!-- Reset / Clear Database Button -->
+        <button id="btnResetDatabase" class="px-2.5 py-1.5 rounded-xl border border-red-200 bg-white hover:bg-red-50 text-red-600 text-xs font-semibold flex items-center transition" title="Kosongkan database">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= MAIN DATA DISPLAY AREA ================= -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-1 py-4">
+
+    <!-- EMPTY DATA STATE -->
+    <div id="emptyDataState" class="hidden text-center py-16 px-4 bg-white rounded-2xl border border-slate-200 shadow-card max-w-2xl mx-auto my-8">
+      <div class="w-20 h-20 mx-auto rounded-2xl bg-blue-50 text-mandiri-blue flex items-center justify-center mb-4 border border-blue-100">
+        <i class="fa-solid fa-file-excel text-4xl text-emerald-500"></i>
+      </div>
+      <h3 class="text-xl font-bold text-slate-800">Belum Ada Data Nasabah</h3>
+      <p class="text-sm text-slate-500 mt-2 max-w-md mx-auto">
+        Silakan upload file Excel daftar nasabah Anda atau muat ulang data pipeline asli (118 debitur).
+      </p>
+      <div class="flex items-center justify-center flex-wrap gap-3 mt-6">
+        <button id="btnEmptyUpload" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold shadow-md transition flex items-center space-x-2">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <span>Upload File Excel (.xlsx)</span>
+        </button>
+        <button id="btnEmptyDemo" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-mandiri-dark text-sm font-bold shadow-gold transition flex items-center space-x-2">
+          <i class="fa-solid fa-rotate"></i>
+          <span>Muat Data Asli Pipeline</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- EMPTY SEARCH STATE: DATA ADA TAPI TIDAK COCOK DENGAN PENCARIAN -->
+    <div id="noMatchSearchState" class="hidden text-center py-16 px-4 bg-white rounded-2xl border border-slate-200 shadow-card max-w-xl mx-auto my-8">
+      <div class="w-16 h-16 mx-auto rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mb-3">
+        <i class="fa-solid fa-user-xmark text-2xl"></i>
+      </div>
+      <h4 class="text-lg font-bold text-slate-800">Nasabah Tidak Ditemukan</h4>
+      <p class="text-sm text-slate-500 mt-1.5">
+        Tidak ditemukan nasabah dengan kata kunci "<span id="searchedKeyword" class="font-semibold text-slate-700"></span>".
+      </p>
+      <p class="text-xs text-slate-400 mt-1">
+        Periksa ejaan nama, digit nomor CIF, nomor HP, atau atur ulang filter yang aktif.
+      </p>
+      <div class="mt-5 flex items-center justify-center gap-3">
+        <button id="btnResetSearchMatch" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">
+          Lihat Semua Nasabah
+        </button>
+        <button id="btnDirectAddNasabah" class="px-4 py-2 rounded-xl bg-mandiri-navy hover:bg-mandiri-blue text-white text-xs font-semibold shadow transition">
+          + Tambah Nasabah Ini
+        </button>
+      </div>
+    </div>
+
+    <!-- VIEW 1: COMFORTABLE CARDS GRID (DEFAULT) -->
+    <div id="cardsViewContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+      <!-- Cards populated by JavaScript -->
+    </div>
+
+    <!-- VIEW 2: FULL DATA TABLE VIEW -->
+    <div id="tableViewContainer" class="hidden bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+      <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-left text-xs sm:text-sm text-slate-600">
+          <thead class="bg-slate-50 text-slate-700 text-xs font-bold uppercase tracking-wider border-b border-slate-200 select-none">
+            <tr>
+              <th class="py-3.5 px-4 w-12 text-center">No</th>
+              <th class="py-3.5 px-4 cursor-pointer hover:bg-slate-100" data-sort="nama">
+                Nama Debitur <i class="fa-solid fa-sort ml-1 text-slate-400"></i>
+              </th>
+              <th class="py-3.5 px-4">No. CIF</th>
+              <th class="py-3.5 px-4">No. HP / WA</th>
+              <th class="py-3.5 px-4 cursor-pointer hover:bg-slate-100" data-sort="produk">
+                Produk <i class="fa-solid fa-sort ml-1 text-slate-400"></i>
+              </th>
+              <th class="py-3.5 px-4 cursor-pointer hover:bg-slate-100" data-sort="kategori">
+                Kategori <i class="fa-solid fa-sort ml-1 text-slate-400"></i>
+              </th>
+              <th class="py-3.5 px-4">Program Kelayakan</th>
+              <th class="py-3.5 px-4 text-right cursor-pointer hover:bg-slate-100" data-sort="limit">
+                Eligible Limit <i class="fa-solid fa-sort ml-1 text-slate-400"></i>
+              </th>
+              <th class="py-3.5 px-4 text-center">Consent</th>
+              <th class="py-3.5 px-4 text-center w-28">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-slate-100 font-medium">
+            <!-- Table rows populated by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Table Pagination Bar -->
+      <div class="px-4 py-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+        <div class="flex items-center space-x-2">
+          <span>Tampilkan</span>
+          <select id="selectPageSize" class="bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs text-slate-700 outline-none">
+            <option value="12">12 data</option>
+            <option value="24" selected>24 data</option>
+            <option value="50">50 data</option>
+            <option value="100">100 data</option>
+          </select>
+          <span>per halaman</span>
+        </div>
+        <div class="flex items-center space-x-1" id="paginationControls">
+          <!-- Pagination buttons populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- CARDS PAGINATION (WHEN IN CARD VIEW) -->
+    <div id="cardsPaginationContainer" class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 px-2 text-xs text-slate-500">
+      <div id="cardsPaginationInfo" class="font-medium">
+        Menampilkan 1 - 24 dari 118 nasabah
+      </div>
+      <div id="cardsPaginationButtons" class="flex items-center space-x-1">
+        <!-- Buttons populated by JS -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ================= MODAL: DETAIL NASABAH & SIMULASI ANGSURAN ================= -->
+  <div id="modalDetailNasabah" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in duration-200 max-h-[92vh] flex flex-col">
+      
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-mandiri-dark via-mandiri-navy to-mandiri-blue text-white px-6 py-5 flex items-center justify-between shrink-0">
+        <div class="flex items-center space-x-3">
+          <div class="w-11 h-11 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20 text-mandiri-yellow text-xl">
+            <i class="fa-solid fa-id-card-clip"></i>
+          </div>
+          <div>
+            <span class="text-xs font-semibold uppercase tracking-wider text-blue-200">Hasil Skrining Kelayakan Kredit</span>
+            <h3 id="modalDetailNama" class="text-lg sm:text-xl font-bold text-white tracking-tight leading-tight">Nama Nasabah</h3>
+          </div>
+        </div>
+        <button id="btnCloseModalDetail" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition" title="Tutup Modal">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-6 overflow-y-auto custom-scrollbar space-y-5 flex-1 text-slate-700">
+        
+        <!-- Highlight Box: Produk, Kategori, Limit -->
+        <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-xs space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
+            <div class="flex items-center space-x-2 flex-wrap gap-y-1">
+              <span id="modalDetailProdukBadge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-100 text-blue-800">
+                KUR & KUM
+              </span>
+              <span id="modalDetailKategoriBadge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300">
+                ⭐ KAWAN LAMA
+              </span>
+            </div>
+            <div id="modalDetailConsentBadge" class="text-xs px-2.5 py-1 rounded-lg font-bold flex items-center">
+              Ada Consent
+            </div>
+          </div>
+
+          <!-- Limit Display Box -->
+          <div class="pt-1">
+            <span class="text-xs uppercase font-semibold text-slate-500 tracking-wider">Eligible Plafon Kredit Maksimal:</span>
+            <h2 id="modalDetailLimit" class="text-2xl sm:text-3xl font-extrabold text-mandiri-navy">
+              Rp 0
+            </h2>
+
+            <!-- Opsi Limit Ganda (jika ada Limit 1 dan Limit 2) -->
+            <div id="modalMultiLimitContainer" class="hidden mt-3 grid grid-cols-2 gap-2 text-xs">
+              <div class="bg-white p-2.5 rounded-xl border border-slate-200">
+                <span class="text-slate-400 block font-medium" id="modalLabelLimit1">Plafon Opsi 1</span>
+                <span id="modalValLimit1" class="font-bold text-mandiri-blue text-sm block">Rp 0</span>
+              </div>
+              <div class="bg-white p-2.5 rounded-xl border border-slate-200">
+                <span class="text-slate-400 block font-medium" id="modalLabelLimit2">Plafon Opsi 2</span>
+                <span id="modalValLimit2" class="font-bold text-indigo-700 text-sm block">Rp 0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Keterangan Program & Kelayakan -->
+          <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3 text-xs sm:text-sm text-emerald-900 flex items-start space-x-2">
+            <i class="fa-solid fa-circle-check text-emerald-600 mt-0.5 text-base shrink-0"></i>
+            <div>
+              <span class="font-bold">Detail Program & Kriteria Kelayakan:</span>
+              <p id="modalDetailEligibleNote" class="mt-0.5 text-slate-700 leading-relaxed"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data Profil Lengkap Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs sm:text-sm">
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200">
+            <span class="text-slate-400 text-xs block">Nomor CIF (Customer ID)</span>
+            <div class="flex items-center justify-between mt-1">
+              <span id="modalDetailCIF" class="font-bold text-slate-800 font-mono text-sm">-</span>
+              <button id="btnCopyCIF" class="text-xs text-mandiri-blue hover:text-blue-700 font-semibold p-1" title="Salin CIF">
+                <i class="fa-regular fa-copy"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200">
+            <span class="text-slate-400 text-xs block">Nomor Telepon / WhatsApp</span>
+            <div class="flex items-center justify-between mt-1">
+              <span id="modalDetailHP" class="font-bold text-slate-800 font-mono text-sm">-</span>
+              <a id="linkWA" href="#" target="_blank" class="text-xs text-emerald-600 hover:text-emerald-700 font-semibold flex items-center space-x-1 p-1">
+                <i class="fa-brands fa-whatsapp text-sm"></i> <span>Chat WA</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200">
+            <span class="text-slate-400 text-xs block">Petugas SGP / RM Pengampu</span>
+            <span id="modalDetailSGP" class="font-semibold text-slate-800 mt-1 block">-</span>
+          </div>
+
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200">
+            <span class="text-slate-400 text-xs block">Aturan Tindakan & Consent</span>
+            <span id="modalDetailTindakan" class="font-semibold text-slate-800 mt-1 block text-xs">-</span>
+          </div>
+
+          <div class="bg-white p-3.5 rounded-xl border border-slate-200 sm:col-span-2">
+            <span class="text-slate-400 text-xs block">Alamat Debitur</span>
+            <span id="modalDetailAlamat" class="font-semibold text-slate-800 mt-1 block">-</span>
+          </div>
+        </div>
+
+        <!-- Simulasi Angsuran Instan (Tabel Cicilan) -->
+        <div class="border border-slate-200 rounded-2xl p-4 bg-slate-50">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs sm:text-sm font-bold text-slate-800 flex items-center">
+              <i class="fa-solid fa-calculator text-mandiri-blue mr-2"></i>
+              Simulasi Estimasi Cicilan Bulanan
+            </h4>
+            <span class="text-xs text-slate-400 font-medium">Berdasarkan Plafon Utama</span>
+          </div>
+          
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+            <div class="bg-white p-2.5 rounded-xl border border-slate-200">
+              <span class="text-slate-400 block font-medium">12 Bulan (1 Thn)</span>
+              <span id="simTenor12" class="font-bold text-mandiri-navy text-sm mt-0.5 block">Rp 0</span>
+              <span class="text-[10px] text-slate-400">per bulan</span>
+            </div>
+            <div class="bg-white p-2.5 rounded-xl border border-slate-200">
+              <span class="text-slate-400 block font-medium">24 Bulan (2 Thn)</span>
+              <span id="simTenor24" class="font-bold text-mandiri-navy text-sm mt-0.5 block">Rp 0</span>
+              <span class="text-[10px] text-slate-400">per bulan</span>
+            </div>
+            <div class="bg-white p-2.5 rounded-xl border border-slate-200 bg-blue-50/50 border-blue-200">
+              <span class="text-blue-700 block font-semibold">36 Bulan (3 Thn)</span>
+              <span id="simTenor36" class="font-extrabold text-mandiri-blue text-sm mt-0.5 block">Rp 0</span>
+              <span class="text-[10px] text-blue-600">paling populer</span>
+            </div>
+            <div class="bg-white p-2.5 rounded-xl border border-slate-200">
+              <span class="text-slate-400 block font-medium">48 Bulan (4 Thn)</span>
+              <span id="simTenor48" class="font-bold text-mandiri-navy text-sm mt-0.5 block">Rp 0</span>
+              <span class="text-[10px] text-slate-400">per bulan</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Template WhatsApp Penawaran -->
+        <div class="border border-slate-200 rounded-2xl p-4 bg-white">
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-xs font-bold text-slate-700 flex items-center">
+              <i class="fa-brands fa-whatsapp text-emerald-500 mr-2 text-sm"></i>
+              Template Penawaran WhatsApp
+            </label>
+            <select id="selectWaTemplate" class="text-xs border border-slate-200 rounded-lg px-2 py-1 text-slate-700 outline-none">
+              <option value="kawanlama">Penawaran Spesial Kawan Lama</option>
+              <option value="resmi">Penawaran Formal Mandiri</option>
+              <option value="singkat">Format Singkat & Santai</option>
+            </select>
+          </div>
+          <textarea id="textWaPreview" rows="3" class="w-full text-xs font-mono p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white outline-none resize-none text-slate-700" readonly></textarea>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer Action Buttons -->
+      <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 shrink-0">
+        <div class="flex items-center space-x-2">
+          <button id="btnCopySummary" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition flex items-center space-x-1.5 shadow-xs">
+            <i class="fa-regular fa-copy"></i>
+            <span>Salin Ringkasan</span>
+          </button>
+          <button id="btnPrintSlip" class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition flex items-center space-x-1.5 shadow-xs">
+            <i class="fa-solid fa-print"></i>
+            <span>Cetak Lembar</span>
+          </button>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button id="btnSendWA" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-md transition flex items-center space-x-2">
+            <i class="fa-brands fa-whatsapp text-base"></i>
+            <span>Buka WhatsApp</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= MODAL: UPLOAD EXCEL ================= -->
+  <div id="modalUpload" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden max-h-[92vh] flex flex-col">
+      
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-mandiri-dark via-mandiri-navy to-mandiri-blue text-white px-6 py-5 flex items-center justify-between shrink-0">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-400/30 text-xl">
+            <i class="fa-solid fa-file-excel"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-white">Upload File Pipeline Nasabah</h3>
+            <p class="text-xs text-blue-200">Mendukung format .xlsx, .xls, dan .csv resmi Mandiri</p>
+          </div>
+        </div>
+        <button id="btnCloseModalUpload" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto custom-scrollbar space-y-5 flex-1">
+        
+        <!-- Drag and Drop Zone -->
+        <div id="dropZone" class="border-2 border-dashed border-slate-300 hover:border-mandiri-blue rounded-2xl p-8 text-center cursor-pointer bg-slate-50 hover:bg-blue-50/40 transition-all duration-200">
+          <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="hidden">
+          <div class="w-16 h-16 mx-auto rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3">
+            <i class="fa-solid fa-cloud-arrow-up text-3xl"></i>
+          </div>
+          <h4 class="text-sm sm:text-base font-bold text-slate-800">
+            Klik untuk Pilih File atau Tarik (Drag & Drop) File Excel ke Sini
+          </h4>
+          <p class="text-xs text-slate-500 mt-1">
+            Mendukung file ekspor leads CRM / MIS Mandiri secara otomatis.
+          </p>
+          <div class="mt-4 flex items-center justify-center space-x-3">
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-600">.xlsx</span>
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-600">.xls</span>
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-600">.csv</span>
+          </div>
+        </div>
+
+        <!-- Excel Preview & Column Mapper (Muncul setelah file dipilih) -->
+        <div id="uploadPreviewSection" class="hidden space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-700 flex items-center">
+              <i class="fa-solid fa-circle-check text-emerald-500 mr-2"></i>
+              File Terbaca: <span id="previewFileName" class="text-mandiri-blue ml-1 font-semibold">data.xlsx</span>
+            </span>
+            <span id="previewRowCount" class="text-xs font-bold bg-blue-100 text-mandiri-blue px-2.5 py-0.5 rounded-full">
+              0 baris data
+            </span>
+          </div>
+
+          <!-- Opsi Mode Simpan: Ganti atau Tambah -->
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+            <span class="font-medium text-slate-700">Metode Impor Data:</span>
+            <div class="flex items-center space-x-4">
+              <label class="flex items-center space-x-1.5 cursor-pointer">
+                <input type="radio" name="importMode" value="replace" checked class="text-mandiri-blue">
+                <span>Ganti Semua Data</span>
+              </label>
+              <label class="flex items-center space-x-1.5 cursor-pointer">
+                <input type="radio" name="importMode" value="append" class="text-mandiri-blue">
+                <span>Tambahkan ke Data Eksisting</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Table preview 3 baris -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden text-xs">
+            <div class="bg-slate-100 px-3 py-2 font-bold text-slate-700 border-b border-slate-200">
+              Pratinjau Data (3 Baris Pertama):
+            </div>
+            <div class="overflow-x-auto max-h-40 custom-scrollbar">
+              <table id="previewTable" class="w-full text-left text-xs divide-y divide-slate-100">
+                <!-- populated by JS -->
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-between shrink-0">
+        <button id="btnDownloadTemplateFromModal" class="text-xs text-mandiri-blue font-semibold hover:underline flex items-center">
+          <i class="fa-solid fa-download mr-1.5"></i> Download File Pipeline
+        </button>
+        <div class="flex items-center space-x-2">
+          <button id="btnCancelUpload" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-200 text-xs font-semibold transition">
+            Batal
+          </button>
+          <button id="btnProcessImport" disabled class="px-5 py-2 rounded-xl bg-emerald-600 disabled:bg-slate-300 disabled:cursor-not-allowed hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-check"></i>
+            <span>Simpan ke Database</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= MODAL: TAMBAH / EDIT MANUAL NASABAH ================= -->
+  <div id="modalNasabahForm" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
+      
+      <div class="bg-gradient-to-r from-mandiri-dark via-mandiri-navy to-mandiri-blue text-white px-6 py-5 flex items-center justify-between shrink-0">
+        <h3 id="modalFormTitle" class="text-lg font-bold">Tambah Debitur Baru</h3>
+        <button id="btnCloseModalForm" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="nasabahForm" class="p-6 overflow-y-auto custom-scrollbar space-y-4 flex-1 text-xs sm:text-sm">
+        <input type="hidden" id="formNasabahId">
+        
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Nama Lengkap Debitur *</label>
+          <input type="text" id="formNama" required placeholder="Contoh: DINI ROCHYANTI" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-mandiri-blue outline-none text-slate-800">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">No. CIF (Customer ID)</label>
+            <input type="text" id="formCIF" placeholder="Contoh: 4002413420" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-mandiri-blue outline-none font-mono text-slate-800">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">No. HP / WhatsApp *</label>
+            <input type="text" id="formHP" required placeholder="0812..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-mandiri-blue outline-none font-mono text-slate-800">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Produk Yang Bisa Diambil *</label>
+            <select id="formProduk" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-mandiri-blue outline-none text-slate-800">
+              <option value="Bisa KUR & KUM (Pilihan Ganda)">Bisa KUR & KUM (Pilihan Ganda)</option>
+              <option value="KUR Mikro / Kecil">KUR Mikro / Kecil</option>
+              <option value="KUM Mikro">KUM Mikro</option>
+              <option value="KUR Ultima">KUR Ultima</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Kategori Nasabah *</label>
+            <select id="formKategori" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-mandiri-blue outline-none text-slate-800">
+              <option value="Kawan Lama (Lunas ≤ 3 Bln)">⭐ Kawan Lama (Lunas ≤ 3 Bln)</option>
+              <option value="Kawan Lama (Lunas 3-12 Bln)">⭐ Kawan Lama (Lunas 3-12 Bln)</option>
+              <option value="Kawan Lama (Lunas > 12 Bln)">⭐ Kawan Lama (Lunas > 12 Bln)</option>
+              <option value="ETB / Suplesi">🔄 ETB / Suplesi Ex-KUR</option>
+              <option value="KUR Ultima">💎 KUR Ultima</option>
+              <option value="Nasabah Baru">Nasabah Baru</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Eligible Limit Utama (Plafon Rp) *</label>
+            <input type="number" id="formLimit" required placeholder="Contoh: 350000000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-mandiri-blue outline-none font-semibold text-slate-800">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Petugas SGP / RM</label>
+            <input type="text" id="formSGP" placeholder="Contoh: GILLAN MUHAMMAD" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-mandiri-blue outline-none text-slate-800">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Keterangan Program Eligible</label>
+          <input type="text" id="formEligibleNote" placeholder="Contoh: Program: AMUNISI • KUM Kawan Lama" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-mandiri-blue outline-none text-slate-800">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Alamat Debitur</label>
+          <input type="text" id="formAlamat" placeholder="Contoh: Kmp. Bbk Radio Citeureup Dayeuhkolot Bandung" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-mandiri-blue outline-none text-slate-800">
+        </div>
+
+        <div class="pt-3 flex items-center justify-end space-x-2 border-t border-slate-200">
+          <button type="button" id="btnCancelForm" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold transition">
+            Batal
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-mandiri-navy hover:bg-mandiri-blue text-white font-semibold shadow transition">
+            Simpan Debitur
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ================= PRINT CONTAINER ================= -->
+  <div id="printArea" class="hidden">
+    <div style="font-family: Arial, sans-serif; padding: 30px; max-width: 800px; margin: auto; border: 2px solid #002776;">
+      <div style="border-bottom: 2px solid #002776; padding-bottom: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2 style="color: #002776; margin: 0; font-size: 22px;">LEMBAR SKRINING KELAYAKAN KREDIT MIKRO</h2>
+          <p style="margin: 4px 0 0 0; color: #555; font-size: 13px;">Unit Bisnis Mikro • Bank Mandiri</p>
+        </div>
+        <div style="text-align: right; font-size: 12px; color: #666;">
+          Tanggal Cetak: <span id="printDate"></span>
+        </div>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
+        <tr>
+          <td style="padding: 8px; font-weight: bold; width: 30%; border: 1px solid #ddd; background: #f8f9fa;">Nama Debitur</td>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #002776;" id="printNama">-</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd; background: #f8f9fa;">Nomor CIF</td>
+          <td style="padding: 8px; border: 1px solid #ddd; font-family: monospace;" id="printCIF">-</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd; background: #f8f9fa;">No. Telepon / WA</td>
+          <td style="padding: 8px; border: 1px solid #ddd;" id="printHP">-</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd; background: #f8f9fa;">Alamat</td>
+          <td style="padding: 8px; border: 1px solid #ddd;" id="printAlamat">-</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd; background: #f8f9fa;">Petugas SGP / RM</td>
+          <td style="padding: 8px; border: 1px solid #ddd;" id="printSGP">-</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd; background: #f8f9fa;">Kategori Nasabah</td>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #d97706;" id="printKategori">-</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd; background: #f8f9fa;">Rekomendasi Produk</td>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #0054A6;" id="printProduk">-</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd; background: #f8f9fa;">Eligible Limit (Plafon)</td>
+          <td style="padding: 8px; border: 1px solid #ddd; font-size: 18px; font-weight: bold; color: #002776;" id="printLimit">-</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; font-weight: bold; border: 1px solid #ddd; background: #f8f9fa;">Program Eligible</td>
+          <td style="padding: 8px; border: 1px solid #ddd;" id="printEligibleNote">-</td>
+        </tr>
+      </table>
+
+      <h4 style="color: #002776; margin: 15px 0 8px 0; font-size: 14px;">Estimasi Cicilan Angsuran (Plafon Utama):</h4>
+      <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px; margin-bottom: 30px;">
+        <tr style="background: #002776; color: white;">
+          <th style="padding: 8px; border: 1px solid #002776;">12 Bulan (1 Thn)</th>
+          <th style="padding: 8px; border: 1px solid #002776;">24 Bulan (2 Thn)</th>
+          <th style="padding: 8px; border: 1px solid #002776;">36 Bulan (3 Thn)</th>
+          <th style="padding: 8px; border: 1px solid #002776;">48 Bulan (4 Thn)</th>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;" id="printSim12">-</td>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;" id="printSim24">-</td>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;" id="printSim36">-</td>
+          <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;" id="printSim48">-</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ================= TOAST NOTIFICATION ================= -->
+  <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+  <!-- Data Leads JS (118 Pre-loaded authentic Mandiri leads) -->
+  <script src="data_leads.js"></script>
+  <!-- App Logic JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "portal-nasabah-kredit",
+  "version": "1.0.0",
+  "description": "Portal Cek Kelayakan Kredit Nasabah KUR & KUM Mandiri (24 Jam Online)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "mandiri",
+    "kredit",
+    "kur",
+    "kum",
+    "kawan-lama"
+  ],
+  "author": "idangkehed-commits",
+  "license": "ISC"
+}
