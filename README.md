@@ -1,91 +1,82 @@
-# 🏛️ Portal Cek Kelayakan Kredit Nasabah (KUR & KUM)
+# 🏛️ Portal Cek Kelayakan Kredit Nasabah Mandiri (KUR & KUM)
 
-Aplikasi web modern, cepat, dan nyaman untuk mencari dan memeriksa data kelayakan kredit nasabah (KUR, KUM, kategori Kawan Lama, status eligibilitas, dan eligible limit/plafon kredit) berdasarkan data pipeline yang diunggah dalam bentuk Excel.
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/idangkehed-commits/portal-nasabah-mandiri)
 
----
-
-## ✨ Fitur Utama
-
-1. **Pencarian Cepat & Nyaman (Instant Search)**
-   - Cari data nasabah seketika berdasarkan **Nama Lengkap**, **NIK KTP (16 digit)**, **Nomor HP / WhatsApp**, atau **Kota / Sektor Usaha**.
-   - Shortcut keyboard: Cukup tekan tombol `/` atau `Ctrl + K` untuk langsung fokus ke kotak pencarian.
-   - Filter cepat 1-klik:
-     - 🔵 **KUR Saja** (Kredit Usaha Rakyat: Super Mikro, Mikro, Ritel)
-     - 🟣 **KUM Saja** (Kredit Usaha Mikro)
-     - ⭐ **Kawan Lama** (Nasabah eksisting dengan badge emas VIP)
-     - 📈 **Limit ≥ Rp 50 Juta**
-
-2. **Tampilan Informasi Kelayakan Lengkap**
-   Ketika nasabah ditemukan, sistem langsung menampilkan:
-   - **Rekomendasi Produk**: KUR (Mikro, Super Mikro, Ritel) atau KUM (Mikro, Regular).
-   - **Kategori Nasabah**: ⭐ **Kawan Lama**, Nasabah Baru, Nasabah Loyal, atau Payroll.
-   - **Status Kelayakan (Eligible)**: Keterangan mendalam (misal: *Eligible tanpa agunan tambahan*, *Bunga 6% subsidi*, *Suplesi dipercepat*, dsb).
-   - **Eligible Limit (Plafon)**: Ditampilkan jelas dan besar dalam format Rupiah (contoh: `Rp 100.000.000`).
-   - **Profil Nasabah**: NIK (dengan tombol 1-klik salin), No. HP, Sektor Usaha, dan Wilayah.
-
-3. **Simulasi Cicilan Angsuran Instan**
-   - Otomatis menghitung estimasi angsuran per bulan untuk tenor **12, 24, 36, dan 48 bulan**.
-   - Perhitungan disesuaikan dengan skema produk (KUR bunga 6% efektif per tahun / KUM flat per bulan).
-
-4. **Integrasi WhatsApp & Salin Ringkasan**
-   - **Buka Chat WhatsApp**: Tombol 1-klik langsung membuka chat WhatsApp dengan pesan penawaran resmi yang sudah otomatis terisi nama nasabah, produk, dan limit.
-   - Pilihan template WhatsApp: Format Resmi, Khusus Nasabah Kawan Lama, atau Format Santai/Singkat.
-   - **Salin Ringkasan**: Salin data kelayakan ke clipboard untuk laporan tim atau atasan.
-   - **Cetak Lembar Screening**: Format print preview rapi siap cetak dan tanda tangan petugas.
-
-5. **Upload Excel Fleksibel (Drag & Drop)**
-   - Mendukung file **`.xlsx`**, **`.xls`**, dan **`.csv`**.
-   - **Smart Column Detection**: Otomatis mengenali kolom meskipun judul kolom di Excel sedikit berbeda (misal: *Nama*, *NIK/KTP*, *No HP*, *Produk/Program*, *Kategori/Kawan Lama*, *Limit/Plafon*, *Keterangan/Eligible*).
-   - Pilihan metode: **Ganti Semua Data** atau **Tambahkan ke Data Eksisting**.
-   - Tombol **"Download Template Excel"** tersedia langsung di aplikasi jika ingin format standar rapi.
-
-6. **Penyimpanan Lokal Aman & Offline (Persistent)**
-   - Semua data tersimpan di penyimpanan browser (`localStorage`).
-   - Tidak akan hilang saat browser ditutup atau direfresh.
-   - 100% aman dan bekerja offline tanpa perlu koneksi internet untuk membaca file Excel.
+Aplikasi web modern, cepat, dan nyaman untuk mencari dan memeriksa data kelayakan kredit nasabah (KUR, KUM, kategori Kawan Lama, status eligibilitas, dan eligible limit/plafon kredit) berdasarkan data pipeline kredit mikro Bank Mandiri.
 
 ---
 
-## 🚀 Cara Menjalankan
+## 🌐 Deploy Online 24 Jam di Render.com
 
-Ada 2 cara mudah untuk membuka aplikasi ini:
+Aplikasi ini sudah dikonfigurasi lengkap dengan file `render.yaml` dan skrip otomatis agar dapat berjalan **24 jam nonstop di Render.com**.
 
-### Cara 1: Buka Langsung (Paling Mudah)
-1. Buka folder `portal-nasabah`.
-2. Klik dua kali (double-click) file **`buka_portal.bat`** (atau langsung buka file `index.html` dengan Google Chrome, Edge, atau browser favorit Anda).
-3. Web langsung terbuka dan siap digunakan!
-
-### Cara 2: Jalankan via Server Lokal (Bisa Dibuka dari HP Android/iPhone)
-Jika Anda ingin membuka aplikasi ini dari handphone saat berada di kantor atau di lapangan (dalam jaringan Wi-Fi yang sama dengan laptop):
-1. Klik dua kali file **`jalankan_server.bat`**.
-2. Terminal akan menampilkan alamat IP, contoh:
-   - Dari Laptop: `http://localhost:3000`
-   - Dari HP / WiFi: `http://192.168.1.16:3000`
-3. Buka alamat tersebut di browser HP Anda.
+### 🚀 Cara Deploy (Hanya 1 Klik):
+1. Klik tombol **Deploy to Render** di atas, atau buka tautan berikut:  
+   👉 **[https://render.com/deploy?repo=https://github.com/idangkehed-commits/portal-nasabah-mandiri](https://render.com/deploy?repo=https://github.com/idangkehed-commits/portal-nasabah-mandiri)**
+2. Jika diminta login, masuk menggunakan akun Render Anda (bisa lewat GitHub / Google / Email).
+3. Klik tombol **"Apply"** atau **"Create Web Service"**.
+4. Tunggu proses build sekitar 1–2 menit hingga status menjadi **`Live`**.
+5. Anda akan mendapatkan URL web publik (contoh: `https://portal-nasabah-kredit.onrender.com`) yang bisa dibuka kapan saja dari laptop, tablet, maupun HP smartphone Anda!
 
 ---
 
-## 📁 Format Kolom Excel yang Disarankan
+## ⏰ Rahasia Berjalan 24 Jam Nonstop Tanpa Sleep (Tidur)
 
-Jika Anda ingin menyiapkan file Excel sendiri, berikut susunan kolom yang sangat direkomendasikan:
+Render Free Tier biasanya masuk ke mode *idle/sleep* jika tidak ada pengunjung selama 15 menit. Untuk memastikan aplikasi Anda **tetap aktif 24 jam penuh tanpa pernah tidur**:
 
-| Nama Kolom Excel | Contoh Isi | Keterangan |
-| :--- | :--- | :--- |
-| **Nama Nasabah** | Haji Ahmad Fauzi | Nama lengkap debitur |
-| **NIK KTP** | 3201011504780001 | 16 digit NIK KTP |
-| **No HP WA** | 081289123456 | Nomor kontak untuk WhatsApp |
-| **Produk Kredit** | KUR Mikro / KUM Mikro | KUR Mikro, KUR Super Mikro, KUM Mikro, dll |
-| **Kategori Nasabah** | Kawan Lama | *Kawan Lama*, *Nasabah Baru*, *Payroll*, dll |
-| **Eligible Limit Plafon** | 100000000 | Angka nominal limit (misal 100000000) |
-| **Keterangan Eligible** | Eligible KUR Mikro s.d. 100 Juta | Alasan kelayakan / catatan khusus |
-| **Sektor Usaha** | Grosir Kelontong & Sembako | Jenis perdagangan / usaha |
-| **Alamat Lokasi** | Pasar Kramat Jati, Jakarta | Alamat tempat usaha / domisili |
+### 1. Fitur Bawaan (Auto Keep-Alive di `server.js`)
+Server aplikasi ini sudah dilengkapi mekanisme *self-ping* otomatis:
+- Setiap **13 menit**, server akan otomatis mengirimkan request internal ke `/health`.
+- Render mendeteksi adanya aktivitas request sehingga server **tidak akan pernah mati/sleep**.
 
-> 💡 **Tips Praktis:** 
-> Anda dapat langsung mengklik tombol **"Template Excel"** di bagian atas aplikasi untuk mendownload contoh file Excel resmi yang sudah rapi dan siap diedit!
-> File contoh `contoh_data_nasabah.xlsx` juga sudah disediakan di dalam folder ini.
+### 2. Cadangan Garansi 24/7 (UptimeRobot - Gratis 100%)
+Untuk memastikan keandalan 100% jika Render membatasi self-ping:
+1. Buka [UptimeRobot.com](https://uptimerobot.com/) dan buat akun gratis.
+2. Klik **"Add New Monitor"**:
+   - **Monitor Type**: `HTTP(s)`
+   - **Friendly Name**: `Portal Nasabah Mandiri`
+   - **URL (or IP)**: `https://[NAMA-APP-ANDA].onrender.com/health`
+   - **Monitoring Interval**: `5 minutes`
+3. Klik **Create Monitor**.
+4. Selesai! UptimeRobot akan memanggil link Anda setiap 5 menit sehingga web Anda di Render **dijamin 100% selalu online 24 jam penuh**.
 
 ---
 
-## 🛡️ Keamanan & Privasi
-Seluruh pemrosesan file Excel dan pencarian data nasabah dilakukan **100% di browser lokal Anda**. Tidak ada data nasabah atau NIK perbankan yang dikirimkan ke server eksternal, sehingga kerahasiaan data nasabah tetap terjaga secara ketat.
+## ✨ Fitur Aplikasi
+
+1. **Pencarian Cepat & Nyaman (Instant Search)**:
+   - Cari data nasabah seketika berdasarkan **Nama Debitur**, **Nomor CIF (10 digit)**, **Nomor HP / WhatsApp**, atau **Alamat / Petugas SGP**.
+   - Shortcut keyboard: Cukup tekan tombol `/` atau `Ctrl + K`.
+   - Filter cepat:
+     - ⭐ **Kawan Lama** (Menyaring nasabah loyal dengan tier usia lunas)
+     - 🔀 **Bisa KUR & KUM** (Nasabah yang eligible kedua produk)
+     - 🔵 **KUR Saja**
+     - 🟣 **KUM Saja**
+     - ✅ **Ada Consent WA** (Menyaring yang boleh dihubungi via WhatsApp)
+     - 👤 **Filter Petugas SGP** (Gillan Muhammad, Handika Ardana, Septiani Juwita, dll)
+
+2. **Tampilan Informasi Lengkap & Jelas**:
+   - **Rekomendasi Produk**: KUR (Mikro, Kecil, Super Mikro, Ultima) atau KUM (Mikro, Ex-KUR, Regular).
+   - **Kategori Nasabah**: ⭐ **Kawan Lama (Lunas ≤ 3 Bln / 3-12 Bln / > 12 Bln)**, *ETB Suplesi Ex-KUR*, *KUR Ultima*.
+   - **Status Kelayakan (Eligible)**: Detail program (*AMUNISI*, *KL KUR*, *KPP*, *MADU*, *MECLP*, *Selikuran*).
+   - **Eligible Limit (Plafon)**: Ditampilkan besar dan jelas dalam format Rupiah. Jika ada opsi limit ganda (KUR & KUM), dimunculkan berdampingan!
+   - **Status Consent**: Menampilkan kepatuhan izin kontak debitur.
+
+3. **Simulasi Cicilan Angsuran Instan**:
+   - Menghitung cicilan bulanan tenor **12, 24, 36, dan 48 bulan** sesuai suku bunga produk (KUR subsidi 6% efektif / KUM flat mikro).
+
+4. **Integrasi WhatsApp Siap Kirim**:
+   - Tombol 1-klik langsung membuka WhatsApp dengan draft pesan penawaran resmi yang otomatis terisi nama, nomor CIF, dan limit kredit.
+   - Pilihan template: Format Kawan Lama, Formal Mandiri, dan Format Santai.
+
+5. **Upload & Ekspor Excel**:
+   - Mendukung upload file `.xlsx`, `.xls`, dan `.csv` secara offline dan aman di peramban.
+   - Tersedia tombol unduh template dan ekspor database ke file Excel.
+
+---
+
+## 💻 Menjalankan di Komputer Lokal
+
+Jika sedang offline tanpa internet:
+- **Cara Langsung**: Klik dua kali file [**`buka_portal.bat`**](file:///c:/Users/ACER%20NITRO/Documents/antigravity/jolly-goodall/portal-nasabah/buka_portal.bat) (atau buka file `index.html` di browser).
+- **Via Local Server**: Klik dua kali file [**`jalankan_server.bat`**](file:///c:/Users/ACER%20NITRO/Documents/antigravity/jolly-goodall/portal-nasabah/jalankan_server.bat) untuk akses lewat HP dalam satu jaringan WiFi.
