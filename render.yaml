@@ -1,11 +1,10 @@
 services:
-  - type: web
-    name: portal-nasabah-kredit
-    runtime: node
-    plan: free
-    region: singapore
-    buildCommand: npm install
-    startCommand: node server.js
-    envVars:
-      - key: NODE_VERSION
-        value: 20.18.0
+  - type: static
+    name: portal-nasabah-mandiri
+    buildCommand: ""
+    staticPublishPath: .
+    pullRequestPreviewsEnabled: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

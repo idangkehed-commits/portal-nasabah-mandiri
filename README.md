@@ -6,39 +6,20 @@ Aplikasi web modern, cepat, dan nyaman untuk mencari dan memeriksa data kelayaka
 
 ---
 
-## 🌐 Deploy Online 24 Jam di Render.com
+## 🌐 Deploy Sebagai Static Site di Render.com (24 Jam Nonstop Tanpa Sleep)
 
-Aplikasi ini sudah dikonfigurasi lengkap dengan file `render.yaml` dan skrip otomatis agar dapat berjalan **24 jam nonstop di Render.com**.
+Aplikasi ini sudah diatur dalam format **Static Site di Render.com**, yang memiliki keunggulan:
+- ⚡ **Aktif 24 Jam Nonstop**: Dihosting di Global CDN Render, **tidak akan pernah mati/sleep**.
+- 🚀 **Buka Web Instan (0 Detik Delay)**: Tidak ada waktu tunggu loading spin-down.
+- 🛡️ **100% Gratis Selamanya**: Tanpa batas kuota jam server.
 
-### 🚀 Cara Deploy (Hanya 1 Klik):
-1. Klik tombol **Deploy to Render** di atas, atau buka tautan berikut:  
+### 🚀 Cara Deploy (Cukup 1 Klik):
+1. Klik tombol **Deploy to Render** di atas, atau buka tautan:  
    👉 **[https://render.com/deploy?repo=https://github.com/idangkehed-commits/portal-nasabah-mandiri](https://render.com/deploy?repo=https://github.com/idangkehed-commits/portal-nasabah-mandiri)**
-2. Jika diminta login, masuk menggunakan akun Render Anda (bisa lewat GitHub / Google / Email).
-3. Klik tombol **"Apply"** atau **"Create Web Service"**.
-4. Tunggu proses build sekitar 1–2 menit hingga status menjadi **`Live`**.
-5. Anda akan mendapatkan URL web publik (contoh: `https://portal-nasabah-kredit.onrender.com`) yang bisa dibuka kapan saja dari laptop, tablet, maupun HP smartphone Anda!
-
----
-
-## ⏰ Rahasia Berjalan 24 Jam Nonstop Tanpa Sleep (Tidur)
-
-Render Free Tier biasanya masuk ke mode *idle/sleep* jika tidak ada pengunjung selama 15 menit. Untuk memastikan aplikasi Anda **tetap aktif 24 jam penuh tanpa pernah tidur**:
-
-### 1. Fitur Bawaan (Auto Keep-Alive di `server.js`)
-Server aplikasi ini sudah dilengkapi mekanisme *self-ping* otomatis:
-- Setiap **13 menit**, server akan otomatis mengirimkan request internal ke `/health`.
-- Render mendeteksi adanya aktivitas request sehingga server **tidak akan pernah mati/sleep**.
-
-### 2. Cadangan Garansi 24/7 (UptimeRobot - Gratis 100%)
-Untuk memastikan keandalan 100% jika Render membatasi self-ping:
-1. Buka [UptimeRobot.com](https://uptimerobot.com/) dan buat akun gratis.
-2. Klik **"Add New Monitor"**:
-   - **Monitor Type**: `HTTP(s)`
-   - **Friendly Name**: `Portal Nasabah Mandiri`
-   - **URL (or IP)**: `https://[NAMA-APP-ANDA].onrender.com/health`
-   - **Monitoring Interval**: `5 minutes`
-3. Klik **Create Monitor**.
-4. Selesai! UptimeRobot akan memanggil link Anda setiap 5 menit sehingga web Anda di Render **dijamin 100% selalu online 24 jam penuh**.
+2. Login ke akun Render Anda.
+3. Klik tombol **"Apply"**.
+4. Tunggu sekitar 15–30 detik sampai statusnya berwarna hijau **`Live`**.
+5. Anda langsung mendapatkan URL web resmi yang aktif 24 jam nonstop!
 
 ---
 
