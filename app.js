@@ -32,7 +32,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Jalankan sinkronisasi cloud tim segera & ulangi berkala
   syncFromCloud(true);
-  setInterval(() => syncFromCloud(false), 45000); // Sinkronisasi tim tiap 45 detik
+  setInterval(() => syncFromCloud(false), 12000); // Polling tiap 12 detik
+
+  // Sinkronkan instan saat layar HP aktif kembali / berpindah tab browser
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      syncFromCloud(false);
+    }
+  });
+  window.addEventListener('focus', () => {
+    syncFromCloud(false);
+  });
 });
 
 // ================= STORAGE & SYNC FUNCTIONS =================
@@ -82,6 +92,14 @@ function saveVisitRecordsLocally() {
   }
 }
 
+function updateLastSyncTime() {
+  const lbl = document.getElementById('lblLastSync');
+  if (lbl) {
+    const now = new Date();
+    lbl.textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+  }
+}
+
 // Ambil data kunjungan untuk nasabah tertentu
 function getVisitRecord(item) {
   const key = item.cifno || item.id;
@@ -105,11 +123,18 @@ async function syncFromCloud(showFeedback = false) {
   if (icon) icon.classList.add('animate-spin');
 
   try {
-    const res = await fetch(CLOUD_SYNC_URL, { cache: 'no-store' });
+    // Gunakan query param timestamp agar respon tidak tertahan cache CDN/HP
+    const res = await fetch(`${CLOUD_SYNC_URL}?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    });
+
     if (res.ok) {
       const json = await res.json();
-      if (json && json.data) {
-        // Gabungkan data dari cloud dengan local records
+      if (json && json.data && typeof json.data === 'object') {
         let hasNew = false;
         Object.keys(json.data).forEach(key => {
           if (!visitRecords[key] || JSON.stringify(visitRecords[key]) !== JSON.stringify(json.data[key])) {
@@ -125,10 +150,14 @@ async function syncFromCloud(showFeedback = false) {
         } else if (showFeedback) {
           showToast('Data tim sudah paling baru.', 'info');
         }
+        updateLastSyncTime();
       }
     }
   } catch (err) {
     console.warn('Cloud sync offline or unavailable:', err.message);
+    if (showFeedback) {
+      showToast('Koneksi internet lambat. Menggunakan data lokal.', 'warning');
+    }
   } finally {
     isSyncing = false;
     if (icon) icon.classList.remove('animate-spin');
@@ -136,24 +165,65 @@ async function syncFromCloud(showFeedback = false) {
 }
 
 async function pushVisitToCloud(key, record) {
-  // Simpan lokal terlebih dahulu (agar instan)
+  // Simpan lokal terlebih dahulu (agar UI instan)
   visitRecords[key] = record;
   saveVisitRecordsLocally();
   updateUI();
 
-  // Kirim ke shared cloud storage agar semua sales lain menerima
   try {
+    // 1. Fetch remote data terbaru terlebih dahulu untuk mencegah penimpaan (merge)
+    let remoteData = {};
+    try {
+      const getRes = await fetch(`${CLOUD_SYNC_URL}?_t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      if (getRes.ok) {
+        const json = await getRes.json();
+        if (json && json.data && typeof json.data === 'object') {
+          remoteData = json.data;
+        }
+      }
+    } catch (e) {
+      console.warn('Gagal fetch remote sebelum merge:', e.message);
+    }
+
+    // 2. Gabungkan remote data + local records + update terbaru
+    const mergedData = {
+      ...remoteData,
+      ...visitRecords,
+      [key]: record
+    };
+    visitRecords = mergedData;
+    saveVisitRecordsLocally();
+    updateUI();
+
+    // 3. Kirim ke shared cloud storage agar semua HP sales lain menerima
     const payload = {
       name: 'mandiri_mikro_progress_leads',
-      data: visitRecords
+      data: mergedData
     };
-    await fetch(CLOUD_SYNC_URL, {
+    const putRes = await fetch(CLOUD_SYNC_URL, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache'
+      },
       body: JSON.stringify(payload)
     });
+
+    if (!putRes.ok) {
+      throw new Error(`HTTP ${putRes.status}`);
+    }
+
+    updateLastSyncTime();
+    return { success: true };
   } catch (err) {
     console.warn('Gagal push ke cloud, data tetap tersimpan di lokal:', err.message);
+    return { success: false, error: err.message };
   }
 }
 
@@ -818,49 +888,74 @@ function closeVisitModal() {
   currentVisitNasabah = null;
 }
 
-function handleVisitSubmit(e) {
+async function handleVisitSubmit(e) {
   e.preventDefault();
   if (!currentVisitNasabah) return;
 
-  const key = currentVisitNasabah.cifno || currentVisitNasabah.id;
-  const selectedRadio = document.querySelector('input[name="radioVisitStatus"]:checked');
-  const status = selectedRadio ? selectedRadio.value : 'belum';
-  const sales = document.getElementById('visitSalesName').value.trim();
-  const catatan = document.getElementById('visitNotes').value.trim();
+  const btnSubmit = document.getElementById('btnSubmitVisit');
+  const textSubmit = document.getElementById('textSubmitVisit');
+  const iconSubmit = document.getElementById('iconSubmitVisit');
 
-  // Simpan nama sales untuk penggunaan berikutnya di HP/browser ini
-  if (sales) {
-    localStorage.setItem('last_sales_name', sales);
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    if (textSubmit) textSubmit.textContent = 'Menyimpan ke Cloud...';
+    if (iconSubmit) iconSubmit.className = 'fa-solid fa-spinner animate-spin';
   }
 
-  const now = new Date();
-  const waktuFormatted = now.toLocaleDateString('id-ID', {
-    day: 'numeric', month: 'short', year: 'numeric'
-  }) + ', ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+  try {
+    const key = currentVisitNasabah.cifno || currentVisitNasabah.id;
+    const selectedRadio = document.querySelector('input[name="radioVisitStatus"]:checked');
+    const status = selectedRadio ? selectedRadio.value : 'belum';
+    const sales = document.getElementById('visitSalesName').value.trim();
+    const catatan = document.getElementById('visitNotes').value.trim();
 
-  const record = {
-    status: status,
-    sales: sales || 'Sales',
-    waktu: waktuFormatted,
-    catatan: catatan
-  };
+    // Simpan nama sales untuk penggunaan berikutnya di HP/browser ini
+    if (sales) {
+      localStorage.setItem('last_sales_name', sales);
+    }
 
-  // Push ke cloud dan simpan lokal
-  pushVisitToCloud(key, record);
+    const now = new Date();
+    const waktuFormatted = now.toLocaleDateString('id-ID', {
+      day: 'numeric', month: 'short', year: 'numeric'
+    }) + ', ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
 
-  closeVisitModal();
+    const record = {
+      status: status,
+      sales: sales || 'Sales',
+      waktu: waktuFormatted,
+      catatan: catatan
+    };
 
-  if (status === 'tertarik') {
-    showToast(`Status "${currentVisitNasabah.nama}" diset TERTARIK (Terkunci oleh ${sales})!`, 'success');
-  } else if (status === 'tidak_tertarik') {
-    showToast(`Status "${currentVisitNasabah.nama}" diset TIDAK TERTARIK.`, 'warning');
-  } else {
-    showToast(`Status "${currentVisitNasabah.nama}" di-reset ke Belum Digarap.`, 'info');
-  }
+    // Push ke cloud dan tunggu konfirmasi
+    const syncRes = await pushVisitToCloud(key, record);
 
-  // Jika modal detail sedang terbuka untuk nasabah ini, perbarui tampilannya
-  if (currentActiveNasabah && (currentActiveNasabah.id === currentVisitNasabah.id)) {
-    updateModalDetailVisitSection(currentActiveNasabah);
+    closeVisitModal();
+
+    if (syncRes && syncRes.success) {
+      if (status === 'tertarik') {
+        showToast(`✅ Status "${currentVisitNasabah.nama}" diset TERTARIK & TERKUNCI untuk seluruh tim!`, 'success');
+      } else if (status === 'tidak_tertarik') {
+        showToast(`✅ Status "${currentVisitNasabah.nama}" diset TIDAK TERTARIK (Tersinkron ke tim).`, 'warning');
+      } else {
+        showToast(`✅ Status "${currentVisitNasabah.nama}" di-reset ke Belum Digarap.`, 'info');
+      }
+    } else {
+      showToast(`⚠️ Tersimpan lokal di HP ini. Sinyal cloud tersendat, klik 'Sync Tim' saat internet stabil.`, 'warning');
+    }
+
+    // Jika modal detail sedang terbuka untuk nasabah ini, perbarui tampilannya
+    if (currentActiveNasabah && (currentActiveNasabah.id === currentVisitNasabah.id)) {
+      updateModalDetailVisitSection(currentActiveNasabah);
+    }
+  } catch (err) {
+    console.error('Error saat simpan kunjungan:', err);
+    showToast('Terjadi kesalahan: ' + err.message, 'error');
+  } finally {
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      if (textSubmit) textSubmit.textContent = 'Simpan Status';
+      if (iconSubmit) iconSubmit.className = 'fa-solid fa-floppy-disk';
+    }
   }
 }
 
