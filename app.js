@@ -26,9 +26,15 @@ const CLOUD_SYNC_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701a1
 document.addEventListener('DOMContentLoaded', () => {
   loadDatabase();
   loadVisitRecords();
+  loadTagihanDatabase();
+  loadTagihanFollowupRecords();
   setupEventListeners();
+  setupTagihanEventListeners();
   populateSgpDropdown();
+  populateTagihanPetugasDropdown();
   updateUI();
+  updateTagihanUI();
+  updateTagihanTabBadge();
 
   // Jalankan sinkronisasi cloud tim segera & ulangi berkala
   syncFromCloud(true);
@@ -434,6 +440,9 @@ function updateDashboardStats() {
   document.getElementById('countKawanLama').textContent = totalKawanLama;
   document.getElementById('countBoth').textContent = totalBoth;
   document.getElementById('countConsentYes').textContent = totalConsent;
+
+  const tabBadgePipe = document.getElementById('tabBadgePipelineCount');
+  if (tabBadgePipe) tabBadgePipe.textContent = total;
 }
 
 function filterByGarap(status) {
@@ -1973,3 +1982,1582 @@ function setupEventListeners() {
 
   document.getElementById('btnProcessImport').addEventListener('click', processFinalImport);
 }
+
+// =========================================================================
+// ================= TAB 2: MONITORING TAGIHAN BULANAN & KOLEKTIBILITAS =====
+// =========================================================================
+
+// Global State Tagihan
+let dbTagihan = [];
+let tagihanFollowupRecords = {}; // Key: rekening atau id -> { status, ptpDate, petugas, catatan, updatedAt }
+let currentTagihanFilterKol = 'all';
+let currentTagihanFilterJT = 'all';
+let currentTagihanFilterSaldo = 'all';
+let currentTagihanFilterPetugas = 'all';
+let currentTagihanFilterProduk = 'all';
+let currentTagihanFilterFollowup = 'all';
+let currentTagihanFilterTunggakanOnly = false;
+let currentTagihanSearch = '';
+let currentTagihanView = 'cards';
+let currentTagihanPage = 1;
+const tagihanPageSize = 24;
+let currentActiveTagihan = null;
+let currentWaTemplateType = 'reminder';
+let pendingImportTagihanData = [];
+
+const TAGIHAN_STORAGE_KEY = 'portal_mandiri_tagihan_v2';
+const TAGIHAN_FOLLOWUP_STORAGE_KEY = 'portal_mandiri_tagihan_followup_v2';
+
+function loadTagihanDatabase() {
+  try {
+    const raw = localStorage.getItem(TAGIHAN_STORAGE_KEY);
+    if (raw) {
+      dbTagihan = JSON.parse(raw);
+    } else if (window.MANDIRI_TAGIHAN_DATA && window.MANDIRI_TAGIHAN_DATA.length > 0) {
+      dbTagihan = [...window.MANDIRI_TAGIHAN_DATA];
+      saveTagihanDatabase();
+    }
+  } catch (e) {
+    console.error('Error loading tagihan database:', e);
+    if (window.MANDIRI_TAGIHAN_DATA) {
+      dbTagihan = [...window.MANDIRI_TAGIHAN_DATA];
+    }
+  }
+}
+
+function saveTagihanDatabase() {
+  try {
+    localStorage.setItem(TAGIHAN_STORAGE_KEY, JSON.stringify(dbTagihan));
+    updateTagihanTabBadge();
+  } catch (e) {
+    console.error('Error saving tagihan database:', e);
+    showToast('Gagal menyimpan database tagihan ke peramban', 'error');
+  }
+}
+
+function updateTagihanTabBadge() {
+  const badge = document.getElementById('tabBadgeTagihanCount');
+  if (badge) {
+    badge.textContent = dbTagihan.length;
+  }
+}
+
+function loadTagihanFollowupRecords() {
+  try {
+    const raw = localStorage.getItem(TAGIHAN_FOLLOWUP_STORAGE_KEY);
+    if (raw) {
+      tagihanFollowupRecords = JSON.parse(raw);
+    }
+  } catch (e) {
+    console.error('Error loading tagihan followup records:', e);
+    tagihanFollowupRecords = {};
+  }
+}
+
+function saveTagihanFollowupRecords() {
+  try {
+    localStorage.setItem(TAGIHAN_FOLLOWUP_STORAGE_KEY, JSON.stringify(tagihanFollowupRecords));
+  } catch (e) {
+    console.error('Error saving tagihan followup records:', e);
+  }
+}
+
+function getTagihanFollowup(item) {
+  if (!item) return { status: 'belum', ptpDate: '', petugas: '-', catatan: '', updatedAt: '' };
+  const key = item.rekening || item.id;
+  const rec = tagihanFollowupRecords[key];
+  if (!rec || !rec.status || rec.status === 'belum') {
+    return {
+      status: 'belum',
+      ptpDate: '',
+      petugas: item.petugas || '-',
+      catatan: '',
+      updatedAt: ''
+    };
+  }
+  return rec;
+}
+
+// ================= DUAL NAVIGATION CONTROLLER =================
+function switchMainTab(tab) {
+  const tabBtnPipeline = document.getElementById('tabBtnPipeline');
+  const tabBtnTagihan = document.getElementById('tabBtnTagihan');
+  const viewPipelineTab = document.getElementById('viewPipelineTab');
+  const viewTagihanTab = document.getElementById('viewTagihanTab');
+  const headerActionsPipeline = document.getElementById('headerActionsPipeline');
+  const headerActionsTagihan = document.getElementById('headerActionsTagihan');
+
+  if (tab === 'pipeline') {
+    if (tabBtnPipeline) {
+      tabBtnPipeline.className = 'flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm bg-white text-mandiri-navy';
+    }
+    if (tabBtnTagihan) {
+      tabBtnTagihan.className = 'flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-blue-200 hover:text-white hover:bg-white/10';
+    }
+
+    if (viewPipelineTab) {
+      viewPipelineTab.classList.remove('hidden');
+      viewPipelineTab.classList.add('flex');
+    }
+    if (viewTagihanTab) {
+      viewTagihanTab.classList.add('hidden');
+      viewTagihanTab.classList.remove('flex');
+    }
+
+    if (headerActionsPipeline) {
+      headerActionsPipeline.classList.remove('hidden');
+      headerActionsPipeline.classList.add('flex');
+    }
+    if (headerActionsTagihan) {
+      headerActionsTagihan.classList.add('hidden');
+      headerActionsTagihan.classList.remove('flex');
+    }
+
+    updateUI();
+  } else {
+    if (tabBtnTagihan) {
+      tabBtnTagihan.className = 'flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm bg-white text-mandiri-navy';
+    }
+    if (tabBtnPipeline) {
+      tabBtnPipeline.className = 'flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-blue-200 hover:text-white hover:bg-white/10';
+    }
+
+    if (viewPipelineTab) {
+      viewPipelineTab.classList.add('hidden');
+      viewPipelineTab.classList.remove('flex');
+    }
+    if (viewTagihanTab) {
+      viewTagihanTab.classList.remove('hidden');
+      viewTagihanTab.classList.add('flex');
+    }
+
+    if (headerActionsPipeline) {
+      headerActionsPipeline.classList.add('hidden');
+      headerActionsPipeline.classList.remove('flex');
+    }
+    if (headerActionsTagihan) {
+      headerActionsTagihan.classList.remove('hidden');
+      headerActionsTagihan.classList.add('flex');
+    }
+
+    updateTagihanUI();
+  }
+}
+window.switchMainTab = switchMainTab;
+
+// ================= DROPDOWN POPULATOR =================
+function populateTagihanPetugasDropdown() {
+  const select = document.getElementById('filterTagihanPetugas');
+  if (!select) return;
+  const currentVal = select.value;
+  const petugasSet = new Set();
+  dbTagihan.forEach(item => {
+    if (item.petugas && item.petugas.trim() !== '') {
+      petugasSet.add(item.petugas.trim());
+    }
+  });
+
+  const sortedList = Array.from(petugasSet).sort();
+  select.innerHTML = '<option value="all">Semua Petugas</option>';
+  sortedList.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p;
+    opt.textContent = p;
+    select.appendChild(opt);
+  });
+  if (sortedList.includes(currentVal)) {
+    select.value = currentVal;
+  }
+}
+
+// ================= TAGIHAN UI UPDATE & FILTERING =================
+function updateTagihanUI() {
+  updateTagihanTabBadge();
+
+  // 1. Calculate Global Overview Stats
+  const totalRek = dbTagihan.length;
+  let totalBade = 0;
+  let totalAngsuran = 0;
+  let totalTunggakan = 0;
+  let saldoKurangCount = 0;
+  let saldoCukupCount = 0;
+  let kol1Count = 0;
+  let kol2Count = 0;
+  let kol3Count = 0;
+  let kol5Count = 0;
+
+  dbTagihan.forEach(item => {
+    totalBade += Number(item.bakiDebet) || 0;
+    totalAngsuran += Number(item.angsuran) || 0;
+    totalTunggakan += Number(item.tunggakan) || 0;
+    if (item.saldoCukup) {
+      saldoCukupCount++;
+    } else {
+      saldoKurangCount++;
+    }
+
+    const kolStr = String(item.kol || '').toUpperCase();
+    if (kolStr.startsWith('1')) kol1Count++;
+    else if (kolStr.startsWith('2')) kol2Count++;
+    else if (kolStr.startsWith('3')) kol3Count++;
+    else if (kolStr.startsWith('5')) kol5Count++;
+  });
+
+  const elTotalRek = document.getElementById('statTagihanTotalRek');
+  if (elTotalRek) elTotalRek.textContent = totalRek.toLocaleString('id-ID');
+
+  const elTotalBade = document.getElementById('statTagihanTotalBade');
+  if (elTotalBade) elTotalBade.textContent = formatRupiah(totalBade);
+
+  const elTotalAngsuran = document.getElementById('statTagihanTotalAngsuran');
+  if (elTotalAngsuran) elTotalAngsuran.textContent = formatRupiah(totalAngsuran);
+
+  const elTotalTunggakan = document.getElementById('statTagihanTotalTunggakan');
+  if (elTotalTunggakan) elTotalTunggakan.textContent = formatRupiah(totalTunggakan);
+
+  const elSaldoKurang = document.getElementById('statTagihanSaldoKurangCount');
+  if (elSaldoKurang) elSaldoKurang.textContent = `${saldoKurangCount} rek`;
+
+  const elSaldoCukup = document.getElementById('statTagihanSaldoCukupCount');
+  if (elSaldoCukup) elSaldoCukup.textContent = `${saldoCukupCount} rek`;
+
+  const elBadgeKolAll = document.getElementById('badgeKolAllCount');
+  if (elBadgeKolAll) elBadgeKolAll.textContent = totalRek;
+  const elBadgeKol1 = document.getElementById('badgeKol1Count');
+  if (elBadgeKol1) elBadgeKol1.textContent = kol1Count;
+  const elBadgeKol2 = document.getElementById('badgeKol2Count');
+  if (elBadgeKol2) elBadgeKol2.textContent = kol2Count;
+  const elBadgeKol3 = document.getElementById('badgeKol3Count');
+  if (elBadgeKol3) elBadgeKol3.textContent = kol3Count;
+  const elBadgeKol5 = document.getElementById('badgeKol5Count');
+  if (elBadgeKol5) elBadgeKol5.textContent = kol5Count;
+
+  // Highlight active Kol pill
+  updateKolPillStyles();
+
+  // 2. Filter data
+  const q = currentTagihanSearch.trim().toLowerCase();
+  const todayDate = new Date().getDate();
+
+  const filtered = dbTagihan.filter(item => {
+    // Search
+    if (q) {
+      const matchName = String(item.nama || '').toLowerCase().includes(q);
+      const matchRek = String(item.rekening || '').toLowerCase().includes(q);
+      const matchCif = String(item.cif || '').toLowerCase().includes(q);
+      const matchPetugas = String(item.petugas || '').toLowerCase().includes(q);
+      const matchAgf = String(item.rekAgf || '').toLowerCase().includes(q);
+      if (!matchName && !matchRek && !matchCif && !matchPetugas && !matchAgf) {
+        return false;
+      }
+    }
+
+    // JT Filter
+    if (currentTagihanFilterJT === 'today') {
+      if (Number(item.jt) !== todayDate) return false;
+    } else if (currentTagihanFilterJT === 'jt_1_10') {
+      const jt = Number(item.jt);
+      if (jt < 1 || jt > 10) return false;
+    } else if (currentTagihanFilterJT === 'jt_11_20') {
+      const jt = Number(item.jt);
+      if (jt < 11 || jt > 20) return false;
+    } else if (currentTagihanFilterJT === 'jt_21_31') {
+      const jt = Number(item.jt);
+      if (jt < 21 || jt > 31) return false;
+    }
+
+    // Kol Filter
+    if (currentTagihanFilterKol !== 'all') {
+      const kStr = String(item.kol || '').toUpperCase();
+      if (!kStr.startsWith(currentTagihanFilterKol)) return false;
+    }
+
+    // Saldo Filter
+    if (currentTagihanFilterSaldo === 'kurang') {
+      if (item.saldoCukup) return false;
+    } else if (currentTagihanFilterSaldo === 'cukup') {
+      if (!item.saldoCukup) return false;
+    } else if (currentTagihanFilterSaldo === 'nol') {
+      if (Number(item.saldoAgf) >= 25000) return false;
+    }
+
+    // Tunggakan Only
+    if (currentTagihanFilterTunggakanOnly) {
+      if (Number(item.tunggakan) <= 0) return false;
+    }
+
+    // Petugas Filter
+    if (currentTagihanFilterPetugas !== 'all') {
+      if (item.petugas !== currentTagihanFilterPetugas) return false;
+    }
+
+    // Produk Filter
+    if (currentTagihanFilterProduk !== 'all') {
+      const pStr = String(item.produk || '').toUpperCase();
+      if (!pStr.includes(currentTagihanFilterProduk)) return false;
+    }
+
+    // Follow-up Filter
+    if (currentTagihanFilterFollowup !== 'all') {
+      const fu = getTagihanFollowup(item);
+      if (fu.status !== currentTagihanFilterFollowup) return false;
+    }
+
+    return true;
+  });
+
+  // 3. Update Result Badge
+  const elBadgeCount = document.getElementById('badgeTagihanCount');
+  if (elBadgeCount) {
+    elBadgeCount.textContent = `${filtered.length} rekening`;
+  }
+
+  // 4. Pagination & Rendering
+  const totalPages = Math.ceil(filtered.length / tagihanPageSize) || 1;
+  if (currentTagihanPage > totalPages) currentTagihanPage = totalPages;
+  if (currentTagihanPage < 1) currentTagihanPage = 1;
+
+  const start = (currentTagihanPage - 1) * tagihanPageSize;
+  const paged = filtered.slice(start, start + tagihanPageSize);
+
+  const containerCards = document.getElementById('tagihanCardsContainer');
+  const containerTable = document.getElementById('tagihanTableContainer');
+
+  if (currentTagihanView === 'cards') {
+    if (containerCards) {
+      containerCards.classList.remove('hidden');
+      renderTagihanCards(paged);
+    }
+    if (containerTable) containerTable.classList.add('hidden');
+  } else {
+    if (containerCards) containerCards.classList.add('hidden');
+    if (containerTable) {
+      containerTable.classList.remove('hidden');
+      renderTagihanTable(paged, start);
+    }
+  }
+
+  renderTagihanPagination(filtered.length, start, start + paged.length, totalPages);
+}
+
+function updateKolPillStyles() {
+  const pills = {
+    'all': document.getElementById('pillKolAll'),
+    '1': document.getElementById('pillKol1'),
+    '2': document.getElementById('pillKol2'),
+    '3': document.getElementById('pillKol3'),
+    '5': document.getElementById('pillKol5')
+  };
+
+  Object.entries(pills).forEach(([key, btn]) => {
+    if (!btn) return;
+    if (currentTagihanFilterKol === key) {
+      btn.className = 'px-2.5 py-1 rounded-lg bg-mandiri-navy text-white font-bold text-[11px] transition shadow-xs ring-2 ring-mandiri-blue';
+    } else {
+      btn.className = 'px-2.5 py-1 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-[11px] transition flex items-center';
+    }
+  });
+}
+
+function updateTagihanViewButtons() {
+  const btnCards = document.getElementById('btnTagihanViewCards');
+  const btnTable = document.getElementById('btnTagihanViewTable');
+  if (currentTagihanView === 'cards') {
+    if (btnCards) btnCards.className = 'p-2 rounded-lg bg-mandiri-navy text-white text-xs shadow-xs';
+    if (btnTable) btnTable.className = 'p-2 rounded-lg bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 text-xs shadow-xs';
+  } else {
+    if (btnCards) btnCards.className = 'p-2 rounded-lg bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 text-xs shadow-xs';
+    if (btnTable) btnTable.className = 'p-2 rounded-lg bg-mandiri-navy text-white text-xs shadow-xs';
+  }
+}
+
+// Quick Filter Helpers
+function filterTagihanByKol(kol) {
+  currentTagihanFilterKol = kol;
+  const sel = document.getElementById('filterTagihanKol');
+  if (sel) sel.value = kol;
+  currentTagihanPage = 1;
+  updateTagihanUI();
+}
+window.filterTagihanByKol = filterTagihanByKol;
+
+function filterTagihanBySaldo(saldo) {
+  currentTagihanFilterSaldo = saldo;
+  const sel = document.getElementById('filterTagihanSaldo');
+  if (sel) sel.value = saldo;
+  currentTagihanPage = 1;
+  updateTagihanUI();
+}
+window.filterTagihanBySaldo = filterTagihanBySaldo;
+
+function filterTagihanByTunggakan(val) {
+  currentTagihanFilterTunggakanOnly = !!val;
+  currentTagihanPage = 1;
+  updateTagihanUI();
+}
+window.filterTagihanByTunggakan = filterTagihanByTunggakan;
+
+function setTagihanView(view) {
+  currentTagihanView = view;
+  updateTagihanViewButtons();
+  updateTagihanUI();
+}
+window.setTagihanView = setTagihanView;
+
+function changeTagihanPage(page) {
+  currentTagihanPage = page;
+  updateTagihanUI();
+  const el = document.getElementById('viewTagihanTab');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+window.changeTagihanPage = changeTagihanPage;
+
+function copyToClipboard(text, label = 'Teks') {
+  if (!text) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(`${label} berhasil disalin!`, 'success');
+    }).catch(() => {
+      fallbackCopyText(text, label);
+    });
+  } else {
+    fallbackCopyText(text, label);
+  }
+}
+window.copyToClipboard = copyToClipboard;
+
+function fallbackCopyText(text, label) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast(`${label} berhasil disalin!`, 'success');
+  } catch (e) {
+    showToast(`Gagal menyalin ${label}`, 'error');
+  }
+  document.body.removeChild(ta);
+}
+
+// ================= RENDER CARDS TAGIHAN =================
+function renderTagihanCards(items) {
+  const container = document.getElementById('tagihanCardsContainer');
+  if (!container) return;
+
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div class="col-span-full py-16 text-center bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-amber-50 text-mandiri-navy flex items-center justify-center mb-4 text-2xl border border-amber-200">
+          <i class="fa-solid fa-file-circle-question"></i>
+        </div>
+        <h3 class="text-base font-bold text-slate-800">Tidak Ada Data Tagihan yang Cocok</h3>
+        <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+          Coba sesuaikan kata kunci pencarian, filter tanggal jatuh tempo, kolektibilitas, atau kondisi saldo AGF.
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = items.map(item => {
+    const followup = getTagihanFollowup(item);
+
+    // Kol Badge
+    const kolStr = String(item.kol || '').toUpperCase();
+    let kolBadgeClass = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+    let kolLabel = `Kol 1 (Lancar)`;
+    if (kolStr.startsWith('2')) {
+      kolBadgeClass = 'bg-amber-100 text-amber-900 border-amber-300';
+      kolLabel = `Kol ${escapeHtml(item.kol)} (DPK)`;
+    } else if (kolStr.startsWith('3')) {
+      kolBadgeClass = 'bg-orange-100 text-orange-900 border-orange-300';
+      kolLabel = `Kol 3 (Kurang Lancar)`;
+    } else if (kolStr.startsWith('5')) {
+      kolBadgeClass = 'bg-red-100 text-red-900 border-red-300';
+      kolLabel = `Kol 5 (Macet)`;
+    }
+
+    // Saldo AGF alert
+    let saldoBoxHtml = '';
+    if (item.saldoCukup) {
+      saldoBoxHtml = `
+        <div class="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200 text-emerald-800 flex items-center justify-between text-xs">
+          <span class="flex items-center"><i class="fa-solid fa-circle-check text-emerald-600 mr-1.5"></i> Saldo AGF Cukup</span>
+          <span class="font-extrabold">${formatRupiah(item.saldoAgf)}</span>
+        </div>
+      `;
+    } else {
+      saldoBoxHtml = `
+        <div class="p-2.5 rounded-xl bg-amber-50/80 border border-amber-300 text-amber-900 text-xs">
+          <div class="flex items-center justify-between font-bold">
+            <span class="flex items-center"><i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1.5"></i> Saldo Kurang:</span>
+            <span class="text-red-700 font-black">- Rp ${Number(item.kurangSaldo).toLocaleString('id-ID')}</span>
+          </div>
+          <div class="text-[11px] text-slate-600 mt-1 flex items-center justify-between">
+            <span>Saldo saat ini: <strong>${formatRupiah(item.saldoAgf)}</strong></span>
+            <span>Tagihan: <strong>${formatRupiah(item.totalKewajiban)}</strong></span>
+          </div>
+        </div>
+      `;
+    }
+
+    // Follow-up status pill
+    let followupBadge = '';
+    if (followup.status === 'sudah_bayar') {
+      followupBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"><i class="fa-solid fa-circle-check mr-1"></i>Sudah Bayar</span>`;
+    } else if (followup.status === 'janji_bayar') {
+      followupBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300"><i class="fa-solid fa-calendar-day mr-1"></i>Janji Bayar: ${escapeHtml(followup.ptpDate || '-')}</span>`;
+    } else if (followup.status === 'belum_ada_dana') {
+      followupBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-900 border border-orange-200"><i class="fa-solid fa-hourglass-half mr-1"></i>Belum Ada Dana</span>`;
+    } else if (followup.status === 'kendala') {
+      followupBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-900 border border-red-200"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Kendala</span>`;
+    } else {
+      followupBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200"><i class="fa-solid fa-clock mr-1"></i>Belum Ditagih</span>`;
+    }
+
+    const hasTunggakan = Number(item.tunggakan) > 0;
+
+    return `
+      <div class="bg-white rounded-2xl border border-slate-200/90 shadow-card hover:shadow-card-hover transition-all duration-200 flex flex-col justify-between overflow-hidden">
+        
+        <!-- Card Top Bar -->
+        <div class="p-4 sm:p-5 space-y-3 flex-1">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold border ${kolBadgeClass}">
+                ${kolLabel}
+              </span>
+              <span class="ml-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-mandiri-blue border border-blue-200">
+                ${escapeHtml(item.produk)}
+              </span>
+            </div>
+            ${followupBadge}
+          </div>
+
+          <!-- Debitur Name & Rekening -->
+          <div>
+            <h4 class="font-extrabold text-slate-800 text-sm sm:text-base leading-snug line-clamp-1" title="${escapeHtml(item.nama)}">
+              ${escapeHtml(item.nama)}
+            </h4>
+            <div class="flex items-center space-x-1.5 mt-1 text-xs text-slate-500 font-mono">
+              <span>Rek: <strong>${escapeHtml(item.rekening)}</strong></span>
+              <button onclick="copyToClipboard('${escapeHtml(item.rekening)}', 'Nomor Rekening')" class="text-slate-400 hover:text-mandiri-blue p-0.5" title="Salin No Rekening">
+                <i class="fa-regular fa-copy"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Jatuh Tempo & HT -->
+          <div class="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
+            <div>
+              <span class="text-[10px] text-slate-500 block">Jatuh Tempo (JT)</span>
+              <strong class="text-slate-800 text-xs">Tgl ${escapeHtml(item.jt)} tiap bln</strong>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 block">Hari Tunggakan (HT)</span>
+              <strong class="${item.ht > 0 ? 'text-red-700 font-black' : 'text-slate-800'} text-xs">${escapeHtml(item.ht)} Hari</strong>
+            </div>
+          </div>
+
+          <!-- Financial Details -->
+          <div class="space-y-1 text-xs">
+            <div class="flex justify-between items-center">
+              <span class="text-slate-500">Angsuran Pokok+Bunga:</span>
+              <strong class="text-slate-800">${formatRupiah(item.angsuran)}</strong>
+            </div>
+            ${hasTunggakan ? `
+              <div class="flex justify-between items-center text-red-700 font-bold">
+                <span class="flex items-center"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Tunggakan:</span>
+                <span>${formatRupiah(item.tunggakan)}</span>
+              </div>
+            ` : ''}
+            <div class="flex justify-between items-center pt-1 border-t border-slate-100 font-extrabold text-slate-900">
+              <span>Total Kewajiban:</span>
+              <span class="text-mandiri-navy text-sm">${formatRupiah(item.totalKewajiban)}</span>
+            </div>
+          </div>
+
+          <!-- Saldo Tabungan AGF Alert Box -->
+          ${saldoBoxHtml}
+
+          <!-- Petugas Mantri -->
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+            <span class="truncate max-w-[170px]"><i class="fa-solid fa-user-tie text-mandiri-blue mr-1"></i>${escapeHtml(item.petugas || '-')}</span>
+            <span class="font-mono text-slate-400">Cab: ${escapeHtml(item.cabang || '-')}</span>
+          </div>
+
+        </div>
+
+        <!-- Card Footer Actions -->
+        <div class="bg-slate-50/80 px-4 py-3 border-t border-slate-200 flex items-center justify-between gap-1.5">
+          <button onclick="openDetailTagihan('${escapeHtml(item.id)}')" class="px-2.5 py-1.5 rounded-xl border border-slate-300 hover:bg-slate-200/80 text-slate-700 text-xs font-semibold transition flex items-center space-x-1" title="Lihat Detail Fasilitas Pinjaman">
+            <i class="fa-solid fa-eye text-mandiri-blue"></i>
+            <span>Detail</span>
+          </button>
+          <div class="flex items-center space-x-1.5">
+            <button onclick="openFollowupTagihan('${escapeHtml(item.id)}')" class="px-3 py-1.5 rounded-xl bg-mandiri-navy hover:bg-mandiri-blue text-white text-xs font-bold transition flex items-center space-x-1 shadow-xs" title="Catat Hasil Penagihan">
+              <i class="fa-solid fa-pen-to-square"></i>
+              <span>Tagih</span>
+            </button>
+            <button onclick="openWaTagihan('${escapeHtml(item.id)}')" class="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center space-x-1 shadow-xs" title="Kirim Pengingat WhatsApp">
+              <i class="fa-brands fa-whatsapp text-sm"></i>
+              <span>WA</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    `;
+  }).join('');
+}
+
+// ================= RENDER TABLE TAGIHAN =================
+function renderTagihanTable(items, start) {
+  const tbody = document.getElementById('tagihanTableBody');
+  if (!tbody) return;
+
+  if (items.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="12" class="p-8 text-center text-slate-500">
+          Tidak ada data tagihan yang sesuai dengan filter.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = items.map((item, idx) => {
+    const followup = getTagihanFollowup(item);
+    const kolStr = String(item.kol || '').toUpperCase();
+    let kolBadgeClass = 'bg-emerald-100 text-emerald-800';
+    if (kolStr.startsWith('2')) kolBadgeClass = 'bg-amber-100 text-amber-900';
+    else if (kolStr.startsWith('3')) kolBadgeClass = 'bg-orange-100 text-orange-900';
+    else if (kolStr.startsWith('5')) kolBadgeClass = 'bg-red-100 text-red-900';
+
+    let saldoBadge = item.saldoCukup
+      ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Cukup</span>`
+      : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-800" title="Kurang Rp ${Number(item.kurangSaldo).toLocaleString('id-ID')}">Kurang</span>`;
+
+    let followupBadge = '';
+    if (followup.status === 'sudah_bayar') {
+      followupBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Sudah Bayar</span>`;
+    } else if (followup.status === 'janji_bayar') {
+      followupBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900">PTP: ${escapeHtml(followup.ptpDate || '-')}</span>`;
+    } else if (followup.status === 'belum_ada_dana') {
+      followupBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-900">Belum Ada Dana</span>`;
+    } else if (followup.status === 'kendala') {
+      followupBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-900">Kendala</span>`;
+    } else {
+      followupBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">Belum Ditagih</span>`;
+    }
+
+    return `
+      <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+        <td class="p-3 text-slate-400 font-mono text-[11px]">${start + idx + 1}</td>
+        <td class="p-3">
+          <div class="font-bold text-slate-800 leading-tight">${escapeHtml(item.nama)}</div>
+          <div class="text-[11px] text-slate-500 font-mono flex items-center space-x-1 mt-0.5">
+            <span>Rek: ${escapeHtml(item.rekening)}</span>
+            <button onclick="copyToClipboard('${escapeHtml(item.rekening)}', 'Nomor Rekening')" class="text-slate-400 hover:text-mandiri-blue">
+              <i class="fa-regular fa-copy text-[10px]"></i>
+            </button>
+          </div>
+        </td>
+        <td class="p-3 text-[11px] text-slate-600 truncate max-w-[120px]">${escapeHtml(item.petugas || '-')}</td>
+        <td class="p-3">
+          <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-blue-50 text-mandiri-blue border border-blue-200">
+            ${escapeHtml(item.produk)}
+          </span>
+        </td>
+        <td class="p-3">
+          <span class="px-2 py-0.5 rounded text-[10px] font-extrabold ${kolBadgeClass}">
+            Kol ${escapeHtml(item.kol)}
+          </span>
+          <div class="text-[10px] text-slate-400 mt-0.5">HT: ${escapeHtml(item.ht)} hr</div>
+        </td>
+        <td class="p-3 font-semibold text-slate-800 text-center">Tgl ${escapeHtml(item.jt)}</td>
+        <td class="p-3 font-bold text-slate-800">${formatRupiah(item.angsuran)}</td>
+        <td class="p-3 font-bold ${item.tunggakan > 0 ? 'text-red-700' : 'text-slate-500'}">${formatRupiah(item.tunggakan)}</td>
+        <td class="p-3">
+          <div class="font-mono text-[11px] text-slate-700">${escapeHtml(item.rekAgf)}</div>
+          <div class="font-bold text-[11px] text-slate-900">${formatRupiah(item.saldoAgf)}</div>
+        </td>
+        <td class="p-3">${saldoBadge}</td>
+        <td class="p-3">${followupBadge}</td>
+        <td class="p-3 text-center">
+          <div class="flex items-center justify-center space-x-1">
+            <button onclick="openDetailTagihan('${escapeHtml(item.id)}')" class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-200 transition" title="Detail">
+              <i class="fa-solid fa-eye text-mandiri-blue"></i>
+            </button>
+            <button onclick="openFollowupTagihan('${escapeHtml(item.id)}')" class="p-1.5 rounded-lg text-mandiri-navy hover:bg-blue-100 transition" title="Catat Penagihan">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button onclick="openWaTagihan('${escapeHtml(item.id)}')" class="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-100 transition" title="Kirim WA">
+              <i class="fa-brands fa-whatsapp text-sm"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// ================= RENDER PAGINATION TAGIHAN =================
+function renderTagihanPagination(totalItems, start, end, totalPages) {
+  const infoEl = document.getElementById('tagihanPaginationInfo');
+  if (infoEl) {
+    infoEl.textContent = `Menampilkan ${totalItems === 0 ? 0 : start + 1} - ${end} dari ${totalItems} rekening`;
+  }
+
+  const btnContainer = document.getElementById('tagihanPaginationButtons');
+  if (!btnContainer) return;
+
+  if (totalPages <= 1) {
+    btnContainer.innerHTML = '';
+    return;
+  }
+
+  let html = '';
+  // Prev button
+  html += `
+    <button onclick="changeTagihanPage(${currentTagihanPage - 1})" ${currentTagihanPage === 1 ? 'disabled' : ''} class="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 transition">
+      <i class="fa-solid fa-chevron-left"></i>
+    </button>
+  `;
+
+  // Page numbers (smart window)
+  const maxButtons = 5;
+  let startPage = Math.max(1, currentTagihanPage - 2);
+  let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+  if (endPage - startPage < maxButtons - 1) {
+    startPage = Math.max(1, endPage - maxButtons + 1);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    const isActive = i === currentTagihanPage;
+    html += `
+      <button onclick="changeTagihanPage(${i})" class="px-3 py-1.5 rounded-lg text-xs font-bold transition ${isActive ? 'bg-mandiri-navy text-white shadow-xs' : 'border border-slate-300 text-slate-700 hover:bg-slate-100'}">
+        ${i}
+      </button>
+    `;
+  }
+
+  // Next button
+  html += `
+    <button onclick="changeTagihanPage(${currentTagihanPage + 1})" ${currentTagihanPage === totalPages ? 'disabled' : ''} class="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 transition">
+      <i class="fa-solid fa-chevron-right"></i>
+    </button>
+  `;
+
+  btnContainer.innerHTML = html;
+}
+
+// ================= MODAL DETAIL TAGIHAN =================
+function findTagihanItemById(id) {
+  return dbTagihan.find(x => x.id === id || String(x.rekening) === String(id));
+}
+
+function openDetailTagihan(id) {
+  const item = findTagihanItemById(id);
+  if (!item) {
+    showToast('Data rekening tagihan tidak ditemukan', 'error');
+    return;
+  }
+
+  currentActiveTagihan = item;
+  const followup = getTagihanFollowup(item);
+
+  // Fill Header
+  const elNama = document.getElementById('modalDetailTagihanNama');
+  if (elNama) elNama.textContent = item.nama;
+  const elRek = document.getElementById('modalDetailTagihanRekening');
+  if (elRek) elRek.textContent = `No. Rek: ${item.rekening} | CIF: ${item.cif}`;
+
+  // Kol & JT Banner
+  const kolBadge = document.getElementById('modalDetailTagihanKolBadge');
+  const kolPrevBadge = document.getElementById('modalDetailTagihanKolPrevBadge');
+  const banner = document.getElementById('modalDetailTagihanBanner');
+
+  const kolStr = String(item.kol || '').toUpperCase();
+  if (kolBadge) {
+    kolBadge.textContent = `Kol ${item.kol} (${kolStr.startsWith('1') ? 'Lancar' : kolStr.startsWith('2') ? 'DPK' : kolStr.startsWith('3') ? 'Kurang Lancar' : 'Macet'})`;
+    if (kolStr.startsWith('1')) {
+      kolBadge.className = 'px-3 py-1 rounded-full text-xs font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-300';
+      if (banner) banner.className = 'p-4 rounded-2xl border border-emerald-200 bg-emerald-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
+    } else if (kolStr.startsWith('2')) {
+      kolBadge.className = 'px-3 py-1 rounded-full text-xs font-black uppercase bg-amber-100 text-amber-900 border border-amber-300';
+      if (banner) banner.className = 'p-4 rounded-2xl border border-amber-200 bg-amber-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
+    } else {
+      kolBadge.className = 'px-3 py-1 rounded-full text-xs font-black uppercase bg-red-100 text-red-900 border border-red-300';
+      if (banner) banner.className = 'p-4 rounded-2xl border border-red-200 bg-red-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
+    }
+  }
+
+  if (kolPrevBadge) {
+    kolPrevBadge.textContent = `(Bulan lalu: Kol ${item.kolPrev || item.kol})`;
+  }
+
+  const elJT = document.getElementById('modalDetailTagihanJT');
+  if (elJT) elJT.textContent = `Tanggal ${item.jt} setiap bulan`;
+
+  const elHT = document.getElementById('modalDetailTagihanHT');
+  if (elHT) {
+    elHT.textContent = `${item.ht} Hari`;
+    elHT.className = item.ht > 0 ? 'text-base font-extrabold text-red-700' : 'text-base font-extrabold text-slate-800';
+  }
+
+  // Financials
+  const elAngsuran = document.getElementById('modalDetailTagihanAngsuran');
+  if (elAngsuran) elAngsuran.textContent = formatRupiah(item.angsuran);
+
+  const elTunggakan = document.getElementById('modalDetailTagihanTunggakan');
+  if (elTunggakan) elTunggakan.textContent = formatRupiah(item.tunggakan);
+
+  const elTotalKewajiban = document.getElementById('modalDetailTagihanTotalKewajiban');
+  if (elTotalKewajiban) elTotalKewajiban.textContent = formatRupiah(item.totalKewajiban);
+
+  // AGF Tabungan Box
+  const agfBox = document.getElementById('modalDetailTagihanAgfBox');
+  const agfBadge = document.getElementById('modalDetailTagihanAgfStatusBadge');
+  const elNoAgf = document.getElementById('modalDetailTagihanNoAgf');
+  if (elNoAgf) elNoAgf.textContent = item.rekAgf || '-';
+  const elSaldoAgf = document.getElementById('modalDetailTagihanSaldoAgf');
+  if (elSaldoAgf) elSaldoAgf.textContent = formatRupiah(item.saldoAgf);
+
+  const agfNote = document.getElementById('modalDetailTagihanAgfNote');
+  if (item.saldoCukup) {
+    if (agfBox) agfBox.className = 'p-4 rounded-2xl border border-emerald-300 bg-emerald-50/50';
+    if (agfBadge) {
+      agfBadge.textContent = 'Saldo Cukup';
+      agfBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800';
+    }
+    if (agfNote) {
+      agfNote.className = 'p-2.5 rounded-xl text-xs font-semibold bg-emerald-100 text-emerald-900 border border-emerald-200';
+      agfNote.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600 mr-1.5"></i> Saldo tabungan nasabah mencukupi untuk autodebet angsuran bulan ini.`;
+    }
+  } else {
+    if (agfBox) agfBox.className = 'p-4 rounded-2xl border border-amber-300 bg-amber-50/60';
+    if (agfBadge) {
+      agfBadge.textContent = 'Saldo Kurang';
+      agfBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-800';
+    }
+    if (agfNote) {
+      agfNote.className = 'p-2.5 rounded-xl text-xs font-semibold bg-red-50 text-red-900 border border-red-200';
+      agfNote.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-red-600 mr-1.5"></i> Saldo tabungan kurang <strong>Rp ${Number(item.kurangSaldo).toLocaleString('id-ID')}</strong>. Segera ingatkan nasabah untuk menyetor dana agar tidak gagal debet!`;
+    }
+  }
+
+  // Facility Info
+  const elProd = document.getElementById('modalDetailTagihanProduk');
+  if (elProd) elProd.textContent = `${item.produk} Mikro`;
+  const elCair = document.getElementById('modalDetailTagihanTglCair');
+  if (elCair) elCair.textContent = item.tglCair || '-';
+  const elLimit = document.getElementById('modalDetailTagihanLimit');
+  if (elLimit) elLimit.textContent = formatRupiah(item.limit);
+  const elBade = document.getElementById('modalDetailTagihanBade');
+  if (elBade) elBade.textContent = formatRupiah(item.bakiDebet);
+  const elPetugas = document.getElementById('modalDetailTagihanPetugas');
+  if (elPetugas) elPetugas.textContent = item.petugas || '-';
+  const elCabang = document.getElementById('modalDetailTagihanCabang');
+  if (elCabang) elCabang.textContent = item.cabang || '-';
+
+  // Follow-up Info
+  const elFuStatus = document.getElementById('modalDetailTagihanFollowupStatus');
+  const elFuDetail = document.getElementById('modalDetailTagihanFollowupDetail');
+  if (followup.status === 'sudah_bayar') {
+    if (elFuStatus) {
+      elFuStatus.textContent = 'Sudah Bayar / Setor';
+      elFuStatus.className = 'px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800';
+    }
+    if (elFuDetail) elFuDetail.innerHTML = `Dicatat oleh <strong>${escapeHtml(followup.petugas)}</strong> pada ${escapeHtml(followup.updatedAt || '-')}.<br>${escapeHtml(followup.catatan ? 'Catatan: ' + followup.catatan : '')}`;
+  } else if (followup.status === 'janji_bayar') {
+    if (elFuStatus) {
+      elFuStatus.textContent = `Janji Bayar (PTP: ${followup.ptpDate || '-'})`;
+      elFuStatus.className = 'px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900';
+    }
+    if (elFuDetail) elFuDetail.innerHTML = `Janji bayar tanggal <strong>${escapeHtml(followup.ptpDate)}</strong> dicatat oleh <strong>${escapeHtml(followup.petugas)}</strong>.<br>${escapeHtml(followup.catatan ? 'Catatan: ' + followup.catatan : '')}`;
+  } else if (followup.status === 'belum_ada_dana') {
+    if (elFuStatus) {
+      elFuStatus.textContent = 'Belum Ada Dana / Minta Tempo';
+      elFuStatus.className = 'px-2 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-orange-900';
+    }
+    if (elFuDetail) elFuDetail.innerHTML = `Dicatat oleh <strong>${escapeHtml(followup.petugas)}</strong>.<br>${escapeHtml(followup.catatan ? 'Catatan: ' + followup.catatan : '')}`;
+  } else if (followup.status === 'kendala') {
+    if (elFuStatus) {
+      elFuStatus.textContent = 'Kendala / Macet';
+      elFuStatus.className = 'px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-900';
+    }
+    if (elFuDetail) elFuDetail.innerHTML = `Dicatat oleh <strong>${escapeHtml(followup.petugas)}</strong>.<br>${escapeHtml(followup.catatan ? 'Catatan: ' + followup.catatan : '')}`;
+  } else {
+    if (elFuStatus) {
+      elFuStatus.textContent = 'Belum Ditagih';
+      elFuStatus.className = 'px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-200 text-slate-700';
+    }
+    if (elFuDetail) elFuDetail.textContent = 'Belum ada catatan progres penagihan untuk rekening ini.';
+  }
+
+  const modal = document.getElementById('modalDetailTagihan');
+  if (modal) modal.classList.remove('hidden');
+}
+window.openDetailTagihan = openDetailTagihan;
+
+function closeDetailTagihan() {
+  const modal = document.getElementById('modalDetailTagihan');
+  if (modal) modal.classList.add('hidden');
+}
+window.closeDetailTagihan = closeDetailTagihan;
+
+// ================= MODAL FOLLOW-UP TAGIHAN =================
+function openFollowupTagihan(id) {
+  const item = findTagihanItemById(id);
+  if (!item) {
+    showToast('Data rekening tidak ditemukan', 'error');
+    return;
+  }
+
+  currentActiveTagihan = item;
+  const followup = getTagihanFollowup(item);
+
+  const titleEl = document.getElementById('modalFollowupDebiturName');
+  if (titleEl) titleEl.textContent = `${item.nama} (Rek: ${item.rekening})`;
+
+  const idEl = document.getElementById('followupTagihanId');
+  if (idEl) idEl.value = item.id || item.rekening;
+
+  // Set Radio
+  const radios = document.querySelectorAll('input[name="radioTagihanStatus"]');
+  radios.forEach(r => {
+    r.checked = (r.value === followup.status);
+  });
+  if (![...radios].some(r => r.checked)) {
+    const defaultRadio = document.querySelector('input[name="radioTagihanStatus"][value="sudah_bayar"]');
+    if (defaultRadio) defaultRadio.checked = true;
+  }
+
+  // PTP Box
+  const ptpBox = document.getElementById('boxPtpDate');
+  const ptpInput = document.getElementById('followupPtpDate');
+  if (ptpInput) ptpInput.value = followup.ptpDate || '';
+  if (followup.status === 'janji_bayar') {
+    if (ptpBox) ptpBox.classList.remove('hidden');
+  } else {
+    if (ptpBox) ptpBox.classList.add('hidden');
+  }
+
+  // Petugas & Catatan
+  const petEl = document.getElementById('followupPetugasName');
+  if (petEl) petEl.value = followup.petugas && followup.petugas !== '-' ? followup.petugas : (item.petugas || '');
+
+  const notesEl = document.getElementById('followupNotes');
+  if (notesEl) notesEl.value = followup.catatan || '';
+
+  const modal = document.getElementById('modalFollowupTagihan');
+  if (modal) modal.classList.remove('hidden');
+}
+window.openFollowupTagihan = openFollowupTagihan;
+
+function closeFollowupTagihan() {
+  const modal = document.getElementById('modalFollowupTagihan');
+  if (modal) modal.classList.add('hidden');
+}
+window.closeFollowupTagihan = closeFollowupTagihan;
+
+function handleFollowupTagihanSubmit(e) {
+  e.preventDefault();
+  if (!currentActiveTagihan) return;
+
+  const key = currentActiveTagihan.rekening || currentActiveTagihan.id;
+  const statusEl = document.querySelector('input[name="radioTagihanStatus"]:checked');
+  const status = statusEl ? statusEl.value : 'belum';
+  const ptpDate = document.getElementById('followupPtpDate')?.value || '';
+  const petugas = document.getElementById('followupPetugasName')?.value?.trim() || currentActiveTagihan.petugas || '-';
+  const catatan = document.getElementById('followupNotes')?.value?.trim() || '';
+
+  if (status === 'janji_bayar' && !ptpDate) {
+    showToast('Harap pilih tanggal janji bayar (PTP)!', 'warning');
+    return;
+  }
+
+  tagihanFollowupRecords[key] = {
+    status,
+    ptpDate: status === 'janji_bayar' ? ptpDate : '',
+    petugas,
+    catatan,
+    updatedAt: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+  };
+
+  saveTagihanFollowupRecords();
+  updateTagihanUI();
+  closeFollowupTagihan();
+
+  // If detail modal is also open, refresh it
+  const modalDetail = document.getElementById('modalDetailTagihan');
+  if (modalDetail && !modalDetail.classList.contains('hidden')) {
+    openDetailTagihan(key);
+  }
+
+  showToast(`Progres penagihan untuk ${currentActiveTagihan.nama} berhasil disimpan!`, 'success');
+}
+
+// ================= MODAL WA REMINDER TAGIHAN =================
+function openWaTagihan(id) {
+  const item = findTagihanItemById(id);
+  if (!item) {
+    showToast('Data rekening tidak ditemukan', 'error');
+    return;
+  }
+
+  currentActiveTagihan = item;
+
+  const titleEl = document.getElementById('modalWaDebiturName');
+  if (titleEl) titleEl.textContent = `${item.nama} (Rek: ${item.rekening})`;
+
+  const phoneInput = document.getElementById('inputWaTagihanPhone');
+  if (phoneInput) phoneInput.value = '';
+
+  selectWaTagihanTemplate('reminder');
+
+  const modal = document.getElementById('modalWaTagihan');
+  if (modal) modal.classList.remove('hidden');
+}
+window.openWaTagihan = openWaTagihan;
+
+function closeWaTagihan() {
+  const modal = document.getElementById('modalWaTagihan');
+  if (modal) modal.classList.add('hidden');
+}
+window.closeWaTagihan = closeWaTagihan;
+
+function selectWaTagihanTemplate(type) {
+  currentWaTemplateType = type;
+  if (!currentActiveTagihan) return;
+
+  const btnRem = document.getElementById('btnTemplateReminder');
+  const btnSal = document.getElementById('btnTemplateSaldo');
+  const btnTung = document.getElementById('btnTemplateTunggakan');
+
+  [btnRem, btnSal, btnTung].forEach(b => {
+    if (b) b.className = 'p-2 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-center hover:bg-slate-50 transition';
+  });
+
+  if (type === 'reminder' && btnRem) {
+    btnRem.className = 'p-2 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-900 font-bold text-center transition';
+  } else if (type === 'saldo_kurang' && btnSal) {
+    btnSal.className = 'p-2 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-900 font-bold text-center transition';
+  } else if (type === 'tunggakan' && btnTung) {
+    btnTung.className = 'p-2 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-900 font-bold text-center transition';
+  }
+
+  const item = currentActiveTagihan;
+  const area = document.getElementById('previewWaTagihanMessage');
+  if (!area) return;
+
+  if (type === 'reminder') {
+    area.value = `Selamat pagi/siang Bapak/Ibu ${item.nama},
+
+Kami dari Bank Mandiri menginfokan perihal angsuran pinjaman ${item.produk} Anda (No. Rek: ${item.rekening}) sebesar ${formatRupiah(item.angsuran)} dengan tanggal jatuh tempo setiap tanggal ${item.jt}.
+
+Mohon pastikan saldo di rekening tabungan autodebet Anda (${item.rekAgf}) mencukupi sebelum tanggal jatuh tempo agar proses autodebet berjalan lancar dan riwayat pinjaman tetap lancar (Kol 1).
+
+Terima kasih atas kerja sama dan kepercayaannya kepada Bank Mandiri.`;
+  } else if (type === 'saldo_kurang') {
+    area.value = `Selamat pagi/siang Bapak/Ibu ${item.nama},
+
+Kami dari Bank Mandiri mengingatkan bahwa tagihan angsuran pinjaman ${item.produk} Anda (No. Rek: ${item.rekening}) adalah sebesar ${formatRupiah(item.angsuran)}.
+
+Berdasarkan catatan sistem kami, saldo pada rekening autodebet (${item.rekAgf}) saat ini adalah ${formatRupiah(item.saldoAgf)}, terdapat kekurangan saldo sebesar Rp ${Number(item.kurangSaldo).toLocaleString('id-ID')}.
+
+Mohon kesediaannya untuk segera melakukan penyetoran atau transfer ke rekening tabungan Anda sebelum tanggal ${item.jt} agar pembayaran angsuran tidak tertunda.
+
+Terima kasih atas perhatian Bapak/Ibu.`;
+  } else if (type === 'tunggakan') {
+    area.value = `*PEMBERITAHUAN BANK MANDIRI*
+
+Yth. Bapak/Ibu ${item.nama},
+Terkait fasilitas pinjaman ${item.produk} Anda (No. Rek: ${item.rekening}), terdapat kewajiban pembayaran yang belum terselesaikan dengan rincian:
+- Angsuran Bulanan: ${formatRupiah(item.angsuran)}
+- Tunggakan: ${formatRupiah(item.tunggakan)}
+- Total Kewajiban: ${formatRupiah(item.totalKewajiban)}
+- Hari Tunggakan: ${item.ht} Hari (Kolektibilitas ${item.kol})
+
+Mohon segera melakukan pembayaran/penyetoran melalui rekening ${item.rekAgf} atau menghubungi petugas kami (${item.petugas || 'Petugas Mandiri'}).
+
+Terima kasih atas kerja samanya.`;
+  }
+}
+window.selectWaTagihanTemplate = selectWaTagihanTemplate;
+
+function sendWaTagihanNow() {
+  const phoneInput = document.getElementById('inputWaTagihanPhone');
+  const msgArea = document.getElementById('previewWaTagihanMessage');
+  let phone = phoneInput ? phoneInput.value.trim() : '';
+  const message = msgArea ? msgArea.value.trim() : '';
+
+  if (!phone) {
+    showToast('Harap masukkan nomor WhatsApp debitur terlebih dahulu!', 'warning');
+    if (phoneInput) phoneInput.focus();
+    return;
+  }
+
+  let formatted = cleanPhone(phone);
+  if (!formatted) {
+    showToast('Format nomor WhatsApp tidak valid!', 'error');
+    return;
+  }
+
+  const url = `https://api.whatsapp.com/send?phone=${formatted}&text=${encodeURIComponent(message)}`;
+  window.open(url, '_blank');
+  showToast('Membuka WhatsApp...', 'success');
+}
+
+function copyWaTagihanText() {
+  const msgArea = document.getElementById('previewWaTagihanMessage');
+  if (msgArea && msgArea.value) {
+    copyToClipboard(msgArea.value, 'Pesan WhatsApp');
+  }
+}
+
+// ================= MODAL UPLOAD EXCEL TAGIHAN =================
+function openUploadTagihanModal() {
+  const modal = document.getElementById('modalUploadTagihan');
+  if (modal) modal.classList.remove('hidden');
+  resetTagihanUploadState();
+}
+
+function closeUploadTagihanModal() {
+  const modal = document.getElementById('modalUploadTagihan');
+  if (modal) modal.classList.add('hidden');
+  resetTagihanUploadState();
+}
+
+function resetTagihanUploadState() {
+  pendingImportTagihanData = [];
+  const previewBox = document.getElementById('previewTagihanContainer');
+  if (previewBox) previewBox.classList.add('hidden');
+  const tbody = document.getElementById('previewTagihanTableBody');
+  if (tbody) tbody.innerHTML = '';
+  const btnProcess = document.getElementById('btnProcessImportTagihan');
+  if (btnProcess) btnProcess.disabled = true;
+  const fileInput = document.getElementById('excelFileTagihanInput');
+  if (fileInput) fileInput.value = '';
+}
+
+function handleTagihanExcelUpload(file) {
+  if (!file) return;
+
+  const validExts = ['.xlsx', '.xls', '.csv'];
+  const fileName = file.name.toLowerCase();
+  const isValid = validExts.some(ext => fileName.endsWith(ext));
+
+  if (!isValid) {
+    showToast('Format file tidak didukung. Harap upload .xlsx, .xls, atau .csv', 'error');
+    return;
+  }
+
+  showToast('Membaca file data tagihan...', 'info');
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const rawRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+      if (rawRows.length === 0) {
+        showToast('File tidak berisi data atau kosong', 'error');
+        return;
+      }
+
+      // Map rows into Tagihan object format
+      const parsedItems = [];
+      rawRows.forEach((r, idx) => {
+        // Normalize column keys
+        const keys = Object.keys(r);
+        const getVal = (colNames) => {
+          for (let name of colNames) {
+            const matchedKey = keys.find(k => k.trim().toUpperCase() === name.toUpperCase());
+            if (matchedKey && r[matchedKey] !== undefined && r[matchedKey] !== null) {
+              return r[matchedKey];
+            }
+          }
+          return '';
+        };
+
+        const cabang = String(getVal(['CABANG'])).trim();
+        let cif = String(getVal(['CIF'])).trim().replace(/\.0$/, '');
+        const petugas = String(getVal(['PETUGAS'])).trim();
+        const produk = String(getVal(['PROD', 'PRODUK'])).trim() || 'KUR';
+        let rekening = String(getVal(['REKENING'])).trim().replace(/\.0$/, '');
+        const nama = String(getVal(['NASABAH', 'NAMA NASABAH', 'NAMA'])).trim();
+
+        if (!nama && !rekening) return; // Skip empty row
+
+        let limitRaw = cleanNumber(getVal(['LIMIT']));
+        let limit = limitRaw < 1000 ? Math.round(limitRaw * 1000000) : Math.round(limitRaw);
+
+        let badeRaw = cleanNumber(getVal(['BADE', 'BAKI DEBET']));
+        let bakiDebet = badeRaw < 1000 ? Math.round(badeRaw * 1000000) : Math.round(badeRaw);
+
+        let kol = String(getVal(['KOL'])).trim().replace(/\.0$/, '') || '1';
+        let kolPrev = String(getVal(['KOL-1', 'KOL_1', 'KOL 1'])).trim().replace(/\.0$/, '') || kol;
+
+        let tglCairVal = getVal(['TGL CAIR', 'TGL_CAIR', 'TANGGAL CAIR']);
+        let tglCair = String(tglCairVal);
+        if (typeof tglCairVal === 'number' && tglCairVal > 20000) {
+          // Serial date
+          const dateObj = new Date(Math.round((tglCairVal - 25569) * 86400 * 1000));
+          tglCair = dateObj.toLocaleDateString('id-ID');
+        }
+
+        let jt = parseInt(cleanNumber(getVal(['JT']))) || 10;
+        let ht = parseInt(cleanNumber(getVal(['HT']))) || 0;
+        let angsuran = Math.round(cleanNumber(getVal(['ANGSURAN'])));
+        let tunggakan = Math.round(cleanNumber(getVal(['TUNGGAKAN'])));
+        let totalKewajiban = angsuran + tunggakan;
+
+        let rekAgf = String(getVal(['REK AGF', 'REK_AGF', 'REKENING AGF'])).trim().replace(/\.0$/, '');
+        let saldoAgf = Math.round(cleanNumber(getVal(['SALDO AGF', 'SALDO_AGF'])));
+
+        let saldoCukup = saldoAgf >= totalKewajiban;
+        let kurangSaldo = saldoCukup ? 0 : (totalKewajiban - saldoAgf);
+
+        parsedItems.push({
+          id: `tagihan-${rekening || Date.now() + '-' + idx}`,
+          cabang,
+          cif,
+          petugas,
+          produk,
+          rekening,
+          nama,
+          limit,
+          bakiDebet,
+          kol,
+          kolPrev,
+          tglCair,
+          jt,
+          ht,
+          angsuran,
+          tunggakan,
+          totalKewajiban,
+          rekAgf,
+          saldoAgf,
+          saldoCukup,
+          kurangSaldo
+        });
+      });
+
+      if (parsedItems.length === 0) {
+        showToast('Tidak ada data valid yang dapat dikenali dalam file', 'error');
+        return;
+      }
+
+      pendingImportTagihanData = parsedItems;
+
+      // Render Preview
+      const previewBox = document.getElementById('previewTagihanContainer');
+      const countEl = document.getElementById('previewTagihanRowCount');
+      const tbody = document.getElementById('previewTagihanTableBody');
+      const btnProcess = document.getElementById('btnProcessImportTagihan');
+
+      if (previewBox) previewBox.classList.remove('hidden');
+      if (countEl) countEl.textContent = `${parsedItems.length} baris terdeteksi`;
+
+      if (tbody) {
+        const previewRows = parsedItems.slice(0, 5);
+        tbody.innerHTML = previewRows.map(r => `
+          <tr>
+            <td class="p-2 font-bold">${escapeHtml(r.nama)}</td>
+            <td class="p-2 font-mono">${escapeHtml(r.rekening)}</td>
+            <td class="p-2">${escapeHtml(r.produk)}</td>
+            <td class="p-2 font-bold">Kol ${escapeHtml(r.kol)}</td>
+            <td class="p-2">Tgl ${escapeHtml(r.jt)}</td>
+            <td class="p-2">${formatRupiah(r.angsuran)}</td>
+            <td class="p-2 font-bold ${r.saldoCukup ? 'text-emerald-700' : 'text-red-700'}">${formatRupiah(r.saldoAgf)}</td>
+          </tr>
+        `).join('');
+      }
+
+      if (btnProcess) btnProcess.disabled = false;
+      showToast(`Berhasil membaca ${parsedItems.length} baris data tagihan. Silakan klik simpan!`, 'success');
+
+    } catch (err) {
+      console.error('Error parsing tagihan excel:', err);
+      showToast('Gagal memproses file Excel: ' + err.message, 'error');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function processFinalImportTagihan() {
+  if (!pendingImportTagihanData || pendingImportTagihanData.length === 0) {
+    showToast('Tidak ada data yang siap diimpor', 'warning');
+    return;
+  }
+
+  // Update existing or add new by rekening
+  let updatedCount = 0;
+  let addedCount = 0;
+
+  pendingImportTagihanData.forEach(newItem => {
+    const existingIdx = dbTagihan.findIndex(x => String(x.rekening) === String(newItem.rekening));
+    if (existingIdx !== -1) {
+      dbTagihan[existingIdx] = { ...dbTagihan[existingIdx], ...newItem };
+      updatedCount++;
+    } else {
+      dbTagihan.push(newItem);
+      addedCount++;
+    }
+  });
+
+  saveTagihanDatabase();
+  populateTagihanPetugasDropdown();
+  updateTagihanUI();
+  closeUploadTagihanModal();
+
+  showToast(`Sukses memperbarui data tagihan! (${addedCount} baru, ${updatedCount} diperbarui)`, 'success');
+}
+
+// ================= EXPORT & TEMPLATE TAGIHAN =================
+function exportTagihanExcel() {
+  if (dbTagihan.length === 0) {
+    showToast('Database tagihan kosong, tidak ada data untuk diekspor', 'warning');
+    return;
+  }
+
+  showToast('Menyiapkan file rekap tagihan Excel...', 'info');
+
+  const rows = dbTagihan.map((item, idx) => {
+    const fu = getTagihanFollowup(item);
+    return {
+      'NO': idx + 1,
+      'CABANG': item.cabang,
+      'CIF': item.cif,
+      'PETUGAS': item.petugas,
+      'PRODUK': item.produk,
+      'NO REKENING': item.rekening,
+      'NAMA NASABAH': item.nama,
+      'LIMIT PLAFON': item.limit,
+      'BAKI DEBET': item.bakiDebet,
+      'KOL': item.kol,
+      'KOL LALU': item.kolPrev,
+      'TGL CAIR': item.tglCair,
+      'JT': item.jt,
+      'HT': item.ht,
+      'ANGSURAN': item.angsuran,
+      'TUNGGAKAN': item.tunggakan,
+      'TOTAL KEWAJIBAN': item.totalKewajiban,
+      'REK AGF': item.rekAgf,
+      'SALDO AGF': item.saldoAgf,
+      'KECUKUPAN SALDO': item.saldoCukup ? 'CUKUP' : 'KURANG',
+      'KEKURANGAN SALDO': item.kurangSaldo,
+      'STATUS PENAGIHAN': fu.status === 'sudah_bayar' ? 'SUDAH BAYAR' : fu.status === 'janji_bayar' ? 'JANJI BAYAR' : fu.status === 'belum_ada_dana' ? 'BELUM ADA DANA' : fu.status === 'kendala' ? 'KENDALA' : 'BELUM DITAGIH',
+      'TANGGAL JANJI BAYAR (PTP)': fu.ptpDate || '',
+      'PETUGAS PENAGIH': fu.petugas || '',
+      'CATATAN PENAGIHAN': fu.catatan || '',
+      'TGL UPDATE PENAGIHAN': fu.updatedAt || ''
+    };
+  });
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb, ws, 'Rekap Tagihan Mandiri');
+
+  const dateStr = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(wb, `Rekap_Monitoring_Tagihan_Mandiri_${dateStr}.xlsx`);
+  showToast('File rekap tagihan berhasil diunduh!', 'success');
+}
+
+function downloadTemplateTagihan() {
+  const link = document.createElement('a');
+  link.href = 'contoh_data_tagihan.xlsx';
+  link.download = 'contoh_data_tagihan.xlsx';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast('Mengunduh contoh format file data tagihan...', 'info');
+}
+
+// ================= SETUP EVENT LISTENERS TAGIHAN =================
+function setupTagihanEventListeners() {
+  // Header Actions
+  const btnExport = document.getElementById('btnExportTagihanExcel');
+  if (btnExport) btnExport.addEventListener('click', exportTagihanExcel);
+
+  const btnTemplate = document.getElementById('btnDownloadTemplateTagihan');
+  if (btnTemplate) btnTemplate.addEventListener('click', downloadTemplateTagihan);
+
+  const btnOpenUpload = document.getElementById('btnOpenUploadTagihanModal');
+  if (btnOpenUpload) btnOpenUpload.addEventListener('click', openUploadTagihanModal);
+
+  // Search Tagihan
+  const searchInput = document.getElementById('searchTagihanInput');
+  const btnClearSearch = document.getElementById('btnClearSearchTagihan');
+  let searchTimer = null;
+
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (btnClearSearch) {
+        if (val) btnClearSearch.classList.remove('hidden');
+        else btnClearSearch.classList.add('hidden');
+      }
+
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        currentTagihanSearch = val;
+        currentTagihanPage = 1;
+        updateTagihanUI();
+      }, 250);
+    });
+  }
+
+  if (btnClearSearch) {
+    btnClearSearch.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      btnClearSearch.classList.add('hidden');
+      currentTagihanSearch = '';
+      currentTagihanPage = 1;
+      updateTagihanUI();
+    });
+  }
+
+  // Filter Dropdowns
+  const fJT = document.getElementById('filterTagihanJT');
+  if (fJT) fJT.addEventListener('change', (e) => {
+    currentTagihanFilterJT = e.target.value;
+    currentTagihanPage = 1;
+    updateTagihanUI();
+  });
+
+  const fKol = document.getElementById('filterTagihanKol');
+  if (fKol) fKol.addEventListener('change', (e) => {
+    currentTagihanFilterKol = e.target.value;
+    currentTagihanPage = 1;
+    updateTagihanUI();
+  });
+
+  const fSaldo = document.getElementById('filterTagihanSaldo');
+  if (fSaldo) fSaldo.addEventListener('change', (e) => {
+    currentTagihanFilterSaldo = e.target.value;
+    currentTagihanPage = 1;
+    updateTagihanUI();
+  });
+
+  const fPetugas = document.getElementById('filterTagihanPetugas');
+  if (fPetugas) fPetugas.addEventListener('change', (e) => {
+    currentTagihanFilterPetugas = e.target.value;
+    currentTagihanPage = 1;
+    updateTagihanUI();
+  });
+
+  const fProduk = document.getElementById('filterTagihanProduk');
+  if (fProduk) fProduk.addEventListener('change', (e) => {
+    currentTagihanFilterProduk = e.target.value;
+    currentTagihanPage = 1;
+    updateTagihanUI();
+  });
+
+  const fFollowup = document.getElementById('filterTagihanFollowup');
+  if (fFollowup) fFollowup.addEventListener('change', (e) => {
+    currentTagihanFilterFollowup = e.target.value;
+    currentTagihanPage = 1;
+    updateTagihanUI();
+  });
+
+  // Modal Detail Tagihan Close
+  const btnCloseDetail = document.getElementById('btnCloseModalDetailTagihan');
+  if (btnCloseDetail) btnCloseDetail.addEventListener('click', closeDetailTagihan);
+  const btnCloseDetailFooter = document.getElementById('btnCloseModalDetailTagihanFooter');
+  if (btnCloseDetailFooter) btnCloseDetailFooter.addEventListener('click', closeDetailTagihan);
+
+  const btnOpenWaFromDetail = document.getElementById('btnOpenWaFromDetailTagihan');
+  if (btnOpenWaFromDetail) btnOpenWaFromDetail.addEventListener('click', () => {
+    if (currentActiveTagihan) openWaTagihan(currentActiveTagihan.id);
+  });
+
+  const btnOpenFuFromDetail = document.getElementById('btnOpenFollowupFromDetailTagihan');
+  if (btnOpenFuFromDetail) btnOpenFuFromDetail.addEventListener('click', () => {
+    if (currentActiveTagihan) openFollowupTagihan(currentActiveTagihan.id);
+  });
+
+  // Modal Follow-up Tagihan
+  const btnCloseFu = document.getElementById('btnCloseModalFollowupTagihan');
+  if (btnCloseFu) btnCloseFu.addEventListener('click', closeFollowupTagihan);
+  const btnCancelFu = document.getElementById('btnCancelFollowupTagihan');
+  if (btnCancelFu) btnCancelFu.addEventListener('click', closeFollowupTagihan);
+  const formFu = document.getElementById('formFollowupTagihan');
+  if (formFu) formFu.addEventListener('submit', handleFollowupTagihanSubmit);
+
+  // Radio listener for PTP Box toggle
+  document.querySelectorAll('input[name="radioTagihanStatus"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      const ptpBox = document.getElementById('boxPtpDate');
+      const ptpInput = document.getElementById('followupPtpDate');
+      if (e.target.value === 'janji_bayar') {
+        if (ptpBox) ptpBox.classList.remove('hidden');
+        if (ptpInput) ptpInput.setAttribute('required', 'true');
+      } else {
+        if (ptpBox) ptpBox.classList.add('hidden');
+        if (ptpInput) ptpInput.removeAttribute('required');
+      }
+    });
+  });
+
+  // Modal WA Tagihan
+  const btnCloseWa = document.getElementById('btnCloseModalWaTagihan');
+  if (btnCloseWa) btnCloseWa.addEventListener('click', closeWaTagihan);
+  const btnCancelWa = document.getElementById('btnCancelWaTagihan');
+  if (btnCancelWa) btnCancelWa.addEventListener('click', closeWaTagihan);
+  const btnCopyWa = document.getElementById('btnCopyWaTagihan');
+  if (btnCopyWa) btnCopyWa.addEventListener('click', copyWaTagihanText);
+  const btnSendWa = document.getElementById('btnSendWaTagihanNow');
+  if (btnSendWa) btnSendWa.addEventListener('click', sendWaTagihanNow);
+
+  // Modal Upload Tagihan
+  const btnCloseUpload = document.getElementById('btnCloseModalUploadTagihan');
+  if (btnCloseUpload) btnCloseUpload.addEventListener('click', closeUploadTagihanModal);
+  const btnCancelUpload = document.getElementById('btnCancelUploadTagihan');
+  if (btnCancelUpload) btnCancelUpload.addEventListener('click', closeUploadTagihanModal);
+  const btnDownloadTplModal = document.getElementById('btnDownloadTemplateTagihanModal');
+  if (btnDownloadTplModal) btnDownloadTplModal.addEventListener('click', downloadTemplateTagihan);
+
+  const dropZone = document.getElementById('dropZoneTagihan');
+  const fileInput = document.getElementById('excelFileTagihanInput');
+
+  if (dropZone && fileInput) {
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleTagihanExcelUpload(e.target.files[0]);
+      }
+    });
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('border-mandiri-blue', 'bg-blue-50/60');
+    });
+
+    dropZone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('border-mandiri-blue', 'bg-blue-50/60');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('border-mandiri-blue', 'bg-blue-50/60');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleTagihanExcelUpload(e.dataTransfer.files[0]);
+      }
+    });
+  }
+
+  const btnProcessImport = document.getElementById('btnProcessImportTagihan');
+  if (btnProcessImport) btnProcessImport.addEventListener('click', processFinalImportTagihan);
+}
+
