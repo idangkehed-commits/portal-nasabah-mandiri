@@ -3979,7 +3979,10 @@ function updateAdvisPreview() {
 window.updateAdvisPreview = updateAdvisPreview;
 
 // ================= DOWNLOAD DOKUMEN WORD (.DOCX) =================
+let isDownloadingAdvisDocx = false;
 async function downloadAdvisDocx() {
+  if (isDownloadingAdvisDocx) return;
+
   const nomorInput = document.getElementById('advisInputNomor');
   const nomor = nomorInput ? nomorInput.value.trim() : '';
   if (!nomor) {
@@ -4001,6 +4004,15 @@ async function downloadAdvisDocx() {
   if (typeof JSZip === 'undefined' || !window.ADVIS_LMAP_TEMPLATE_BASE64) {
     showToast('Library pembuat dokumen Word belum dimuat', 'error');
     return;
+  }
+
+  isDownloadingAdvisDocx = true;
+  const btnDlDocx = document.getElementById('btnDownloadAdvisDocx');
+  const originalBtnHtml = btnDlDocx ? btnDlDocx.innerHTML : '';
+  if (btnDlDocx) {
+    btnDlDocx.disabled = true;
+    btnDlDocx.classList.add('opacity-75', 'cursor-not-allowed');
+    btnDlDocx.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-sm"></i> <span>Mengunduh...</span>';
   }
 
   showToast('Membuat dokumen Word Advis LMAP...', 'info');
@@ -4093,12 +4105,22 @@ async function downloadAdvisDocx() {
   } catch (err) {
     console.error('Error generating docx:', err);
     showToast('Gagal membuat dokumen Word: ' + err.message, 'error');
+  } finally {
+    isDownloadingAdvisDocx = false;
+    if (btnDlDocx) {
+      btnDlDocx.disabled = false;
+      btnDlDocx.classList.remove('opacity-75', 'cursor-not-allowed');
+      btnDlDocx.innerHTML = originalBtnHtml;
+    }
   }
 }
 window.downloadAdvisDocx = downloadAdvisDocx;
 
 // ================= DOWNLOAD DOKUMEN PDF (ADVIS LMAP.PDF) =================
+let isDownloadingAdvisPdf = false;
 async function downloadAdvisPdf() {
+  if (isDownloadingAdvisPdf) return;
+
   const nomorInput = document.getElementById('advisInputNomor');
   const nomor = nomorInput ? nomorInput.value.trim() : '';
   if (!nomor) {
@@ -4114,12 +4136,29 @@ async function downloadAdvisPdf() {
     return;
   }
 
+  isDownloadingAdvisPdf = true;
+  const btnDlPdf = document.getElementById('btnDownloadAdvisPdf');
+  const originalBtnHtml = btnDlPdf ? btnDlPdf.innerHTML : '';
+  if (btnDlPdf) {
+    btnDlPdf.disabled = true;
+    btnDlPdf.classList.add('opacity-75', 'cursor-not-allowed');
+    btnDlPdf.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-sm"></i> <span>Mengunduh...</span>';
+  }
+
   // 1. Pindahkan ke tab pratinjau agar dokumen aktif dan ter-render sempurna di DOM
   switchAdvisModalTab('preview');
   updateAdvisPreview();
 
   const element = document.getElementById('advisDocumentSheet');
-  if (!element) return;
+  if (!element) {
+    isDownloadingAdvisPdf = false;
+    if (btnDlPdf) {
+      btnDlPdf.disabled = false;
+      btnDlPdf.classList.remove('opacity-75', 'cursor-not-allowed');
+      btnDlPdf.innerHTML = originalBtnHtml;
+    }
+    return;
+  }
 
   // 2. Tunggu gambar (logo Mandiri dan tanda tangan) selesai dimuat sepenuhnya
   const imgs = Array.from(element.querySelectorAll('img'));
@@ -4128,14 +4167,13 @@ async function downloadAdvisPdf() {
     return new Promise(resolve => {
       img.onload = resolve;
       img.onerror = resolve;
-      setTimeout(resolve, 300);
+      setTimeout(resolve, 200);
     });
   }));
 
-  // 3. Reset scroll container modal agar html2canvas tidak terpotong atau tergeser scroll
+  // 3. Reset scroll container modal agar posisi render tepat
   const modalScroll = element.closest('.overflow-y-auto') || document.querySelector('#modalCetakAdvis .overflow-y-auto');
   if (modalScroll) modalScroll.scrollTop = 0;
-  window.scrollTo(0, 0);
 
   showToast('Membuat dokumen PDF Advis LMAP...', 'info');
 
@@ -4146,7 +4184,7 @@ async function downloadAdvisPdf() {
   // Berikan style khusus ekspor PDF:
   // - Lebar pasti 794px (standar halaman Letter/A4 pada 96 DPI)
   // - Hilangkan shadow dan border agar hasil PDF bersih seperti dokumen fisik asli
-  // - minHeight auto agar tidak menghasilkan halaman ke-2 kosong
+  // - minHeight auto agar muat pas 1 halaman penuh tanpa terpotong
   element.style.width = '794px';
   element.style.minWidth = '794px';
   element.style.maxWidth = '794px';
@@ -4156,16 +4194,13 @@ async function downloadAdvisPdf() {
   element.classList.remove('shadow-xl', 'border', 'border-slate-300');
 
   const opt = {
-    margin: [6, 8, 6, 8], // mm (margin proporsional)
+    margin: [4, 6, 4, 6], // mm (margin seimbang rapi)
     filename: 'Advis LMAP.pdf',
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: {
       scale: 2,
       useCORS: true,
-      logging: false,
-      scrollY: 0,
-      scrollX: 0,
-      windowWidth: 1024
+      logging: false
     },
     jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
   };
@@ -4185,6 +4220,12 @@ async function downloadAdvisPdf() {
     // Kembalikan style dan class preview seperti semula
     element.setAttribute('style', originalStyle);
     element.className = originalClasses;
+    isDownloadingAdvisPdf = false;
+    if (btnDlPdf) {
+      btnDlPdf.disabled = false;
+      btnDlPdf.classList.remove('opacity-75', 'cursor-not-allowed');
+      btnDlPdf.innerHTML = originalBtnHtml;
+    }
   }
 }
 window.downloadAdvisPdf = downloadAdvisPdf;
