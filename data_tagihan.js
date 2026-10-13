@@ -22,11 +22,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1108015,
     "tunggakan": 0,
-    "totalKewajiban": 1108015,
+    "totalKewajiban": 0,
     "rekAgf": "1310024366165",
     "saldoAgf": 32592,
-    "saldoCukup": false,
-    "kurangSaldo": 1075423
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102088269",
@@ -47,7 +47,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310024644041",
     "saldoAgf": 5074607,
     "saldoCukup": true,
@@ -72,11 +72,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3833794,
     "tunggakan": 0,
-    "totalKewajiban": 3833794,
+    "totalKewajiban": 0,
     "rekAgf": "1310024509780",
     "saldoAgf": 442380,
-    "saldoCukup": false,
-    "kurangSaldo": 3391414
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102038983",
@@ -97,7 +97,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 2752271,
     "tunggakan": 0,
-    "totalKewajiban": 2752271,
+    "totalKewajiban": 0,
     "rekAgf": "1310018008617",
     "saldoAgf": 8350075,
     "saldoCukup": true,
@@ -122,7 +122,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 2485732,
     "tunggakan": 0,
-    "totalKewajiban": 2485732,
+    "totalKewajiban": 0,
     "rekAgf": "1310024959134",
     "saldoAgf": 22256117,
     "saldoCukup": true,
@@ -147,7 +147,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1305402,
     "tunggakan": 0,
-    "totalKewajiban": 1305402,
+    "totalKewajiban": 0,
     "rekAgf": "1310024514012",
     "saldoAgf": 1405156,
     "saldoCukup": true,
@@ -172,11 +172,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3538713,
     "tunggakan": 0,
-    "totalKewajiban": 3538713,
+    "totalKewajiban": 0,
     "rekAgf": "1310019369570",
     "saldoAgf": 156201,
-    "saldoCukup": false,
-    "kurangSaldo": 3382512
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310101946111",
@@ -197,7 +197,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3194303,
     "tunggakan": 0,
-    "totalKewajiban": 3194303,
+    "totalKewajiban": 0,
     "rekAgf": "1310021103926",
     "saldoAgf": 7385279,
     "saldoCukup": true,
@@ -222,11 +222,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310024658991",
     "saldoAgf": 25000,
-    "saldoCukup": false,
-    "kurangSaldo": 3017194
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102005883",
@@ -247,7 +247,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 760548,
     "tunggakan": 0,
-    "totalKewajiban": 760548,
+    "totalKewajiban": 0,
     "rekAgf": "1310015708177",
     "saldoAgf": 16004404,
     "saldoCukup": true,
@@ -272,7 +272,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1521097,
     "tunggakan": 0,
-    "totalKewajiban": 1521097,
+    "totalKewajiban": 0,
     "rekAgf": "1310022306437",
     "saldoAgf": 24555361,
     "saldoCukup": true,
@@ -297,7 +297,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1933280,
     "tunggakan": 0,
-    "totalKewajiban": 1933280,
+    "totalKewajiban": 0,
     "rekAgf": "1310025117724",
     "saldoAgf": 6745352,
     "saldoCukup": true,
@@ -322,7 +322,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310025117757",
     "saldoAgf": 3086806,
     "saldoCukup": true,
@@ -347,7 +347,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1521097,
     "tunggakan": 0,
-    "totalKewajiban": 1521097,
+    "totalKewajiban": 0,
     "rekAgf": "1310024050603",
     "saldoAgf": 13319240,
     "saldoCukup": true,
@@ -372,11 +372,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1521097,
     "tunggakan": 0,
-    "totalKewajiban": 1521097,
+    "totalKewajiban": 0,
     "rekAgf": "1310024071047",
     "saldoAgf": 75134,
-    "saldoCukup": false,
-    "kurangSaldo": 1445963
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102079607",
@@ -397,7 +397,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1064768,
     "tunggakan": 0,
-    "totalKewajiban": 1064768,
+    "totalKewajiban": 0,
     "rekAgf": "1310024381636",
     "saldoAgf": 1902247,
     "saldoCukup": true,
@@ -422,7 +422,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1543855,
     "tunggakan": 0,
-    "totalKewajiban": 1543855,
+    "totalKewajiban": 0,
     "rekAgf": "1310025714348",
     "saldoAgf": 29408661,
     "saldoCukup": true,
@@ -447,11 +447,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 583549,
     "tunggakan": 0,
-    "totalKewajiban": 583549,
+    "totalKewajiban": 0,
     "rekAgf": "1310021921319",
     "saldoAgf": 263646,
-    "saldoCukup": false,
-    "kurangSaldo": 319903
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102088897",
@@ -472,7 +472,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310024665244",
     "saldoAgf": 3045254,
     "saldoCukup": true,
@@ -497,11 +497,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1543855,
     "tunggakan": 0,
-    "totalKewajiban": 1543855,
+    "totalKewajiban": 0,
     "rekAgf": "1310024390272",
     "saldoAgf": 12435,
-    "saldoCukup": false,
-    "kurangSaldo": 1531420
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102069749",
@@ -522,7 +522,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1521097,
     "tunggakan": 0,
-    "totalKewajiban": 1521097,
+    "totalKewajiban": 0,
     "rekAgf": "1310024075543",
     "saldoAgf": 1534036,
     "saldoCukup": true,
@@ -547,7 +547,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 10297717,
     "tunggakan": 0,
-    "totalKewajiban": 10297717,
+    "totalKewajiban": 0,
     "rekAgf": "1310500005501",
     "saldoAgf": 10388222,
     "saldoCukup": true,
@@ -572,7 +572,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3960240,
     "tunggakan": 0,
-    "totalKewajiban": 3960240,
+    "totalKewajiban": 0,
     "rekAgf": "1310022364675",
     "saldoAgf": 9111056,
     "saldoCukup": true,
@@ -597,7 +597,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310023454772",
     "saldoAgf": 4296568,
     "saldoCukup": true,
@@ -622,7 +622,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 977927,
     "tunggakan": 0,
-    "totalKewajiban": 977927,
+    "totalKewajiban": 0,
     "rekAgf": "1310018039422",
     "saldoAgf": 2226062,
     "saldoCukup": true,
@@ -647,7 +647,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310024394530",
     "saldoAgf": 3299781,
     "saldoCukup": true,
@@ -672,7 +672,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3207854,
     "tunggakan": 0,
-    "totalKewajiban": 3207854,
+    "totalKewajiban": 0,
     "rekAgf": "1310024241236",
     "saldoAgf": 6958780,
     "saldoCukup": true,
@@ -697,7 +697,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1521097,
     "tunggakan": 0,
-    "totalKewajiban": 1521097,
+    "totalKewajiban": 0,
     "rekAgf": "1310024537815",
     "saldoAgf": 3847153,
     "saldoCukup": true,
@@ -722,7 +722,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 2281645,
     "tunggakan": 0,
-    "totalKewajiban": 2281645,
+    "totalKewajiban": 0,
     "rekAgf": "1310024971642",
     "saldoAgf": 4944000,
     "saldoCukup": true,
@@ -747,7 +747,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 2,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310025113574",
     "saldoAgf": 3067194,
     "saldoCukup": true,
@@ -772,7 +772,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 7450000,
     "tunggakan": 0,
-    "totalKewajiban": 7450000,
+    "totalKewajiban": 0,
     "rekAgf": "1310019577065",
     "saldoAgf": 15183808,
     "saldoCukup": true,
@@ -797,7 +797,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 568890,
     "tunggakan": 0,
-    "totalKewajiban": 568890,
+    "totalKewajiban": 0,
     "rekAgf": "1310023922315",
     "saldoAgf": 643891,
     "saldoCukup": true,
@@ -822,11 +822,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1521097,
     "tunggakan": 0,
-    "totalKewajiban": 1521097,
+    "totalKewajiban": 0,
     "rekAgf": "1310024077887",
     "saldoAgf": 1496576,
-    "saldoCukup": false,
-    "kurangSaldo": 24521
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102041086",
@@ -847,7 +847,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1923614,
     "tunggakan": 0,
-    "totalKewajiban": 1923614,
+    "totalKewajiban": 0,
     "rekAgf": "1310023060850",
     "saldoAgf": 6358695,
     "saldoCukup": true,
@@ -872,7 +872,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1543855,
     "tunggakan": 0,
-    "totalKewajiban": 1543855,
+    "totalKewajiban": 0,
     "rekAgf": "1310022482097",
     "saldoAgf": 1551000,
     "saldoCukup": true,
@@ -897,7 +897,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1933280,
     "tunggakan": 0,
-    "totalKewajiban": 1933280,
+    "totalKewajiban": 0,
     "rekAgf": "1310024995716",
     "saldoAgf": 2428601,
     "saldoCukup": true,
@@ -922,7 +922,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 4477258,
     "tunggakan": 0,
-    "totalKewajiban": 4477258,
+    "totalKewajiban": 0,
     "rekAgf": "1310024549216",
     "saldoAgf": 13439529,
     "saldoCukup": true,
@@ -947,7 +947,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310025596315",
     "saldoAgf": 9951209,
     "saldoCukup": true,
@@ -972,11 +972,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 9195134,
     "tunggakan": 9200651,
-    "totalKewajiban": 18395785,
+    "totalKewajiban": 9200651,
     "rekAgf": "1300015023636",
     "saldoAgf": 2367358,
     "saldoCukup": false,
-    "kurangSaldo": 16028427
+    "kurangSaldo": 6833293
   },
   {
     "id": "tagihan-1310102035211",
@@ -997,11 +997,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1487633,
     "tunggakan": 1488289,
-    "totalKewajiban": 2975922,
+    "totalKewajiban": 1488289,
     "rekAgf": "1310022969622",
     "saldoAgf": 38805,
     "saldoCukup": false,
-    "kurangSaldo": 2937117
+    "kurangSaldo": 1449484
   },
   {
     "id": "tagihan-1310102008770",
@@ -1022,11 +1022,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 912658,
     "tunggakan": 912861,
-    "totalKewajiban": 1825519,
+    "totalKewajiban": 912861,
     "rekAgf": "1310022452272",
     "saldoAgf": 0,
     "saldoCukup": false,
-    "kurangSaldo": 1825519
+    "kurangSaldo": 912861
   },
   {
     "id": "tagihan-1310102047851",
@@ -1047,11 +1047,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1768889,
     "tunggakan": 0,
-    "totalKewajiban": 1768889,
+    "totalKewajiban": 0,
     "rekAgf": "1310017297930",
     "saldoAgf": 100508,
-    "saldoCukup": false,
-    "kurangSaldo": 1668381
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102124668",
@@ -1072,7 +1072,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 771927,
     "tunggakan": 0,
-    "totalKewajiban": 771927,
+    "totalKewajiban": 0,
     "rekAgf": "1310020080422",
     "saldoAgf": 1908197,
     "saldoCukup": true,
@@ -1097,11 +1097,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1521097,
     "tunggakan": 0,
-    "totalKewajiban": 1521097,
+    "totalKewajiban": 0,
     "rekAgf": "1310023090733",
     "saldoAgf": 486181,
-    "saldoCukup": false,
-    "kurangSaldo": 1034916
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102094366",
@@ -1122,11 +1122,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 760548,
     "tunggakan": 0,
-    "totalKewajiban": 760548,
+    "totalKewajiban": 0,
     "rekAgf": "1310024850614",
     "saldoAgf": 9270,
-    "saldoCukup": false,
-    "kurangSaldo": 751278
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102070937",
@@ -1147,11 +1147,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 2394624,
     "tunggakan": 0,
-    "totalKewajiban": 2394624,
+    "totalKewajiban": 0,
     "rekAgf": "1310024107304",
     "saldoAgf": 25056,
-    "saldoCukup": false,
-    "kurangSaldo": 2369568
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102025105",
@@ -1172,11 +1172,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 490039,
     "tunggakan": 0,
-    "totalKewajiban": 490039,
+    "totalKewajiban": 0,
     "rekAgf": "1310022760989",
     "saldoAgf": 0,
-    "saldoCukup": false,
-    "kurangSaldo": 490039
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310101955468",
@@ -1197,7 +1197,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 8126478,
     "tunggakan": 0,
-    "totalKewajiban": 8126478,
+    "totalKewajiban": 0,
     "rekAgf": "1310018347528",
     "saldoAgf": 13522488,
     "saldoCukup": true,
@@ -1222,11 +1222,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3772900,
     "tunggakan": 0,
-    "totalKewajiban": 3772900,
+    "totalKewajiban": 0,
     "rekAgf": "1310022377404",
     "saldoAgf": 0,
-    "saldoCukup": false,
-    "kurangSaldo": 3772900
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310101991547",
@@ -1247,7 +1247,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3522754,
     "tunggakan": 0,
-    "totalKewajiban": 3522754,
+    "totalKewajiban": 0,
     "rekAgf": "1730014384854",
     "saldoAgf": 9952369,
     "saldoCukup": true,
@@ -1272,11 +1272,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1933280,
     "tunggakan": 0,
-    "totalKewajiban": 1933280,
+    "totalKewajiban": 0,
     "rekAgf": "1310024859573",
     "saldoAgf": 12685,
-    "saldoCukup": false,
-    "kurangSaldo": 1920595
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102096577",
@@ -1297,7 +1297,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3087710,
     "tunggakan": 0,
-    "totalKewajiban": 3087710,
+    "totalKewajiban": 0,
     "rekAgf": "1310020351583",
     "saldoAgf": 7850688,
     "saldoCukup": true,
@@ -1322,11 +1322,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 492498,
     "tunggakan": 0,
-    "totalKewajiban": 492498,
+    "totalKewajiban": 0,
     "rekAgf": "1310023158126",
     "saldoAgf": 79338,
-    "saldoCukup": false,
-    "kurangSaldo": 413160
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102065242",
@@ -1347,11 +1347,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1933280,
     "tunggakan": 0,
-    "totalKewajiban": 1933280,
+    "totalKewajiban": 0,
     "rekAgf": "1310023928247",
     "saldoAgf": 75479,
-    "saldoCukup": false,
-    "kurangSaldo": 1857801
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310101821348",
@@ -1372,11 +1372,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1933280,
     "tunggakan": 0,
-    "totalKewajiban": 1933280,
+    "totalKewajiban": 0,
     "rekAgf": "1310018948499",
     "saldoAgf": 10974,
-    "saldoCukup": false,
-    "kurangSaldo": 1922306
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102071190",
@@ -1397,11 +1397,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 2348503,
     "tunggakan": 0,
-    "totalKewajiban": 2348503,
+    "totalKewajiban": 0,
     "rekAgf": "1310024112452",
     "saldoAgf": 256898,
-    "saldoCukup": false,
-    "kurangSaldo": 2091605
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102096585",
@@ -1422,11 +1422,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 9622759,
     "tunggakan": 0,
-    "totalKewajiban": 9622759,
+    "totalKewajiban": 0,
     "rekAgf": "1310024904346",
     "saldoAgf": 74818,
-    "saldoCukup": false,
-    "kurangSaldo": 9547941
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310101790816",
@@ -1447,11 +1447,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 4853333,
     "tunggakan": 0,
-    "totalKewajiban": 4853333,
+    "totalKewajiban": 0,
     "rekAgf": "1310018479693",
     "saldoAgf": 510661,
-    "saldoCukup": false,
-    "kurangSaldo": 4342672
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102030881",
@@ -1472,11 +1472,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 6376894,
     "tunggakan": 0,
-    "totalKewajiban": 6376894,
+    "totalKewajiban": 0,
     "rekAgf": "1310019161332",
     "saldoAgf": 2074,
-    "saldoCukup": false,
-    "kurangSaldo": 6374820
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102076215",
@@ -1497,11 +1497,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310024247423",
     "saldoAgf": 9591,
-    "saldoCukup": false,
-    "kurangSaldo": 3032603
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310101997569",
@@ -1522,7 +1522,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 912658,
     "tunggakan": 0,
-    "totalKewajiban": 912658,
+    "totalKewajiban": 0,
     "rekAgf": "1310022348694",
     "saldoAgf": 5016846,
     "saldoCukup": true,
@@ -1547,11 +1547,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 608439,
     "tunggakan": 0,
-    "totalKewajiban": 608439,
+    "totalKewajiban": 0,
     "rekAgf": "1310022590501",
     "saldoAgf": 187182,
-    "saldoCukup": false,
-    "kurangSaldo": 421257
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102073410",
@@ -1572,11 +1572,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310024152946",
     "saldoAgf": 494073,
-    "saldoCukup": false,
-    "kurangSaldo": 2548121
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102120450",
@@ -1597,7 +1597,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3093248,
     "tunggakan": 0,
-    "totalKewajiban": 3093248,
+    "totalKewajiban": 0,
     "rekAgf": "1310025718117",
     "saldoAgf": 13667931,
     "saldoCukup": true,
@@ -1622,11 +1622,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1521097,
     "tunggakan": 0,
-    "totalKewajiban": 1521097,
+    "totalKewajiban": 0,
     "rekAgf": "1310025171879",
     "saldoAgf": 948140,
-    "saldoCukup": false,
-    "kurangSaldo": 572957
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310101966200",
@@ -1647,7 +1647,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 6175419,
     "tunggakan": 0,
-    "totalKewajiban": 6175419,
+    "totalKewajiban": 0,
     "rekAgf": "1310003336668",
     "saldoAgf": 17124195,
     "saldoCukup": true,
@@ -1672,7 +1672,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1933280,
     "tunggakan": 0,
-    "totalKewajiban": 1933280,
+    "totalKewajiban": 0,
     "rekAgf": "1310016759617",
     "saldoAgf": 24767047,
     "saldoCukup": true,
@@ -1697,7 +1697,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1490000,
     "tunggakan": 0,
-    "totalKewajiban": 1490000,
+    "totalKewajiban": 0,
     "rekAgf": "1310022525507",
     "saldoAgf": 3097984,
     "saldoCukup": true,
@@ -1722,7 +1722,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 7400000,
     "tunggakan": 0,
-    "totalKewajiban": 7400000,
+    "totalKewajiban": 0,
     "rekAgf": "1310019492109",
     "saldoAgf": 7400000,
     "saldoCukup": true,
@@ -1747,11 +1747,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 2721667,
     "tunggakan": 0,
-    "totalKewajiban": 2721667,
+    "totalKewajiban": 0,
     "rekAgf": "1310024717649",
     "saldoAgf": 2494000,
-    "saldoCukup": false,
-    "kurangSaldo": 227667
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102031269",
@@ -1772,7 +1772,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 943225,
     "tunggakan": 0,
-    "totalKewajiban": 943225,
+    "totalKewajiban": 0,
     "rekAgf": "1310022872909",
     "saldoAgf": 1094489,
     "saldoCukup": true,
@@ -1797,11 +1797,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 760548,
     "tunggakan": 0,
-    "totalKewajiban": 760548,
+    "totalKewajiban": 0,
     "rekAgf": "1310024235816",
     "saldoAgf": 0,
-    "saldoCukup": false,
-    "kurangSaldo": 760548
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102060961",
@@ -1822,11 +1822,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1521097,
     "tunggakan": 0,
-    "totalKewajiban": 1521097,
+    "totalKewajiban": 0,
     "rekAgf": "1310023748934",
     "saldoAgf": 0,
-    "saldoCukup": false,
-    "kurangSaldo": 1521097
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102051820",
@@ -1847,7 +1847,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3866560,
     "tunggakan": 0,
-    "totalKewajiban": 3866560,
+    "totalKewajiban": 0,
     "rekAgf": "1310023332994",
     "saldoAgf": 6877050,
     "saldoCukup": true,
@@ -1872,11 +1872,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310022600730",
     "saldoAgf": 131917,
-    "saldoCukup": false,
-    "kurangSaldo": 2910277
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102073717",
@@ -1897,7 +1897,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310024166938",
     "saldoAgf": 3094000,
     "saldoCukup": true,
@@ -1922,7 +1922,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310024281018",
     "saldoAgf": 21767457,
     "saldoCukup": true,
@@ -1947,7 +1947,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 5940360,
     "tunggakan": 0,
-    "totalKewajiban": 5940360,
+    "totalKewajiban": 0,
     "rekAgf": "1310022123261",
     "saldoAgf": 6546668,
     "saldoCukup": true,
@@ -1972,7 +1972,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 2300833,
     "tunggakan": 0,
-    "totalKewajiban": 2300833,
+    "totalKewajiban": 0,
     "rekAgf": "1310019037789",
     "saldoAgf": 4850151,
     "saldoCukup": true,
@@ -1997,11 +1997,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 800000,
     "tunggakan": 0,
-    "totalKewajiban": 800000,
+    "totalKewajiban": 0,
     "rekAgf": "1310023241948",
     "saldoAgf": 0,
-    "saldoCukup": false,
-    "kurangSaldo": 800000
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102066117",
@@ -2022,7 +2022,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1521097,
     "tunggakan": 0,
-    "totalKewajiban": 1521097,
+    "totalKewajiban": 0,
     "rekAgf": "1310023952205",
     "saldoAgf": 1523038,
     "saldoCukup": true,
@@ -2047,11 +2047,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 4789249,
     "tunggakan": 0,
-    "totalKewajiban": 4789249,
+    "totalKewajiban": 0,
     "rekAgf": "1310022228375",
     "saldoAgf": 0,
-    "saldoCukup": false,
-    "kurangSaldo": 4789249
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310101969253",
@@ -2072,7 +2072,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3866560,
     "tunggakan": 0,
-    "totalKewajiban": 3866560,
+    "totalKewajiban": 0,
     "rekAgf": "1310021771243",
     "saldoAgf": 7843076,
     "saldoCukup": true,
@@ -2097,7 +2097,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3346413,
     "tunggakan": 0,
-    "totalKewajiban": 3346413,
+    "totalKewajiban": 0,
     "rekAgf": "1310025456312",
     "saldoAgf": 10140413,
     "saldoCukup": true,
@@ -2122,11 +2122,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 506519,
     "tunggakan": 0,
-    "totalKewajiban": 506519,
+    "totalKewajiban": 0,
     "rekAgf": "1310020615383",
     "saldoAgf": 13200,
-    "saldoCukup": false,
-    "kurangSaldo": 493319
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102053586",
@@ -2147,11 +2147,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1933280,
     "tunggakan": 0,
-    "totalKewajiban": 1933280,
+    "totalKewajiban": 0,
     "rekAgf": "1310023379441",
     "saldoAgf": 0,
-    "saldoCukup": false,
-    "kurangSaldo": 1933280
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102002609",
@@ -2172,11 +2172,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1716322,
     "tunggakan": 0,
-    "totalKewajiban": 1716322,
+    "totalKewajiban": 0,
     "rekAgf": "1310019837386",
     "saldoAgf": 173500,
-    "saldoCukup": false,
-    "kurangSaldo": 1542822
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102021674",
@@ -2197,11 +2197,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 760548,
     "tunggakan": 0,
-    "totalKewajiban": 760548,
+    "totalKewajiban": 0,
     "rekAgf": "1310022637476",
     "saldoAgf": 1,
-    "saldoCukup": false,
-    "kurangSaldo": 760547
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310101928291",
@@ -2222,7 +2222,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 6766481,
     "tunggakan": 0,
-    "totalKewajiban": 6766481,
+    "totalKewajiban": 0,
     "rekAgf": "1310020798718",
     "saldoAgf": 6893556,
     "saldoCukup": true,
@@ -2247,11 +2247,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 15210969,
     "tunggakan": 0,
-    "totalKewajiban": 15210969,
+    "totalKewajiban": 0,
     "rekAgf": "1310022021432",
     "saldoAgf": 20378,
-    "saldoCukup": false,
-    "kurangSaldo": 15190591
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102095033",
@@ -2272,7 +2272,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310024871321",
     "saldoAgf": 3194455,
     "saldoCukup": true,
@@ -2297,7 +2297,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 6340958,
     "tunggakan": 0,
-    "totalKewajiban": 6340958,
+    "totalKewajiban": 0,
     "rekAgf": "1310022397501",
     "saldoAgf": 152184940,
     "saldoCukup": true,
@@ -2322,11 +2322,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 760548,
     "tunggakan": 0,
-    "totalKewajiban": 760548,
+    "totalKewajiban": 0,
     "rekAgf": "1310023029368",
     "saldoAgf": 19999,
-    "saldoCukup": false,
-    "kurangSaldo": 740549
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102013184",
@@ -2347,11 +2347,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1521097,
     "tunggakan": 0,
-    "totalKewajiban": 1521097,
+    "totalKewajiban": 0,
     "rekAgf": "1310022504908",
     "saldoAgf": 172455,
-    "saldoCukup": false,
-    "kurangSaldo": 1348642
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310101971721",
@@ -2372,7 +2372,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 4840000,
     "tunggakan": 0,
-    "totalKewajiban": 4840000,
+    "totalKewajiban": 0,
     "rekAgf": "1310021873767",
     "saldoAgf": 10495548,
     "saldoCukup": true,
@@ -2397,7 +2397,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1269167,
     "tunggakan": 0,
-    "totalKewajiban": 1269167,
+    "totalKewajiban": 0,
     "rekAgf": "1310025940836",
     "saldoAgf": 1842080,
     "saldoCukup": true,
@@ -2422,11 +2422,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 760548,
     "tunggakan": 0,
-    "totalKewajiban": 760548,
+    "totalKewajiban": 0,
     "rekAgf": "1310022280988",
     "saldoAgf": 0,
-    "saldoCukup": false,
-    "kurangSaldo": 760548
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102095322",
@@ -2447,7 +2447,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1521097,
     "tunggakan": 0,
-    "totalKewajiban": 1521097,
+    "totalKewajiban": 0,
     "rekAgf": "1310024878359",
     "saldoAgf": 6188223,
     "saldoCukup": true,
@@ -2472,7 +2472,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3866560,
     "tunggakan": 0,
-    "totalKewajiban": 3866560,
+    "totalKewajiban": 0,
     "rekAgf": "1310022152542",
     "saldoAgf": 5781350,
     "saldoCukup": true,
@@ -2497,7 +2497,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 6084387,
     "tunggakan": 0,
-    "totalKewajiban": 6084387,
+    "totalKewajiban": 0,
     "rekAgf": "1310022028874",
     "saldoAgf": 6098037,
     "saldoCukup": true,
@@ -2522,7 +2522,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 760548,
     "tunggakan": 0,
-    "totalKewajiban": 760548,
+    "totalKewajiban": 0,
     "rekAgf": "1310022733937",
     "saldoAgf": 761578,
     "saldoCukup": true,
@@ -2547,11 +2547,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 5576801,
     "tunggakan": 0,
-    "totalKewajiban": 5576801,
+    "totalKewajiban": 0,
     "rekAgf": "1310023967203",
     "saldoAgf": 0,
-    "saldoCukup": false,
-    "kurangSaldo": 5576801
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102051952",
@@ -2572,11 +2572,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1521097,
     "tunggakan": 0,
-    "totalKewajiban": 1521097,
+    "totalKewajiban": 0,
     "rekAgf": "1310023339908",
     "saldoAgf": 336283,
-    "saldoCukup": false,
-    "kurangSaldo": 1184814
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102066463",
@@ -2597,7 +2597,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310023964515",
     "saldoAgf": 9372260,
     "saldoCukup": true,
@@ -2622,11 +2622,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310023964721",
     "saldoAgf": 15602,
-    "saldoCukup": false,
-    "kurangSaldo": 3026592
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102037001",
@@ -2647,7 +2647,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 690578,
     "tunggakan": 0,
-    "totalKewajiban": 690578,
+    "totalKewajiban": 0,
     "rekAgf": "1310023001722",
     "saldoAgf": 1933240,
     "saldoCukup": true,
@@ -2672,11 +2672,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310020964492",
     "saldoAgf": 484633,
-    "saldoCukup": false,
-    "kurangSaldo": 2557561
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102092865",
@@ -2697,7 +2697,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 4332759,
     "tunggakan": 0,
-    "totalKewajiban": 4332759,
+    "totalKewajiban": 0,
     "rekAgf": "1310011786987",
     "saldoAgf": 13076791,
     "saldoCukup": true,
@@ -2722,7 +2722,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 2608333,
     "tunggakan": 0,
-    "totalKewajiban": 2608333,
+    "totalKewajiban": 0,
     "rekAgf": "1310024460323",
     "saldoAgf": 3254400,
     "saldoCukup": true,
@@ -2747,11 +2747,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1521097,
     "tunggakan": 0,
-    "totalKewajiban": 1521097,
+    "totalKewajiban": 0,
     "rekAgf": "1310024139745",
     "saldoAgf": 910734,
-    "saldoCukup": false,
-    "kurangSaldo": 610363
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310101954701",
@@ -2772,7 +2772,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 2433755,
     "tunggakan": 0,
-    "totalKewajiban": 2433755,
+    "totalKewajiban": 0,
     "rekAgf": "1310017910441",
     "saldoAgf": 87305751,
     "saldoCukup": true,
@@ -2797,7 +2797,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310025796345",
     "saldoAgf": 5083222,
     "saldoCukup": true,
@@ -2822,7 +2822,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3866560,
     "tunggakan": 0,
-    "totalKewajiban": 3866560,
+    "totalKewajiban": 0,
     "rekAgf": "1310025087752",
     "saldoAgf": 3879000,
     "saldoCukup": true,
@@ -2847,7 +2847,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310024890958",
     "saldoAgf": 3042194,
     "saldoCukup": true,
@@ -2872,7 +2872,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1521097,
     "tunggakan": 0,
-    "totalKewajiban": 1521097,
+    "totalKewajiban": 0,
     "rekAgf": "1310025794753",
     "saldoAgf": 3042194,
     "saldoCukup": true,
@@ -2897,7 +2897,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3866560,
     "tunggakan": 0,
-    "totalKewajiban": 3866560,
+    "totalKewajiban": 0,
     "rekAgf": "1310024641708",
     "saldoAgf": 4176560,
     "saldoCukup": true,
@@ -2922,11 +2922,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1661752,
     "tunggakan": 0,
-    "totalKewajiban": 1661752,
+    "totalKewajiban": 0,
     "rekAgf": "1310024638704",
     "saldoAgf": 5000,
-    "saldoCukup": false,
-    "kurangSaldo": 1656752
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310101960005",
@@ -2947,11 +2947,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 12936031,
     "tunggakan": 0,
-    "totalKewajiban": 12936031,
+    "totalKewajiban": 0,
     "rekAgf": "1310013591567",
     "saldoAgf": 482732,
-    "saldoCukup": false,
-    "kurangSaldo": 12453299
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102100817",
@@ -2972,11 +2972,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1521097,
     "tunggakan": 0,
-    "totalKewajiban": 1521097,
+    "totalKewajiban": 0,
     "rekAgf": "1310025039670",
     "saldoAgf": 1053971,
-    "saldoCukup": false,
-    "kurangSaldo": 467126
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102067040",
@@ -2997,11 +2997,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1000000,
     "tunggakan": 0,
-    "totalKewajiban": 1000000,
+    "totalKewajiban": 0,
     "rekAgf": "1310023973292",
     "saldoAgf": 250384,
-    "saldoCukup": false,
-    "kurangSaldo": 749616
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102067057",
@@ -3022,11 +3022,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1521097,
     "tunggakan": 0,
-    "totalKewajiban": 1521097,
+    "totalKewajiban": 0,
     "rekAgf": "1310023973557",
     "saldoAgf": 20001,
-    "saldoCukup": false,
-    "kurangSaldo": 1501096
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102032390",
@@ -3047,11 +3047,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 941944,
     "tunggakan": 0,
-    "totalKewajiban": 941944,
+    "totalKewajiban": 0,
     "rekAgf": "1310022897625",
     "saldoAgf": 109201,
-    "saldoCukup": false,
-    "kurangSaldo": 832743
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102062678",
@@ -3072,11 +3072,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1521097,
     "tunggakan": 0,
-    "totalKewajiban": 1521097,
+    "totalKewajiban": 0,
     "rekAgf": "1310023805429",
     "saldoAgf": 2,
-    "saldoCukup": false,
-    "kurangSaldo": 1521095
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102020502",
@@ -3097,7 +3097,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310022622031",
     "saldoAgf": 11240184,
     "saldoCukup": true,
@@ -3122,7 +3122,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3866560,
     "tunggakan": 0,
-    "totalKewajiban": 3866560,
+    "totalKewajiban": 0,
     "rekAgf": "1310023144993",
     "saldoAgf": 4167055,
     "saldoCukup": true,
@@ -3147,7 +3147,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310010068015",
     "saldoAgf": 10517549,
     "saldoCukup": true,
@@ -3172,11 +3172,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310023799754",
     "saldoAgf": 12954,
-    "saldoCukup": false,
-    "kurangSaldo": 3029240
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102044205",
@@ -3197,7 +3197,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 1027791,
     "tunggakan": 0,
-    "totalKewajiban": 1027791,
+    "totalKewajiban": 0,
     "rekAgf": "1310023149406",
     "saldoAgf": 1883070,
     "saldoCukup": true,
@@ -3222,7 +3222,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3042194,
     "tunggakan": 0,
-    "totalKewajiban": 3042194,
+    "totalKewajiban": 0,
     "rekAgf": "1310071119723",
     "saldoAgf": 6611253,
     "saldoCukup": true,
@@ -3247,7 +3247,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3581806,
     "tunggakan": 0,
-    "totalKewajiban": 3581806,
+    "totalKewajiban": 0,
     "rekAgf": "1310019124868",
     "saldoAgf": 7213034,
     "saldoCukup": true,
@@ -3272,7 +3272,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3053054,
     "tunggakan": 0,
-    "totalKewajiban": 3053054,
+    "totalKewajiban": 0,
     "rekAgf": "1310024322184",
     "saldoAgf": 8995744,
     "saldoCukup": true,
@@ -3297,11 +3297,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 2213888,
     "tunggakan": 0,
-    "totalKewajiban": 2213888,
+    "totalKewajiban": 0,
     "rekAgf": "1310024327852",
     "saldoAgf": 1279215,
-    "saldoCukup": false,
-    "kurangSaldo": 934673
+    "saldoCukup": true,
+    "kurangSaldo": 0
   },
   {
     "id": "tagihan-1310102073030",
@@ -3322,7 +3322,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 2899920,
     "tunggakan": 0,
-    "totalKewajiban": 2899920,
+    "totalKewajiban": 0,
     "rekAgf": "1310024140289",
     "saldoAgf": 6349828,
     "saldoCukup": true,
@@ -3347,7 +3347,7 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 3705252,
     "tunggakan": 0,
-    "totalKewajiban": 3705252,
+    "totalKewajiban": 0,
     "rekAgf": "1310017205446",
     "saldoAgf": 29016309,
     "saldoCukup": true,
@@ -3372,11 +3372,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 101,
     "angsuran": 3042194,
     "tunggakan": 12309225,
-    "totalKewajiban": 15351419,
+    "totalKewajiban": 12309225,
     "rekAgf": "1310024644652",
     "saldoAgf": 0,
     "saldoCukup": false,
-    "kurangSaldo": 15351419
+    "kurangSaldo": 12309225
   },
   {
     "id": "tagihan-1310101854646",
@@ -3397,11 +3397,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 100,
     "angsuran": 4784089,
     "tunggakan": 19203170,
-    "totalKewajiban": 23987259,
+    "totalKewajiban": 19203170,
     "rekAgf": "1310019518960",
     "saldoAgf": 10001,
     "saldoCukup": false,
-    "kurangSaldo": 23977258
+    "kurangSaldo": 19193169
   },
   {
     "id": "tagihan-1310102100031",
@@ -3422,11 +3422,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 91,
     "angsuran": 3042194,
     "tunggakan": 12154038,
-    "totalKewajiban": 15196232,
+    "totalKewajiban": 12154038,
     "rekAgf": "1310025005408",
     "saldoAgf": 6000,
     "saldoCukup": false,
-    "kurangSaldo": 15190232
+    "kurangSaldo": 12148038
   },
   {
     "id": "tagihan-1310102056001",
@@ -3447,11 +3447,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 119,
     "angsuran": 2592748,
     "tunggakan": 9358212,
-    "totalKewajiban": 11950960,
+    "totalKewajiban": 9358212,
     "rekAgf": "1310023471586",
     "saldoAgf": 4000,
     "saldoCukup": false,
-    "kurangSaldo": 11946960
+    "kurangSaldo": 9354212
   },
   {
     "id": "tagihan-1310102027705",
@@ -3472,11 +3472,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 312,
     "angsuran": 1425405,
     "tunggakan": 68353966,
-    "totalKewajiban": 69779371,
+    "totalKewajiban": 68353966,
     "rekAgf": "-",
     "saldoAgf": 0,
     "saldoCukup": false,
-    "kurangSaldo": 69779371
+    "kurangSaldo": 68353966
   },
   {
     "id": "tagihan-1310101948232",
@@ -3497,11 +3497,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 211,
     "angsuran": 21927008,
     "tunggakan": 70313574,
-    "totalKewajiban": 92240582,
+    "totalKewajiban": 70313574,
     "rekAgf": "1310020997807",
     "saldoAgf": 0,
     "saldoCukup": false,
-    "kurangSaldo": 92240582
+    "kurangSaldo": 70313574
   },
   {
     "id": "tagihan-1310102025493",
@@ -3522,11 +3522,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 454,
     "angsuran": 1673207,
     "tunggakan": 78742395,
-    "totalKewajiban": 80415602,
+    "totalKewajiban": 78742395,
     "rekAgf": "-",
     "saldoAgf": 0,
     "saldoCukup": false,
-    "kurangSaldo": 80415602
+    "kurangSaldo": 78742395
   },
   {
     "id": "tagihan-1310102026681",
@@ -3547,11 +3547,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 539,
     "angsuran": 1108015,
     "tunggakan": 39269121,
-    "totalKewajiban": 40377136,
+    "totalKewajiban": 39269121,
     "rekAgf": "-",
     "saldoAgf": 0,
     "saldoCukup": false,
-    "kurangSaldo": 40377136
+    "kurangSaldo": 39269121
   },
   {
     "id": "tagihan-1310101760686",
@@ -3572,11 +3572,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 782,
     "angsuran": 7606353,
     "tunggakan": 137195790,
-    "totalKewajiban": 144802143,
+    "totalKewajiban": 137195790,
     "rekAgf": "-",
     "saldoAgf": 0,
     "saldoCukup": false,
-    "kurangSaldo": 144802143
+    "kurangSaldo": 137195790
   },
   {
     "id": "tagihan-1310101949586",
@@ -3597,11 +3597,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 782,
     "angsuran": 1521097,
     "tunggakan": 75790631,
-    "totalKewajiban": 77311728,
+    "totalKewajiban": 75790631,
     "rekAgf": "-",
     "saldoAgf": 0,
     "saldoCukup": false,
-    "kurangSaldo": 77311728
+    "kurangSaldo": 75790631
   },
   {
     "id": "tagihan-1310101805523",
@@ -3622,11 +3622,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 779,
     "angsuran": 4563291,
     "tunggakan": 66267713,
-    "totalKewajiban": 70831004,
+    "totalKewajiban": 66267713,
     "rekAgf": "-",
     "saldoAgf": 0,
     "saldoCukup": false,
-    "kurangSaldo": 70831004
+    "kurangSaldo": 66267713
   },
   {
     "id": "tagihan-1310101929802",
@@ -3647,11 +3647,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 201,
     "angsuran": 760548,
     "tunggakan": 9383697,
-    "totalKewajiban": 10144245,
+    "totalKewajiban": 9383697,
     "rekAgf": "-",
     "saldoAgf": 0,
     "saldoCukup": false,
-    "kurangSaldo": 10144245
+    "kurangSaldo": 9383697
   },
   {
     "id": "tagihan-1310102058866",
@@ -3672,11 +3672,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 9,
     "angsuran": 500000,
     "tunggakan": 555179,
-    "totalKewajiban": 1055179,
+    "totalKewajiban": 555179,
     "rekAgf": "1310023508247",
     "saldoAgf": 10000,
     "saldoCukup": false,
-    "kurangSaldo": 1045179
+    "kurangSaldo": 545179
   },
   {
     "id": "tagihan-1310101960674",
@@ -3697,11 +3697,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 8,
     "angsuran": 3794667,
     "tunggakan": 3809260,
-    "totalKewajiban": 7603927,
+    "totalKewajiban": 3809260,
     "rekAgf": "1310021455474",
     "saldoAgf": 0,
     "saldoCukup": false,
-    "kurangSaldo": 7603927
+    "kurangSaldo": 3809260
   },
   {
     "id": "tagihan-1310101955674",
@@ -3722,11 +3722,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 8,
     "angsuran": 941944,
     "tunggakan": 951386,
-    "totalKewajiban": 1893330,
+    "totalKewajiban": 951386,
     "rekAgf": "1310020433860",
     "saldoAgf": 20402,
     "saldoCukup": false,
-    "kurangSaldo": 1872928
+    "kurangSaldo": 930984
   },
   {
     "id": "tagihan-1310101985242",
@@ -3747,11 +3747,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 7,
     "angsuran": 2653333,
     "tunggakan": 2635768,
-    "totalKewajiban": 5289101,
+    "totalKewajiban": 2635768,
     "rekAgf": "1310019313602",
     "saldoAgf": 10000,
     "saldoCukup": false,
-    "kurangSaldo": 5279101
+    "kurangSaldo": 2625768
   },
   {
     "id": "tagihan-1310101968578",
@@ -3772,11 +3772,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 7,
     "angsuran": 1612369,
     "tunggakan": 1626482,
-    "totalKewajiban": 3238851,
+    "totalKewajiban": 1626482,
     "rekAgf": "1310021742194",
     "saldoAgf": 0,
     "saldoCukup": false,
-    "kurangSaldo": 3238851
+    "kurangSaldo": 1626482
   },
   {
     "id": "tagihan-1310102059377",
@@ -3797,11 +3797,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 7,
     "angsuran": 608439,
     "tunggakan": 610570,
-    "totalKewajiban": 1219009,
+    "totalKewajiban": 610570,
     "rekAgf": "1310023556436",
     "saldoAgf": 0,
     "saldoCukup": false,
-    "kurangSaldo": 1219009
+    "kurangSaldo": 610570
   },
   {
     "id": "tagihan-1310102029438",
@@ -3822,11 +3822,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 6,
     "angsuran": 3537778,
     "tunggakan": 3512803,
-    "totalKewajiban": 7050581,
+    "totalKewajiban": 3512803,
     "rekAgf": "1310019453994",
     "saldoAgf": 10001,
     "saldoCukup": false,
-    "kurangSaldo": 7040580
+    "kurangSaldo": 3502802
   },
   {
     "id": "tagihan-1310102040195",
@@ -3847,11 +3847,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 6,
     "angsuran": 1278119,
     "tunggakan": 1291213,
-    "totalKewajiban": 2569332,
+    "totalKewajiban": 1291213,
     "rekAgf": "1310023056098",
     "saldoAgf": 0,
     "saldoCukup": false,
-    "kurangSaldo": 2569332
+    "kurangSaldo": 1291213
   },
   {
     "id": "tagihan-1310102064120",
@@ -3872,11 +3872,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 4,
     "angsuran": 886412,
     "tunggakan": 860219,
-    "totalKewajiban": 1746631,
+    "totalKewajiban": 860219,
     "rekAgf": "1310023897467",
     "saldoAgf": 10000,
     "saldoCukup": false,
-    "kurangSaldo": 1736631
+    "kurangSaldo": 850219
   },
   {
     "id": "tagihan-1310102089085",
@@ -3897,11 +3897,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 3,
     "angsuran": 958243,
     "tunggakan": 927602,
-    "totalKewajiban": 1885845,
+    "totalKewajiban": 927602,
     "rekAgf": "1310024670822",
     "saldoAgf": 10000,
     "saldoCukup": false,
-    "kurangSaldo": 1875845
+    "kurangSaldo": 917602
   },
   {
     "id": "tagihan-1310102050285",
@@ -3922,11 +3922,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 2,
     "angsuran": 7165532,
     "tunggakan": 7165532,
-    "totalKewajiban": 14331064,
+    "totalKewajiban": 7165532,
     "rekAgf": "1310017080591",
     "saldoAgf": 20638,
     "saldoCukup": false,
-    "kurangSaldo": 14310426
+    "kurangSaldo": 7144894
   },
   {
     "id": "tagihan-1310102085000",
@@ -3947,11 +3947,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 1,
     "angsuran": 6266667,
     "tunggakan": 3461006,
-    "totalKewajiban": 9727673,
+    "totalKewajiban": 3461006,
     "rekAgf": "1310024545180",
     "saldoAgf": 25000,
     "saldoCukup": false,
-    "kurangSaldo": 9702673
+    "kurangSaldo": 3436006
   },
   {
     "id": "tagihan-1310102030071",
@@ -3972,11 +3972,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 1,
     "angsuran": 1204167,
     "tunggakan": 1207941,
-    "totalKewajiban": 2412108,
+    "totalKewajiban": 1207941,
     "rekAgf": "1310022849295",
     "saldoAgf": 11433,
     "saldoCukup": false,
-    "kurangSaldo": 2400675
+    "kurangSaldo": 1196508
   },
   {
     "id": "tagihan-1310102030444",
@@ -3997,11 +3997,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 964278,
     "tunggakan": 964801,
-    "totalKewajiban": 1929079,
+    "totalKewajiban": 964801,
     "rekAgf": "1310022855706",
     "saldoAgf": 170570,
     "saldoCukup": false,
-    "kurangSaldo": 1758509
+    "kurangSaldo": 794231
   },
   {
     "id": "tagihan-1310101987040",
@@ -4022,11 +4022,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 4697006,
     "tunggakan": 4702978,
-    "totalKewajiban": 9399984,
+    "totalKewajiban": 4702978,
     "rekAgf": "1310021211950",
     "saldoAgf": 16911,
     "saldoCukup": false,
-    "kurangSaldo": 9383073
+    "kurangSaldo": 4686067
   },
   {
     "id": "tagihan-1310101777177",
@@ -4047,11 +4047,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 995358,
     "tunggakan": 651884,
-    "totalKewajiban": 1647242,
+    "totalKewajiban": 651884,
     "rekAgf": "1320011745610",
     "saldoAgf": 82000,
     "saldoCukup": false,
-    "kurangSaldo": 1565242
+    "kurangSaldo": 569884
   },
   {
     "id": "tagihan-1310101832899",
@@ -4072,11 +4072,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 0,
     "angsuran": 2860774,
     "tunggakan": 2857585,
-    "totalKewajiban": 5718359,
+    "totalKewajiban": 2857585,
     "rekAgf": "1310019111691",
     "saldoAgf": 1,
     "saldoCukup": false,
-    "kurangSaldo": 5718358
+    "kurangSaldo": 2857584
   },
   {
     "id": "tagihan-1310102022268",
@@ -4097,11 +4097,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 41,
     "angsuran": 8108333,
     "tunggakan": 16347669,
-    "totalKewajiban": 24456002,
+    "totalKewajiban": 16347669,
     "rekAgf": "1310022653929",
     "saldoAgf": 10000,
     "saldoCukup": false,
-    "kurangSaldo": 24446002
+    "kurangSaldo": 16337669
   },
   {
     "id": "tagihan-1310102074970",
@@ -4122,11 +4122,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 34,
     "angsuran": 2151661,
     "tunggakan": 2323267,
-    "totalKewajiban": 4474928,
+    "totalKewajiban": 2323267,
     "rekAgf": "1310024209563",
     "saldoAgf": 4635,
     "saldoCukup": false,
-    "kurangSaldo": 4470293
+    "kurangSaldo": 2318632
   },
   {
     "id": "tagihan-1310102085554",
@@ -4147,11 +4147,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 59,
     "angsuran": 2610803,
     "tunggakan": 3243403,
-    "totalKewajiban": 5854206,
+    "totalKewajiban": 3243403,
     "rekAgf": "1310024563332",
     "saldoAgf": 0,
     "saldoCukup": false,
-    "kurangSaldo": 5854206
+    "kurangSaldo": 3243403
   },
   {
     "id": "tagihan-1310101922534",
@@ -4172,11 +4172,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 48,
     "angsuran": 3042194,
     "tunggakan": 3142667,
-    "totalKewajiban": 6184861,
+    "totalKewajiban": 3142667,
     "rekAgf": "1310020676914",
     "saldoAgf": 10000,
     "saldoCukup": false,
-    "kurangSaldo": 6174861
+    "kurangSaldo": 3132667
   },
   {
     "id": "tagihan-1310102073154",
@@ -4197,11 +4197,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 48,
     "angsuran": 2466698,
     "tunggakan": 4949804,
-    "totalKewajiban": 7416502,
+    "totalKewajiban": 4949804,
     "rekAgf": "1310024150700",
     "saldoAgf": 25001,
     "saldoCukup": false,
-    "kurangSaldo": 7391501
+    "kurangSaldo": 4924803
   },
   {
     "id": "tagihan-1310102069533",
@@ -4222,11 +4222,11 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 66,
     "angsuran": 1543855,
     "tunggakan": 4675950,
-    "totalKewajiban": 6219805,
+    "totalKewajiban": 4675950,
     "rekAgf": "1310024071161",
     "saldoAgf": 0,
     "saldoCukup": false,
-    "kurangSaldo": 6219805
+    "kurangSaldo": 4675950
   },
   {
     "id": "tagihan-1310101971226",
@@ -4247,10 +4247,10 @@ window.MANDIRI_TAGIHAN_DATA = [
     "ht": 75,
     "angsuran": 1306440,
     "tunggakan": 3952660,
-    "totalKewajiban": 5259100,
+    "totalKewajiban": 3952660,
     "rekAgf": "1310021824414",
     "saldoAgf": 5000,
     "saldoCukup": false,
-    "kurangSaldo": 5254100
+    "kurangSaldo": 3947660
   }
 ];

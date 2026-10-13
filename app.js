@@ -2016,6 +2016,20 @@ function loadTagihanDatabase() {
     const raw = localStorage.getItem(TAGIHAN_STORAGE_KEY);
     if (raw) {
       dbTagihan = JSON.parse(raw);
+      // Migrasi/sinkronisasi: Pastikan totalKewajiban sama dengan tunggakan
+      let needsSave = false;
+      dbTagihan.forEach(item => {
+        const expectedTotal = Number(item.tunggakan) || 0;
+        if (item.totalKewajiban !== expectedTotal) {
+          item.totalKewajiban = expectedTotal;
+          item.saldoCukup = (Number(item.saldoAgf) || 0) >= expectedTotal;
+          item.kurangSaldo = item.saldoCukup ? 0 : (expectedTotal - (Number(item.saldoAgf) || 0));
+          needsSave = true;
+        }
+      });
+      if (needsSave) {
+        saveTagihanDatabase();
+      }
     } else if (window.MANDIRI_TAGIHAN_DATA && window.MANDIRI_TAGIHAN_DATA.length > 0) {
       dbTagihan = [...window.MANDIRI_TAGIHAN_DATA];
       saveTagihanDatabase();
@@ -3241,7 +3255,7 @@ function handleTagihanExcelUpload(file) {
         let ht = parseInt(cleanNumber(getVal(['HT']))) || 0;
         let angsuran = Math.round(cleanNumber(getVal(['ANGSURAN'])));
         let tunggakan = Math.round(cleanNumber(getVal(['TUNGGAKAN'])));
-        let totalKewajiban = angsuran + tunggakan;
+        let totalKewajiban = tunggakan; // Nilai total kewajiban disamakan dengan nilai tunggakan
 
         let rekAgf = String(getVal(['REK AGF', 'REK_AGF', 'REKENING AGF'])).trim().replace(/\.0$/, '');
         let saldoAgf = Math.round(cleanNumber(getVal(['SALDO AGF', 'SALDO_AGF'])));
@@ -3756,7 +3770,7 @@ function openModalCetakAdvis(specificId) {
     if (currentAdvisNominalMap[id] === undefined) {
       const item = dbTagihan.find(x => x.id === id);
       if (item) {
-        currentAdvisNominalMap[id] = item.angsuran || item.totalKewajiban || 0;
+        currentAdvisNominalMap[id] = item.totalKewajiban > 0 ? item.totalKewajiban : (item.angsuran || 0);
       }
     }
   });
@@ -3847,7 +3861,7 @@ function renderAdvisFormTable() {
   }
 
   tbody.innerHTML = selectedItems.map((item, idx) => {
-    const nominal = currentAdvisNominalMap[item.id] !== undefined ? currentAdvisNominalMap[item.id] : (item.angsuran || item.totalKewajiban || 0);
+    const nominal = currentAdvisNominalMap[item.id] !== undefined ? currentAdvisNominalMap[item.id] : (item.totalKewajiban > 0 ? item.totalKewajiban : (item.angsuran || 0));
     return `
       <tr class="hover:bg-slate-50 transition">
         <td class="p-3 text-center font-bold text-slate-500">${idx + 1}</td>
@@ -3904,7 +3918,7 @@ function updateAdvisTotalNominal() {
   const selectedItems = Array.from(selectedTagihanIds).map(id => dbTagihan.find(x => x.id === id)).filter(Boolean);
   let total = 0;
   selectedItems.forEach(item => {
-    const val = currentAdvisNominalMap[item.id] !== undefined ? currentAdvisNominalMap[item.id] : (item.angsuran || item.totalKewajiban || 0);
+    const val = currentAdvisNominalMap[item.id] !== undefined ? currentAdvisNominalMap[item.id] : (item.totalKewajiban > 0 ? item.totalKewajiban : (item.angsuran || 0));
     total += val;
   });
 
@@ -3959,7 +3973,7 @@ function updateAdvisPreview() {
 
   let total = 0;
   tbody.innerHTML = selectedItems.map((item, idx) => {
-    const nominal = currentAdvisNominalMap[item.id] !== undefined ? currentAdvisNominalMap[item.id] : (item.angsuran || item.totalKewajiban || 0);
+    const nominal = currentAdvisNominalMap[item.id] !== undefined ? currentAdvisNominalMap[item.id] : (item.totalKewajiban > 0 ? item.totalKewajiban : (item.angsuran || 0));
     total += nominal;
     const bg = idx % 2 === 0 ? '#DCE6F1' : '#FFFFFF';
     return `
@@ -4043,7 +4057,7 @@ async function downloadAdvisDocx() {
     const headerRow = rows && rows.length > 0 ? rows[0] : '';
 
     const dataRowsXml = selectedItems.map((item, idx) => {
-      const nominalVal = currentAdvisNominalMap[item.id] !== undefined ? currentAdvisNominalMap[item.id] : (item.angsuran || item.totalKewajiban || 0);
+      const nominalVal = currentAdvisNominalMap[item.id] !== undefined ? currentAdvisNominalMap[item.id] : (item.totalKewajiban > 0 ? item.totalKewajiban : (item.angsuran || 0));
       const nominalStr = formatRupiah(nominalVal);
       const rekDebit = item.rekAgf || '-';
       const rekKredit = item.rekening || '-';
