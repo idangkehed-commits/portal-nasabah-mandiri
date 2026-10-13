@@ -1893,8 +1893,8 @@
         </div>
 
         <!-- SECTION 2: PRATINJAU SURAT (ADVIS LMAP LIVE PREVIEW) -->
-        <div id="advisSectionPreview" class="hidden">
-          <div class="max-w-[794px] mx-auto bg-white shadow-xl border border-slate-300 text-black text-[11pt] leading-normal" id="advisDocumentSheet" style="font-family: 'Calibri', 'Arial', sans-serif; width: 100%; max-width: 794px; min-height: 980px; padding: 45px 55px; box-sizing: border-box; background: #ffffff; color: #000000;">
+        <div id="advisSectionPreview" class="hidden overflow-x-auto pb-4">
+          <div class="max-w-[794px] mx-auto bg-white shadow-xl border border-slate-300 text-black text-[11pt] leading-normal" id="advisDocumentSheet" style="font-family: 'Calibri', 'Arial', sans-serif; width: 100%; min-width: 680px; max-width: 794px; min-height: 980px; padding: 45px 55px; box-sizing: border-box; background: #ffffff; color: #000000;">
             
             <!-- Letterhead / Kop Surat (TOP: Left is Nomor/Tanggal/Lampiran, Right is Mandiri Logo & Branch) -->
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px;">
@@ -1985,7 +1985,7 @@
             </div>
 
             <!-- Signature block (LEFT ALIGNED - Exact matching Word template) -->
-            <div style="text-align: left; font-size: 11pt; line-height: 1.35; color: #000000;">
+            <div style="text-align: left; font-size: 11pt; line-height: 1.35; color: #000000; page-break-inside: avoid; break-inside: avoid;">
               <div style="font-weight: bold;">PT Bank Mandiri (Persero) Tbk.</div>
               <div>Branch Bandung Jamsostek</div>
               
@@ -2047,6 +2047,6 @@
   <!-- Data Tagihan JS (170 Pre-loaded authentic Mandiri monthly bills) -->
   <script src="data_tagihan.js?v=20261013_v3"></script>
   <!-- App Logic JavaScript -->
-  <script src="app.js?v=20261013_v4"></script>
+  <script src="app.js?v=20261013_v5"></script>
 </body>
 </html>

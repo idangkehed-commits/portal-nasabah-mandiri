@@ -3929,6 +3929,16 @@ function updateAdvisPreview() {
   const previewTanggal = document.getElementById('previewAdvisTanggalText');
   if (previewTanggal) previewTanggal.textContent = tanggalText;
 
+  // Pastikan logo Mandiri dan tanda tangan terpasang
+  const logoImg = document.getElementById('previewAdvisLogoImg');
+  if (logoImg && (!logoImg.src || logoImg.src === window.location.href || logoImg.src.endsWith('/')) && window.ADVIS_MANDIRI_LOGO_BASE64) {
+    logoImg.src = window.ADVIS_MANDIRI_LOGO_BASE64;
+  }
+  const sigImg = document.getElementById('previewAdvisSignatureImg');
+  if (sigImg && (!sigImg.src || sigImg.src === window.location.href || sigImg.src.endsWith('/')) && window.ADVIS_SIGNATURE_BASE64) {
+    sigImg.src = window.ADVIS_SIGNATURE_BASE64;
+  }
+
   const tbody = document.getElementById('previewAdvisTableBody');
   if (!tbody) return;
 
@@ -4104,39 +4114,65 @@ async function downloadAdvisPdf() {
     return;
   }
 
+  // 1. Pindahkan ke tab pratinjau agar dokumen aktif dan ter-render sempurna di DOM
+  switchAdvisModalTab('preview');
   updateAdvisPreview();
 
   const element = document.getElementById('advisDocumentSheet');
   if (!element) return;
 
+  // 2. Tunggu gambar (logo Mandiri dan tanda tangan) selesai dimuat sepenuhnya
+  const imgs = Array.from(element.querySelectorAll('img'));
+  await Promise.all(imgs.map(img => {
+    if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
+    return new Promise(resolve => {
+      img.onload = resolve;
+      img.onerror = resolve;
+      setTimeout(resolve, 300);
+    });
+  }));
+
+  // 3. Reset scroll container modal agar html2canvas tidak terpotong atau tergeser scroll
+  const modalScroll = element.closest('.overflow-y-auto') || document.querySelector('#modalCetakAdvis .overflow-y-auto');
+  if (modalScroll) modalScroll.scrollTop = 0;
+  window.scrollTo(0, 0);
+
   showToast('Membuat dokumen PDF Advis LMAP...', 'info');
 
-  // Buat wrapper cetak bersih terisolasi agar 100% pas 1 halaman dan jabatan tidak terpotong
-  const printWrapper = document.createElement('div');
-  printWrapper.id = 'tempPdfExportWrapper';
-  printWrapper.style.position = 'fixed';
-  printWrapper.style.left = '-9999px';
-  printWrapper.style.top = '0';
-  printWrapper.style.width = '794px'; // A4 width at 96 DPI
-  printWrapper.style.background = '#ffffff';
-  printWrapper.style.color = '#000000';
-  printWrapper.style.padding = '40px 55px'; // Margin proporsional template
-  printWrapper.style.boxSizing = 'border-box';
-  printWrapper.style.fontFamily = "'Calibri', 'Arial', sans-serif";
-  printWrapper.innerHTML = element.innerHTML;
-  document.body.appendChild(printWrapper);
+  // 4. Simpan style & class asli untuk dikembalikan setelah ekspor
+  const originalStyle = element.getAttribute('style') || '';
+  const originalClasses = element.className;
+
+  // Berikan style khusus ekspor PDF:
+  // - Lebar pasti 794px (standar halaman Letter/A4 pada 96 DPI)
+  // - Hilangkan shadow dan border agar hasil PDF bersih seperti dokumen fisik asli
+  // - minHeight auto agar tidak menghasilkan halaman ke-2 kosong
+  element.style.width = '794px';
+  element.style.minWidth = '794px';
+  element.style.maxWidth = '794px';
+  element.style.minHeight = 'auto';
+  element.style.boxShadow = 'none';
+  element.style.border = 'none';
+  element.classList.remove('shadow-xl', 'border', 'border-slate-300');
 
   const opt = {
-    margin: 0,
+    margin: [6, 8, 6, 8], // mm (margin proporsional)
     filename: 'Advis LMAP.pdf',
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, logging: false },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      scrollY: 0,
+      scrollX: 0,
+      windowWidth: 1024
+    },
     jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
   };
 
   try {
     if (typeof html2pdf !== 'undefined') {
-      await html2pdf().set(opt).from(printWrapper).save();
+      await html2pdf().set(opt).from(element).save();
       showToast('Dokumen PDF "Advis LMAP" berhasil diunduh!', 'success');
     } else {
       printAdvisDocument();
@@ -4146,9 +4182,9 @@ async function downloadAdvisPdf() {
     showToast('Gagal membuat PDF otomatis, beralih ke dialog cetak browser...', 'warning');
     printAdvisDocument();
   } finally {
-    if (document.body.contains(printWrapper)) {
-      document.body.removeChild(printWrapper);
-    }
+    // Kembalikan style dan class preview seperti semula
+    element.setAttribute('style', originalStyle);
+    element.className = originalClasses;
   }
 }
 window.downloadAdvisPdf = downloadAdvisPdf;
