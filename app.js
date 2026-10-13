@@ -2004,6 +2004,9 @@ const tagihanPageSize = 24;
 let currentActiveTagihan = null;
 let currentWaTemplateType = 'reminder';
 let pendingImportTagihanData = [];
+let selectedTagihanIds = new Set();
+let currentAdvisNominalMap = {};
+let currentAdvisActiveTab = 'form';
 
 const TAGIHAN_STORAGE_KEY = 'portal_mandiri_tagihan_v2';
 const TAGIHAN_FOLLOWUP_STORAGE_KEY = 'portal_mandiri_tagihan_followup_v2';
@@ -2338,6 +2341,9 @@ function updateTagihanUI() {
   }
 
   renderTagihanPagination(filtered.length, start, start + paged.length, totalPages);
+  if (typeof updateTagihanSelectionUI === 'function') {
+    updateTagihanSelectionUI();
+  }
 }
 
 function updateKolPillStyles() {
@@ -2519,20 +2525,24 @@ function renderTagihanCards(items) {
     }
 
     const hasTunggakan = Number(item.tunggakan) > 0;
+    const isSelected = selectedTagihanIds.has(item.id);
 
     return `
-      <div class="bg-white rounded-2xl border border-slate-200/90 shadow-card hover:shadow-card-hover transition-all duration-200 flex flex-col justify-between overflow-hidden">
+      <div class="bg-white rounded-2xl border ${isSelected ? 'ring-2 ring-mandiri-blue border-mandiri-blue bg-blue-50/10' : 'border-slate-200/90'} shadow-card hover:shadow-card-hover transition-all duration-200 flex flex-col justify-between overflow-hidden">
         
         <!-- Card Top Bar -->
         <div class="p-4 sm:p-5 space-y-3 flex-1">
           <div class="flex items-start justify-between gap-2">
-            <div>
-              <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold border ${kolBadgeClass}">
-                ${kolLabel}
-              </span>
-              <span class="ml-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-mandiri-blue border border-blue-200">
-                ${escapeHtml(item.produk)}
-              </span>
+            <div class="flex items-center">
+              <input type="checkbox" class="tagihan-select-cb w-4 h-4 rounded border-slate-300 text-mandiri-blue focus:ring-mandiri-blue cursor-pointer mr-2.5 shrink-0" data-id="${escapeHtml(item.id)}" ${isSelected ? 'checked' : ''} onchange="toggleSelectTagihan('${escapeHtml(item.id)}', this.checked)" title="Pilih untuk cetak Advis LMAP">
+              <div>
+                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold border ${kolBadgeClass}">
+                  ${kolLabel}
+                </span>
+                <span class="ml-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-mandiri-blue border border-blue-200">
+                  ${escapeHtml(item.produk)}
+                </span>
+              </div>
             </div>
             ${followupBadge}
           </div>
@@ -2598,6 +2608,10 @@ function renderTagihanCards(items) {
             <span>Detail</span>
           </button>
           <div class="flex items-center space-x-1.5">
+            <button onclick="cetakAdvisSingle('${escapeHtml(item.id)}')" class="px-2.5 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-bold transition flex items-center space-x-1 shadow-xs" title="Cetak Surat Advis LMAP untuk nasabah ini">
+              <i class="fa-solid fa-file-invoice text-xs"></i>
+              <span>Advis</span>
+            </button>
             <button onclick="openFollowupTagihan('${escapeHtml(item.id)}')" class="px-3 py-1.5 rounded-xl bg-mandiri-navy hover:bg-mandiri-blue text-white text-xs font-bold transition flex items-center space-x-1 shadow-xs" title="Catat Hasil Penagihan">
               <i class="fa-solid fa-pen-to-square"></i>
               <span>Tagih</span>
@@ -2622,7 +2636,7 @@ function renderTagihanTable(items, start) {
   if (items.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="12" class="p-8 text-center text-slate-500">
+        <td colspan="13" class="p-8 text-center text-slate-500">
           Tidak ada data tagihan yang sesuai dengan filter.
         </td>
       </tr>
@@ -2655,8 +2669,13 @@ function renderTagihanTable(items, start) {
       followupBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">Belum Ditagih</span>`;
     }
 
+    const isSelected = selectedTagihanIds.has(item.id);
+
     return `
-      <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+      <tr class="hover:bg-slate-50 transition border-b border-slate-100 ${isSelected ? 'bg-blue-50/50' : ''}">
+        <td class="p-3 text-center">
+          <input type="checkbox" class="tagihan-select-cb w-4 h-4 rounded border-slate-300 text-mandiri-blue focus:ring-mandiri-blue cursor-pointer" data-id="${escapeHtml(item.id)}" ${isSelected ? 'checked' : ''} onchange="toggleSelectTagihan('${escapeHtml(item.id)}', this.checked)">
+        </td>
         <td class="p-3 text-slate-400 font-mono text-[11px]">${start + idx + 1}</td>
         <td class="p-3">
           <div class="font-bold text-slate-800 leading-tight">${escapeHtml(item.nama)}</div>
@@ -2690,6 +2709,9 @@ function renderTagihanTable(items, start) {
         <td class="p-3">${followupBadge}</td>
         <td class="p-3 text-center">
           <div class="flex items-center justify-center space-x-1">
+            <button onclick="cetakAdvisSingle('${escapeHtml(item.id)}')" class="p-1.5 rounded-lg text-amber-700 hover:bg-amber-100 transition" title="Cetak Advis LMAP">
+              <i class="fa-solid fa-file-invoice text-sm"></i>
+            </button>
             <button onclick="openDetailTagihan('${escapeHtml(item.id)}')" class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-200 transition" title="Detail">
               <i class="fa-solid fa-eye text-mandiri-blue"></i>
             </button>
@@ -3559,5 +3581,605 @@ function setupTagihanEventListeners() {
 
   const btnProcessImport = document.getElementById('btnProcessImportTagihan');
   if (btnProcessImport) btnProcessImport.addEventListener('click', processFinalImportTagihan);
+
+  // Modal Cetak Advis LMAP
+  const btnOpenAdvis = document.getElementById('btnOpenCetakAdvisModal');
+  if (btnOpenAdvis) btnOpenAdvis.addEventListener('click', () => openModalCetakAdvis());
+
+  const btnCloseAdvis = document.getElementById('btnCloseModalCetakAdvis');
+  if (btnCloseAdvis) btnCloseAdvis.addEventListener('click', closeModalCetakAdvis);
+
+  const btnCancelAdvis = document.getElementById('btnCancelModalCetakAdvis');
+  if (btnCancelAdvis) btnCancelAdvis.addEventListener('click', closeModalCetakAdvis);
+
+  const btnDlDocx = document.getElementById('btnDownloadAdvisDocx');
+  if (btnDlDocx) btnDlDocx.addEventListener('click', downloadAdvisDocx);
+
+  const btnDlPdf = document.getElementById('btnDownloadAdvisPdf');
+  if (btnDlPdf) btnDlPdf.addEventListener('click', downloadAdvisPdf);
+
+  const btnPrintAdvis = document.getElementById('btnPrintAdvisWindow');
+  if (btnPrintAdvis) btnPrintAdvis.addEventListener('click', printAdvisDocument);
+
+  const inputNomor = document.getElementById('advisInputNomor');
+  if (inputNomor) {
+    inputNomor.addEventListener('input', () => {
+      const el = document.getElementById('previewAdvisNomorText');
+      if (el) el.textContent = inputNomor.value.trim() || '-';
+    });
+  }
+
+  const inputTanggal = document.getElementById('advisInputTanggal');
+  if (inputTanggal) {
+    inputTanggal.addEventListener('input', () => {
+      const el = document.getElementById('previewAdvisTanggalText');
+      if (el) el.textContent = inputTanggal.value.trim() || '-';
+    });
+  }
 }
+
+// =========================================================================
+// ================= FITUR CETAK TAGIHAN (ADVIS LMAP) ======================
+// =========================================================================
+
+function escapeXml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function getIndonesianDateString(d = new Date()) {
+  const months = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ];
+  const day = d.getDate();
+  const month = months[d.getMonth()];
+  const year = d.getFullYear();
+  return `${day} ${month} ${year}`;
+}
+
+function formatNumberInput(num) {
+  if (!num && num !== 0) return '';
+  return Number(num).toLocaleString('id-ID');
+}
+
+function parseNumberInput(str) {
+  if (!str) return 0;
+  const cleaned = String(str).replace(/[^\d]/g, '');
+  return parseInt(cleaned, 10) || 0;
+}
+
+function toggleSelectTagihan(id, isChecked) {
+  if (isChecked) {
+    selectedTagihanIds.add(id);
+  } else {
+    selectedTagihanIds.delete(id);
+  }
+  updateTagihanSelectionUI();
+}
+window.toggleSelectTagihan = toggleSelectTagihan;
+
+function toggleSelectAllTagihan(isChecked) {
+  const cbs = document.querySelectorAll('.tagihan-select-cb');
+  cbs.forEach(cb => {
+    const id = cb.dataset.id;
+    if (id) {
+      if (isChecked) {
+        selectedTagihanIds.add(id);
+      } else {
+        selectedTagihanIds.delete(id);
+      }
+    }
+  });
+  updateTagihanSelectionUI();
+}
+window.toggleSelectAllTagihan = toggleSelectAllTagihan;
+
+function clearTagihanSelection() {
+  selectedTagihanIds.clear();
+  updateTagihanSelectionUI();
+}
+window.clearTagihanSelection = clearTagihanSelection;
+
+function updateTagihanSelectionUI() {
+  const count = selectedTagihanIds.size;
+  const countBadge = document.getElementById('badgeSelectedTagihanCount');
+  if (countBadge) countBadge.textContent = count;
+
+  const countBadgeModal = document.getElementById('advisDebiturCountBadge');
+  if (countBadgeModal) countBadgeModal.textContent = `${count} debitur dipilih`;
+
+  const floatingBar = document.getElementById('tagihanSelectionFloatingBar');
+  if (floatingBar) {
+    if (count > 0) floatingBar.classList.remove('hidden');
+    else floatingBar.classList.add('hidden');
+  }
+
+  // Update check-all checkbox state
+  const checkAll = document.getElementById('checkSelectAllTagihan');
+  const cbs = document.querySelectorAll('.tagihan-select-cb');
+  if (checkAll && cbs.length > 0) {
+    const allChecked = Array.from(cbs).every(cb => selectedTagihanIds.has(cb.dataset.id));
+    checkAll.checked = allChecked;
+  }
+
+  // Sync checkboxes and visual card/row highlights
+  cbs.forEach(cb => {
+    const isSel = selectedTagihanIds.has(cb.dataset.id);
+    cb.checked = isSel;
+    const card = cb.closest('.tagihan-card-item');
+    if (card) {
+      if (isSel) {
+        card.classList.add('ring-2', 'ring-mandiri-blue', 'bg-blue-50/40');
+      } else {
+        card.classList.remove('ring-2', 'ring-mandiri-blue', 'bg-blue-50/40');
+      }
+    }
+    const row = cb.closest('tr');
+    if (row) {
+      if (isSel) {
+        row.classList.add('bg-blue-50/60');
+      } else {
+        row.classList.remove('bg-blue-50/60');
+      }
+    }
+  });
+}
+window.updateTagihanSelectionUI = updateTagihanSelectionUI;
+
+function cetakAdvisSingle(id) {
+  selectedTagihanIds.clear();
+  selectedTagihanIds.add(id);
+  updateTagihanSelectionUI();
+  openModalCetakAdvis(id);
+}
+window.cetakAdvisSingle = cetakAdvisSingle;
+
+function openModalCetakAdvis(specificId) {
+  if (specificId) {
+    selectedTagihanIds.add(specificId);
+    updateTagihanSelectionUI();
+  }
+
+  if (selectedTagihanIds.size === 0) {
+    showToast('Pilih minimal 1 nasabah terlebih dahulu untuk mencetak Advis LMAP!', 'warning');
+    return;
+  }
+
+  // Pastikan nominal terisi default untuk setiap nasabah terpilih
+  selectedTagihanIds.forEach(id => {
+    if (currentAdvisNominalMap[id] === undefined) {
+      const item = dbTagihan.find(x => x.id === id);
+      if (item) {
+        currentAdvisNominalMap[id] = item.angsuran || item.totalKewajiban || 0;
+      }
+    }
+  });
+
+  // Isi default tanggal jika kosong
+  const tglInput = document.getElementById('advisInputTanggal');
+  if (tglInput && !tglInput.value.trim()) {
+    tglInput.value = getIndonesianDateString();
+  }
+
+  // Muat logo dan tanda tangan di pratinjau surat
+  const logoImg = document.getElementById('previewAdvisLogoImg');
+  if (logoImg && window.ADVIS_MANDIRI_LOGO_BASE64) {
+    logoImg.src = window.ADVIS_MANDIRI_LOGO_BASE64;
+  }
+  const sigImg = document.getElementById('previewAdvisSignatureImg');
+  if (sigImg && window.ADVIS_SIGNATURE_BASE64) {
+    sigImg.src = window.ADVIS_SIGNATURE_BASE64;
+  }
+
+  const modal = document.getElementById('modalCetakAdvis');
+  if (modal) modal.classList.remove('hidden');
+
+  switchAdvisModalTab('form');
+  renderAdvisFormTable();
+  updateAdvisPreview();
+
+  const nomorInput = document.getElementById('advisInputNomor');
+  if (nomorInput && !nomorInput.value.trim()) {
+    setTimeout(() => nomorInput.focus(), 150);
+  }
+}
+window.openModalCetakAdvis = openModalCetakAdvis;
+
+function closeModalCetakAdvis() {
+  const modal = document.getElementById('modalCetakAdvis');
+  if (modal) modal.classList.add('hidden');
+}
+window.closeModalCetakAdvis = closeModalCetakAdvis;
+
+function switchAdvisModalTab(tab) {
+  currentAdvisActiveTab = tab;
+  const secForm = document.getElementById('advisSectionForm');
+  const secPreview = document.getElementById('advisSectionPreview');
+  const btnForm = document.getElementById('btnTabAdvisForm');
+  const btnPreview = document.getElementById('btnTabAdvisPreview');
+
+  if (tab === 'form') {
+    if (secForm) secForm.classList.remove('hidden');
+    if (secPreview) secPreview.classList.add('hidden');
+    if (btnForm) {
+      btnForm.className = 'px-3.5 py-1.5 rounded-xl font-bold text-xs bg-white text-mandiri-navy shadow-xs border border-slate-200 flex items-center space-x-1.5';
+    }
+    if (btnPreview) {
+      btnPreview.className = 'px-3.5 py-1.5 rounded-xl font-bold text-xs text-slate-600 hover:text-slate-900 hover:bg-white/60 transition flex items-center space-x-1.5';
+    }
+  } else {
+    updateAdvisPreview();
+    if (secForm) secForm.classList.add('hidden');
+    if (secPreview) secPreview.classList.remove('hidden');
+    if (btnForm) {
+      btnForm.className = 'px-3.5 py-1.5 rounded-xl font-bold text-xs text-slate-600 hover:text-slate-900 hover:bg-white/60 transition flex items-center space-x-1.5';
+    }
+    if (btnPreview) {
+      btnPreview.className = 'px-3.5 py-1.5 rounded-xl font-bold text-xs bg-white text-mandiri-navy shadow-xs border border-slate-200 flex items-center space-x-1.5';
+    }
+  }
+}
+window.switchAdvisModalTab = switchAdvisModalTab;
+
+function renderAdvisFormTable() {
+  const tbody = document.getElementById('advisFormTableBody');
+  if (!tbody) return;
+
+  const selectedItems = Array.from(selectedTagihanIds).map(id => dbTagihan.find(x => x.id === id)).filter(Boolean);
+
+  if (selectedItems.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="p-6 text-center text-slate-400">
+          <i class="fa-solid fa-folder-open text-2xl mb-2 block"></i>
+          Tidak ada nasabah yang dipilih. Silakan tutup dan pilih nasabah dari tabel/kartu.
+        </td>
+      </tr>
+    `;
+    updateAdvisTotalNominal();
+    return;
+  }
+
+  tbody.innerHTML = selectedItems.map((item, idx) => {
+    const nominal = currentAdvisNominalMap[item.id] !== undefined ? currentAdvisNominalMap[item.id] : (item.angsuran || item.totalKewajiban || 0);
+    return `
+      <tr class="hover:bg-slate-50 transition">
+        <td class="p-3 text-center font-bold text-slate-500">${idx + 1}</td>
+        <td class="p-3">
+          <div class="font-bold text-slate-900">${escapeHtml(item.nama)}</div>
+          <div class="text-[11px] text-slate-500">${escapeHtml(item.produk || 'Kredit')} &bull; Kol ${escapeHtml(item.kol || '1')}</div>
+        </td>
+        <td class="p-3 font-mono font-semibold text-slate-700">${escapeHtml(item.rekAgf || '-')}</td>
+        <td class="p-3 font-mono font-semibold text-slate-700">${escapeHtml(item.rekening || '-')}</td>
+        <td class="p-3 text-right">
+          <div class="relative">
+            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">Rp</span>
+            <input type="text"
+                   class="w-full pl-8 pr-2.5 py-1.5 rounded-lg border border-slate-300 focus:border-mandiri-blue focus:ring-1 focus:ring-blue-100 font-bold text-right text-xs outline-none"
+                   value="${formatNumberInput(nominal)}"
+                   oninput="handleAdvisNominalInput('${escapeHtml(item.id)}', this.value)"
+                   placeholder="0">
+          </div>
+        </td>
+        <td class="p-3 text-center">
+          <button onclick="removeAdvisDebitur('${escapeHtml(item.id)}')" class="text-red-500 hover:text-red-700 p-1.5 rounded hover:bg-red-50 transition" title="Hapus debitur ini dari cetak Advis">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  updateAdvisTotalNominal();
+}
+window.renderAdvisFormTable = renderAdvisFormTable;
+
+function handleAdvisNominalInput(id, val) {
+  const num = parseNumberInput(val);
+  currentAdvisNominalMap[id] = num;
+  updateAdvisTotalNominal();
+  updateAdvisPreview();
+}
+window.handleAdvisNominalInput = handleAdvisNominalInput;
+
+function removeAdvisDebitur(id) {
+  selectedTagihanIds.delete(id);
+  delete currentAdvisNominalMap[id];
+  updateTagihanSelectionUI();
+  renderAdvisFormTable();
+  updateAdvisPreview();
+  if (selectedTagihanIds.size === 0) {
+    showToast('Semua nasabah telah dihapus dari cetak Advis', 'info');
+  }
+}
+window.removeAdvisDebitur = removeAdvisDebitur;
+
+function updateAdvisTotalNominal() {
+  const selectedItems = Array.from(selectedTagihanIds).map(id => dbTagihan.find(x => x.id === id)).filter(Boolean);
+  let total = 0;
+  selectedItems.forEach(item => {
+    const val = currentAdvisNominalMap[item.id] !== undefined ? currentAdvisNominalMap[item.id] : (item.angsuran || item.totalKewajiban || 0);
+    total += val;
+  });
+
+  const totalEl = document.getElementById('advisFormTotalNominal');
+  if (totalEl) totalEl.textContent = formatRupiah(total);
+
+  const previewTotal = document.getElementById('previewAdvisTotalText');
+  if (previewTotal) previewTotal.textContent = formatRupiah(total);
+}
+window.updateAdvisTotalNominal = updateAdvisTotalNominal;
+
+function updateAdvisPreview() {
+  const nomorInput = document.getElementById('advisInputNomor');
+  const tanggalInput = document.getElementById('advisInputTanggal');
+
+  const nomorText = nomorInput && nomorInput.value.trim() ? nomorInput.value.trim() : '-';
+  const tanggalText = tanggalInput && tanggalInput.value.trim() ? tanggalInput.value.trim() : getIndonesianDateString();
+
+  const previewNomor = document.getElementById('previewAdvisNomorText');
+  if (previewNomor) previewNomor.textContent = nomorText;
+
+  const previewTanggal = document.getElementById('previewAdvisTanggalText');
+  if (previewTanggal) previewTanggal.textContent = tanggalText;
+
+  const tbody = document.getElementById('previewAdvisTableBody');
+  if (!tbody) return;
+
+  const selectedItems = Array.from(selectedTagihanIds).map(id => dbTagihan.find(x => x.id === id)).filter(Boolean);
+
+  if (selectedItems.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="border border-black p-4 text-center text-slate-500 italic">
+          Belum ada nasabah yang dipilih
+        </td>
+      </tr>
+    `;
+    const totalEl = document.getElementById('previewAdvisTotalText');
+    if (totalEl) totalEl.textContent = 'Rp 0';
+    return;
+  }
+
+  let total = 0;
+  tbody.innerHTML = selectedItems.map((item, idx) => {
+    const nominal = currentAdvisNominalMap[item.id] !== undefined ? currentAdvisNominalMap[item.id] : (item.angsuran || item.totalKewajiban || 0);
+    total += nominal;
+    return `
+      <tr>
+        <td class="border border-black p-1.5 text-center">${idx + 1}</td>
+        <td class="border border-black p-1.5 font-bold">${escapeHtml(item.nama)}</td>
+        <td class="border border-black p-1.5 text-center font-mono">${escapeHtml(item.rekAgf || '-')}</td>
+        <td class="border border-black p-1.5 text-center font-mono">${escapeHtml(item.rekening || '-')}</td>
+        <td class="border border-black p-1.5 text-right font-mono font-bold">${formatRupiah(nominal)}</td>
+      </tr>
+    `;
+  }).join('');
+
+  const totalEl = document.getElementById('previewAdvisTotalText');
+  if (totalEl) totalEl.textContent = formatRupiah(total);
+}
+window.updateAdvisPreview = updateAdvisPreview;
+
+// ================= DOWNLOAD DOKUMEN WORD (.DOCX) =================
+async function downloadAdvisDocx() {
+  const nomorInput = document.getElementById('advisInputNomor');
+  const nomor = nomorInput ? nomorInput.value.trim() : '';
+  if (!nomor) {
+    showToast('Harap masukkan Nomor Surat terlebih dahulu!', 'warning');
+    if (nomorInput) nomorInput.focus();
+    switchAdvisModalTab('form');
+    return;
+  }
+
+  const tanggalInput = document.getElementById('advisInputTanggal');
+  const tanggal = tanggalInput && tanggalInput.value.trim() ? tanggalInput.value.trim() : getIndonesianDateString();
+
+  const selectedItems = Array.from(selectedTagihanIds).map(id => dbTagihan.find(x => x.id === id)).filter(Boolean);
+  if (selectedItems.length === 0) {
+    showToast('Pilih minimal 1 nasabah untuk mencetak Advis LMAP!', 'warning');
+    return;
+  }
+
+  if (typeof JSZip === 'undefined' || !window.ADVIS_LMAP_TEMPLATE_BASE64) {
+    showToast('Library pembuat dokumen Word belum dimuat', 'error');
+    return;
+  }
+
+  showToast('Membuat dokumen Word Advis LMAP...', 'info');
+
+  try {
+    const zip = await JSZip.loadAsync(window.ADVIS_LMAP_TEMPLATE_BASE64, { base64: true });
+    let xml = await zip.file('word/document.xml').async('text');
+
+    // 1. Ganti Nomor
+    const nomorRegex = /(<w:t>Nomor<\/w:t>[\s\S]*?<w:t xml:space="preserve">:\s*)(<\/w:t>)/;
+    xml = xml.replace(nomorRegex, `$1${escapeXml(nomor)}$2`);
+
+    // 2. Ganti Tanggal
+    const tanggalRegex = /(<w:t>Tanggal<\/w:t>[\s\S]*?<w:t xml:space="preserve">:\s*)(<\/w:t>)/;
+    xml = xml.replace(tanggalRegex, `$1${escapeXml(tanggal)}$2`);
+
+    // 3. Ganti Tabel Data
+    const tblStart = xml.indexOf('<w:tbl>');
+    const tblEnd = xml.indexOf('</w:tbl>') + 8;
+    const tblXml = xml.substring(tblStart, tblEnd);
+
+    const tblPrMatch = tblXml.match(/<w:tblPr[\s\S]*?<\/w:tblPr>/);
+    const tblGridMatch = tblXml.match(/<w:tblGrid[\s\S]*?<\/w:tblGrid>/);
+    const rows = tblXml.match(/<w:tr[\s\S]*?<\/w:tr>/g);
+
+    const tblPr = tblPrMatch ? tblPrMatch[0] : '';
+    const tblGrid = tblGridMatch ? tblGridMatch[0] : '';
+    const headerRow = rows && rows.length > 0 ? rows[0] : '';
+
+    const dataRowsXml = selectedItems.map((item, idx) => {
+      const nominalVal = currentAdvisNominalMap[item.id] !== undefined ? currentAdvisNominalMap[item.id] : (item.angsuran || item.totalKewajiban || 0);
+      const nominalStr = formatRupiah(nominalVal);
+      const rekDebit = item.rekAgf || '-';
+      const rekKredit = item.rekening || '-';
+
+      return `<w:tr w:rsidR="00D1563A" w:rsidTr="00D1563A">
+        <w:trPr><w:trHeight w:val="250"/></w:trPr>
+        <w:tc>
+          <w:tcPr><w:tcW w:w="535" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>
+          <w:p><w:pPr><w:jc w:val="center"/><w:rPr><w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr>
+            <w:r><w:rPr><w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t>${idx + 1}</w:t></w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr><w:tcW w:w="2520" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>
+          <w:p><w:pPr><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/><w:color w:val="000000"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr>
+            <w:r><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/><w:color w:val="000000"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t>${escapeXml(item.nama)}</w:t></w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr><w:tcW w:w="2050" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>
+          <w:p><w:pPr><w:jc w:val="center"/><w:rPr><w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr>
+            <w:r><w:rPr><w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t>${escapeXml(rekDebit)}</w:t></w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr><w:tcW w:w="2070" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>
+          <w:p><w:pPr><w:jc w:val="center"/><w:rPr><w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr>
+            <w:r><w:rPr><w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t>${escapeXml(rekKredit)}</w:t></w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:tcPr><w:tcW w:w="1910" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>
+          <w:p><w:pPr><w:jc w:val="right"/><w:rPr><w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr>
+            <w:r><w:rPr><w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t>${escapeXml(nominalStr)}</w:t></w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>`;
+    }).join('');
+
+    const newTable = `<w:tbl>${tblPr}${tblGrid}${headerRow}${dataRowsXml}</w:tbl>`;
+    xml = xml.substring(0, tblStart) + newTable + xml.substring(tblEnd);
+
+    zip.file('word/document.xml', xml);
+    const blob = await zip.generateAsync({
+      type: 'blob',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'Advis LMAP.docx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showToast('Dokumen Word "Advis LMAP.docx" berhasil diunduh!', 'success');
+  } catch (err) {
+    console.error('Error generating docx:', err);
+    showToast('Gagal membuat dokumen Word: ' + err.message, 'error');
+  }
+}
+window.downloadAdvisDocx = downloadAdvisDocx;
+
+// ================= DOWNLOAD DOKUMEN PDF (ADVIS LMAP.PDF) =================
+async function downloadAdvisPdf() {
+  const nomorInput = document.getElementById('advisInputNomor');
+  const nomor = nomorInput ? nomorInput.value.trim() : '';
+  if (!nomor) {
+    showToast('Harap masukkan Nomor Surat terlebih dahulu!', 'warning');
+    if (nomorInput) nomorInput.focus();
+    switchAdvisModalTab('form');
+    return;
+  }
+
+  const selectedItems = Array.from(selectedTagihanIds).map(id => dbTagihan.find(x => x.id === id)).filter(Boolean);
+  if (selectedItems.length === 0) {
+    showToast('Pilih minimal 1 nasabah untuk mencetak Advis LMAP!', 'warning');
+    return;
+  }
+
+  updateAdvisPreview();
+
+  const element = document.getElementById('advisDocumentSheet');
+  if (!element) return;
+
+  const secPreview = document.getElementById('advisSectionPreview');
+  const wasHidden = secPreview ? secPreview.classList.contains('hidden') : false;
+  if (wasHidden && secPreview) {
+    secPreview.classList.remove('hidden');
+  }
+
+  showToast('Membuat dokumen PDF Advis LMAP...', 'info');
+
+  const opt = {
+    margin: [10, 12, 10, 12],
+    filename: 'Advis LMAP.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  try {
+    if (typeof html2pdf !== 'undefined') {
+      await html2pdf().set(opt).from(element).save();
+      showToast('Dokumen PDF "Advis LMAP.pdf" berhasil diunduh!', 'success');
+    } else {
+      printAdvisDocument();
+    }
+  } catch (err) {
+    console.error('Error generating PDF:', err);
+    showToast('Gagal membuat PDF otomatis, beralih ke dialog cetak browser...', 'warning');
+    printAdvisDocument();
+  } finally {
+    if (wasHidden && secPreview && currentAdvisActiveTab === 'form') {
+      secPreview.classList.add('hidden');
+    }
+  }
+}
+window.downloadAdvisPdf = downloadAdvisPdf;
+
+// ================= CETAK / PRINT DOKUMEN BROWSER =================
+function printAdvisDocument() {
+  const nomorInput = document.getElementById('advisInputNomor');
+  const nomor = nomorInput ? nomorInput.value.trim() : '';
+  if (!nomor) {
+    showToast('Harap masukkan Nomor Surat terlebih dahulu!', 'warning');
+    if (nomorInput) nomorInput.focus();
+    switchAdvisModalTab('form');
+    return;
+  }
+
+  const selectedItems = Array.from(selectedTagihanIds).map(id => dbTagihan.find(x => x.id === id)).filter(Boolean);
+  if (selectedItems.length === 0) {
+    showToast('Pilih minimal 1 nasabah untuk mencetak Advis LMAP!', 'warning');
+    return;
+  }
+
+  updateAdvisPreview();
+
+  const element = document.getElementById('advisDocumentSheet');
+  const printArea = document.getElementById('advisPrintArea');
+  if (!element || !printArea) return;
+
+  printArea.innerHTML = element.innerHTML;
+  printArea.classList.remove('hidden');
+  const originalTitle = document.title;
+  document.title = 'Advis LMAP';
+
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => {
+      document.title = originalTitle;
+      printArea.classList.add('hidden');
+      printArea.innerHTML = '';
+    }, 1000);
+  }, 250);
+}
+window.printAdvisDocument = printAdvisDocument;
+
 
