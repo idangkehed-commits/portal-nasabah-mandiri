@@ -3937,7 +3937,7 @@ function updateAdvisPreview() {
   if (selectedItems.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="5" class="border border-black p-4 text-center text-slate-500 italic">
+        <td colspan="5" style="border: 1px solid #4F81BD; padding: 16px; text-align: center; color: #64748b; font-style: italic;">
           Belum ada nasabah yang dipilih
         </td>
       </tr>
@@ -3951,13 +3951,14 @@ function updateAdvisPreview() {
   tbody.innerHTML = selectedItems.map((item, idx) => {
     const nominal = currentAdvisNominalMap[item.id] !== undefined ? currentAdvisNominalMap[item.id] : (item.angsuran || item.totalKewajiban || 0);
     total += nominal;
+    const bg = idx % 2 === 0 ? '#DCE6F1' : '#FFFFFF';
     return `
-      <tr>
-        <td class="border border-black p-1.5 text-center">${idx + 1}</td>
-        <td class="border border-black p-1.5 font-bold">${escapeHtml(item.nama)}</td>
-        <td class="border border-black p-1.5 text-center font-mono">${escapeHtml(item.rekAgf || '-')}</td>
-        <td class="border border-black p-1.5 text-center font-mono">${escapeHtml(item.rekening || '-')}</td>
-        <td class="border border-black p-1.5 text-right font-mono font-bold">${formatRupiah(nominal)}</td>
+      <tr style="background-color: ${bg};">
+        <td style="border: 1px solid #4F81BD; padding: 4px; text-align: center; font-size: 10pt;">${idx + 1}</td>
+        <td style="border: 1px solid #4F81BD; padding: 4px 6px; font-size: 10pt;">${escapeHtml(item.nama)}</td>
+        <td style="border: 1px solid #4F81BD; padding: 4px 6px; text-align: center; font-family: monospace; font-size: 10pt;">${escapeHtml(item.rekAgf || '-')}</td>
+        <td style="border: 1px solid #4F81BD; padding: 4px 6px; text-align: center; font-family: monospace; font-size: 10pt;">${escapeHtml(item.rekening || '-')}</td>
+        <td style="border: 1px solid #4F81BD; padding: 4px 6px; text-align: right; font-family: monospace; font-size: 10pt;">${formatRupiah(nominal)}</td>
       </tr>
     `;
   }).join('');
@@ -4108,26 +4109,35 @@ async function downloadAdvisPdf() {
   const element = document.getElementById('advisDocumentSheet');
   if (!element) return;
 
-  const secPreview = document.getElementById('advisSectionPreview');
-  const wasHidden = secPreview ? secPreview.classList.contains('hidden') : false;
-  if (wasHidden && secPreview) {
-    secPreview.classList.remove('hidden');
-  }
-
   showToast('Membuat dokumen PDF Advis LMAP...', 'info');
 
+  // Buat wrapper cetak bersih terisolasi agar 100% pas 1 halaman dan jabatan tidak terpotong
+  const printWrapper = document.createElement('div');
+  printWrapper.id = 'tempPdfExportWrapper';
+  printWrapper.style.position = 'fixed';
+  printWrapper.style.left = '-9999px';
+  printWrapper.style.top = '0';
+  printWrapper.style.width = '794px'; // A4 width at 96 DPI
+  printWrapper.style.background = '#ffffff';
+  printWrapper.style.color = '#000000';
+  printWrapper.style.padding = '40px 55px'; // Margin proporsional template
+  printWrapper.style.boxSizing = 'border-box';
+  printWrapper.style.fontFamily = "'Calibri', 'Arial', sans-serif";
+  printWrapper.innerHTML = element.innerHTML;
+  document.body.appendChild(printWrapper);
+
   const opt = {
-    margin: [10, 12, 10, 12],
+    margin: 0,
     filename: 'Advis LMAP.pdf',
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true, logging: false },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
   };
 
   try {
     if (typeof html2pdf !== 'undefined') {
-      await html2pdf().set(opt).from(element).save();
-      showToast('Dokumen PDF "Advis LMAP.pdf" berhasil diunduh!', 'success');
+      await html2pdf().set(opt).from(printWrapper).save();
+      showToast('Dokumen PDF "Advis LMAP" berhasil diunduh!', 'success');
     } else {
       printAdvisDocument();
     }
@@ -4136,8 +4146,8 @@ async function downloadAdvisPdf() {
     showToast('Gagal membuat PDF otomatis, beralih ke dialog cetak browser...', 'warning');
     printAdvisDocument();
   } finally {
-    if (wasHidden && secPreview && currentAdvisActiveTab === 'form') {
-      secPreview.classList.add('hidden');
+    if (document.body.contains(printWrapper)) {
+      document.body.removeChild(printWrapper);
     }
   }
 }

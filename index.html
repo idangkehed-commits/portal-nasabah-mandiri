@@ -110,13 +110,14 @@
         top: 0;
         width: 100%;
         margin: 0;
-        padding: 10mm 15mm;
+        padding: 0;
         background: #ffffff;
         color: #000000;
+        box-sizing: border-box;
       }
       @page {
-        size: A4 portrait;
-        margin: 10mm 15mm;
+        size: letter portrait;
+        margin: 15mm 20mm;
       }
     }
   </style>
@@ -1893,92 +1894,108 @@
 
         <!-- SECTION 2: PRATINJAU SURAT (ADVIS LMAP LIVE PREVIEW) -->
         <div id="advisSectionPreview" class="hidden">
-          <div class="max-w-2xl mx-auto bg-white p-8 sm:p-10 rounded-2xl shadow-lg border border-slate-200 text-slate-900 font-sans text-xs leading-normal" id="advisDocumentSheet" style="font-family: 'Calibri', 'Inter', Arial, sans-serif;">
+          <div class="max-w-[794px] mx-auto bg-white shadow-xl border border-slate-300 text-black text-[11pt] leading-normal" id="advisDocumentSheet" style="font-family: 'Calibri', 'Arial', sans-serif; width: 100%; max-width: 794px; min-height: 980px; padding: 45px 55px; box-sizing: border-box; background: #ffffff; color: #000000;">
             
-            <!-- Letterhead / Kop Surat -->
-            <div class="flex items-start justify-between pb-3 mb-3 border-b-2 border-slate-800">
-              <div class="w-40 pt-1">
-                <img id="previewAdvisLogoImg" src="" alt="Bank Mandiri" class="h-9 object-contain">
+            <!-- Letterhead / Kop Surat (TOP: Left is Nomor/Tanggal/Lampiran, Right is Mandiri Logo & Branch) -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px;">
+              
+              <!-- Top Left: Nomor, Tanggal, Lampiran -->
+              <div style="font-size: 11pt; line-height: 1.35; color: #000000;">
+                <table style="border-collapse: collapse; border: none; font-size: 11pt; line-height: 1.35;">
+                  <tr>
+                    <td style="padding: 1px 0; width: 75px; vertical-align: top;">Nomor</td>
+                    <td style="padding: 1px 6px; width: 14px; vertical-align: top;">:</td>
+                    <td style="padding: 1px 0; vertical-align: top;" id="previewAdvisNomorText">-</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 1px 0; vertical-align: top;">Tanggal</td>
+                    <td style="padding: 1px 6px; vertical-align: top;">:</td>
+                    <td style="padding: 1px 0; vertical-align: top;" id="previewAdvisTanggalText">-</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 1px 0; vertical-align: top;">Lampiran</td>
+                    <td style="padding: 1px 6px; vertical-align: top;">:</td>
+                    <td style="padding: 1px 0; vertical-align: top;">1 (satu) set</td>
+                  </tr>
+                </table>
               </div>
-              <div class="text-right text-[11px] leading-tight text-slate-800">
-                <div class="font-bold text-xs">PT Bank Mandiri (Persero) Tbk</div>
-                <div>Branch Bandung Jamsostek</div>
-                <div>Jl P.H. Hasan Mustapa No 39 Bandung</div>
-                <div>Tel. 022-7217861</div>
-                <div>www.bankmandiri.co.id</div>
+
+              <!-- Top Right: Logo Mandiri & Alamat Cabang -->
+              <div style="text-align: left; width: 185px;">
+                <div style="margin-bottom: 4px;">
+                  <img id="previewAdvisLogoImg" src="" alt="Bank Mandiri" style="height: 38px; object-fit: contain;">
+                </div>
+                <div style="font-size: 8.5pt; line-height: 1.25; color: #17365D;">
+                  <div>PT Bank Mandiri (Persero) Tbk</div>
+                  <div>Branch Bandung Jamsostek</div>
+                  <div>Jl P.H. Hasan Mustapa No 39</div>
+                  <div>Bandung</div>
+                  <div>Tel. 022-7217861</div>
+                  <div>www.bankmandiri.co.id</div>
+                </div>
               </div>
+
             </div>
 
-            <!-- Metadata Surat -->
-            <div class="grid grid-cols-2 gap-1 mb-4 text-xs">
-              <div class="space-y-0.5">
-                <div>Nomor &nbsp;&nbsp;&nbsp;&nbsp;: <strong id="previewAdvisNomorText">-</strong></div>
-                <div>Tanggal &nbsp;&nbsp;&nbsp;: <strong id="previewAdvisTanggalText">-</strong></div>
-                <div>Lampiran : 1 (satu) set</div>
-              </div>
-              <div class="text-right">
-                <!-- Spacing balance -->
-              </div>
-            </div>
-
-            <!-- Kepada Yth -->
-            <div class="mb-4 text-xs leading-snug">
+            <!-- Kepada Yth (Left Aligned) -->
+            <div style="margin-bottom: 16px; font-size: 11pt; line-height: 1.35; color: #000000;">
               <div>Kepada Yth,</div>
-              <div class="font-bold">PT Bank Mandiri (Persero) Tbk.</div>
-              <div>MBC Bandung Surapati 1</div>
-              <div>Jl. Surapati No. 2</div>
+              <div style="font-weight: bold;">PT Bank Mandiri (Persero) Tbk.</div>
+              <div style="font-weight: bold;">MBC Bandung Surapati 1</div>
+              <div style="font-weight: bold;">Jl. Surapati No. 2</div>
             </div>
 
             <!-- Perihal -->
-            <div class="mb-3 text-xs">
-              <strong><u>Perihal : Permohonan Posting Pembayaran Angsuran</u></strong>
+            <div style="margin-bottom: 14px; font-size: 11pt; line-height: 1.35; color: #000000;">
+              <table style="border-collapse: collapse; border: none; font-size: 11pt;">
+                <tr>
+                  <td style="padding: 0; width: 75px; vertical-align: top;">Perihal</td>
+                  <td style="padding: 0 6px; width: 14px; vertical-align: top;">:</td>
+                  <td style="padding: 0; vertical-align: top;"><u><b>Permohonan Posting Pembayaran Angsuran</b></u></td>
+                </tr>
+              </table>
             </div>
 
             <!-- Opening paragraph -->
-            <p class="mb-3 text-xs text-justify leading-relaxed">
-              Sehubungan jadwal pembayaran angsuran dengan ini mohon bantuannya untuk melakukan posting angsuran pada nasabah kami dengan data berikut :
-            </p>
+            <div style="margin-bottom: 12px; font-size: 11pt; line-height: 1.35; color: #000000; text-align: justify;">
+              Sehubungan jadwal pembayaran angsuran dengan ini mohon bantuannya untuk melakukan posting angsuran pada nasabah kami dengan data berikut:
+            </div>
 
-            <!-- Table -->
-            <div class="mb-4 overflow-x-auto">
-              <table class="w-full text-left border-collapse border border-black text-[11px]">
-                <thead class="border border-black bg-slate-50 font-bold text-center">
-                  <tr>
-                    <th class="border border-black p-1.5 w-8">NO</th>
-                    <th class="border border-black p-1.5">Nama Debitur</th>
-                    <th class="border border-black p-1.5 text-center">No Rekening Debit</th>
-                    <th class="border border-black p-1.5 text-center">No Rekening Kredit</th>
-                    <th class="border border-black p-1.5 text-right">Nominal</th>
+            <!-- Table (Exact GridTable4-Accent1 theme matching Word template) -->
+            <div style="margin-bottom: 14px;">
+              <table style="width: 100%; border-collapse: collapse; border: 1px solid #4F81BD; font-size: 10pt; line-height: 1.25;">
+                <thead>
+                  <tr style="background-color: #4F81BD; color: #ffffff; font-weight: bold; text-align: center;">
+                    <th style="border: 1px solid #4F81BD; padding: 5px 4px; width: 6%; text-align: center;">NO</th>
+                    <th style="border: 1px solid #4F81BD; padding: 5px 6px; width: 30%; text-align: center;">Nama Debitur</th>
+                    <th style="border: 1px solid #4F81BD; padding: 5px 6px; width: 23%; text-align: center;">No Rekening Debit</th>
+                    <th style="border: 1px solid #4F81BD; padding: 5px 6px; width: 23%; text-align: center;">No Rekening Kredit</th>
+                    <th style="border: 1px solid #4F81BD; padding: 5px 6px; width: 18%; text-align: center;">Nominal</th>
                   </tr>
                 </thead>
-                <tbody id="previewAdvisTableBody" class="divide-y divide-black">
+                <tbody id="previewAdvisTableBody">
                   <!-- Rendered dynamically -->
                 </tbody>
-                <tfoot class="font-bold bg-slate-50 border-t border-black">
-                  <tr>
-                    <td colspan="4" class="border border-black p-1.5 text-right font-bold">TOTAL :</td>
-                    <td class="border border-black p-1.5 text-right font-bold" id="previewAdvisTotalText">Rp 0</td>
-                  </tr>
-                </tfoot>
               </table>
             </div>
 
             <!-- Closing paragraph -->
-            <p class="mb-6 text-xs text-justify leading-relaxed">
+            <div style="margin-bottom: 22px; font-size: 11pt; line-height: 1.35; color: #000000;">
               Demikian kami sampaikan, atas bantuan dan kerjasamanya kami ucapkan terima kasih.
-            </p>
+            </div>
 
-            <!-- Signature block -->
-            <div class="flex justify-end">
-              <div class="text-center w-56 text-xs">
-                <div class="font-bold">PT Bank Mandiri (Persero) Tbk.</div>
-                <div>Branch Bandung Jamsostek</div>
-                <div class="h-20 flex items-center justify-center my-1">
-                  <img id="previewAdvisSignatureImg" src="" alt="Tanda Tangan" class="max-h-18 object-contain">
-                </div>
-                <div class="font-bold underline text-xs">Deki Elanda Pradikta</div>
-                <div class="text-[11px]">Penyelia Unit</div>
+            <!-- Signature block (LEFT ALIGNED - Exact matching Word template) -->
+            <div style="text-align: left; font-size: 11pt; line-height: 1.35; color: #000000;">
+              <div style="font-weight: bold;">PT Bank Mandiri (Persero) Tbk.</div>
+              <div>Branch Bandung Jamsostek</div>
+              
+              <!-- Signature + Stamp Image -->
+              <div style="margin-top: -6px; margin-bottom: -6px; height: 75px; display: flex; align-items: center; justify-content: flex-start;">
+                <img id="previewAdvisSignatureImg" src="" alt="Tanda Tangan Deki Elanda Pradikta" style="max-height: 75px; max-width: 165px; object-fit: contain;">
               </div>
+              
+              <div style="font-weight: bold; text-decoration: underline;">Deki Elanda Pradikta</div>
+              <div style="font-weight: bold;">Penyelia Unit</div>
             </div>
 
           </div>
@@ -2030,6 +2047,6 @@
   <!-- Data Tagihan JS (170 Pre-loaded authentic Mandiri monthly bills) -->
   <script src="data_tagihan.js?v=20261013_v3"></script>
   <!-- App Logic JavaScript -->
-  <script src="app.js?v=20261013_v3"></script>
+  <script src="app.js?v=20261013_v4"></script>
 </body>
 </html>
