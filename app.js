@@ -2114,7 +2114,7 @@ function switchMainTab(tab) {
 
     if (viewPipelineTab) {
       viewPipelineTab.classList.remove('hidden');
-      viewPipelineTab.classList.add('flex');
+      viewPipelineTab.classList.add('flex', 'flex-col');
     }
     if (viewTagihanTab) {
       viewTagihanTab.classList.add('hidden');
@@ -2130,6 +2130,7 @@ function switchMainTab(tab) {
       headerActionsTagihan.classList.remove('flex');
     }
 
+    window.scrollTo({ top: 0, behavior: 'instant' });
     updateUI();
   } else {
     if (tabBtnTagihan) {
@@ -2145,7 +2146,7 @@ function switchMainTab(tab) {
     }
     if (viewTagihanTab) {
       viewTagihanTab.classList.remove('hidden');
-      viewTagihanTab.classList.add('flex');
+      viewTagihanTab.classList.add('flex', 'flex-col');
     }
 
     if (headerActionsPipeline) {
@@ -2157,6 +2158,7 @@ function switchMainTab(tab) {
       headerActionsTagihan.classList.add('flex');
     }
 
+    window.scrollTo({ top: 0, behavior: 'instant' });
     updateTagihanUI();
   }
 }
