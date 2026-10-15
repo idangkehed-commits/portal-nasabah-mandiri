@@ -6,7 +6,7 @@ echo   SERVER WEB PORTAL DATA NASABAH (KUR & KUM MANDIRI)
 echo ======================================================================
 echo.
 echo Membuka browser...
-start http://localhost:3000
+start http://localhost:3050
 echo.
 node server.js
 pause

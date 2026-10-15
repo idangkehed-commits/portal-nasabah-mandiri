@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3050;
 const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL;
 
 const MIME_TYPES = {
@@ -76,6 +76,16 @@ function getLocalIPs() {
   }
   return addresses;
 }
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`[ERROR] Port ${PORT} sedang digunakan oleh aplikasi lain!`);
+    console.error(`Gunakan PORT lain via environment: set PORT=3051 && node server.js`);
+  } else {
+    console.error('[ERROR] Terjadi kesalahan server:', err.message);
+  }
+  process.exit(1);
+});
 
 server.listen(PORT, '0.0.0.0', () => {
   const ips = getLocalIPs();

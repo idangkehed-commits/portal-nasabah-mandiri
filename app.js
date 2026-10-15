@@ -28,13 +28,16 @@ document.addEventListener('DOMContentLoaded', () => {
   loadVisitRecords();
   loadTagihanDatabase();
   loadTagihanFollowupRecords();
+  loadBookingDatabase();
   setupEventListeners();
   setupTagihanEventListeners();
+  setupBookingEventListeners();
   populateSgpDropdown();
   populateTagihanPetugasDropdown();
   updateUI();
   updateTagihanUI();
   updateTagihanTabBadge();
+  updateBookingTabBadge();
 
   // Jalankan sinkronisasi cloud tim segera & ulangi berkala
   syncFromCloud(true);
@@ -2095,71 +2098,95 @@ function getTagihanFollowup(item) {
   return rec;
 }
 
-// ================= DUAL NAVIGATION CONTROLLER =================
+// ================= MAIN NAVIGATION CONTROLLER (3 TABS) =================
 function switchMainTab(tab) {
   const tabBtnPipeline = document.getElementById('tabBtnPipeline');
   const tabBtnTagihan = document.getElementById('tabBtnTagihan');
+  const tabBtnBooking = document.getElementById('tabBtnBooking');
   const viewPipelineTab = document.getElementById('viewPipelineTab');
   const viewTagihanTab = document.getElementById('viewTagihanTab');
+  const viewBookingTab = document.getElementById('viewBookingTab');
   const headerActionsPipeline = document.getElementById('headerActionsPipeline');
   const headerActionsTagihan = document.getElementById('headerActionsTagihan');
+  const headerActionsBooking = document.getElementById('headerActionsBooking');
 
-  if (tab === 'pipeline') {
-    if (tabBtnPipeline) {
-      tabBtnPipeline.className = 'flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm bg-white text-mandiri-navy';
-    }
-    if (tabBtnTagihan) {
-      tabBtnTagihan.className = 'flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-blue-200 hover:text-white hover:bg-white/10';
-    }
+  const activeBtnClass = 'flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm bg-white text-mandiri-navy shrink-0';
+  const inactiveBtnClass = 'flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-blue-200 hover:text-white hover:bg-white/10 shrink-0';
 
-    if (viewPipelineTab) {
+  if (tabBtnPipeline) tabBtnPipeline.className = tab === 'pipeline' ? activeBtnClass : inactiveBtnClass;
+  if (tabBtnTagihan) tabBtnTagihan.className = tab === 'tagihan' ? activeBtnClass : inactiveBtnClass;
+  if (tabBtnBooking) tabBtnBooking.className = tab === 'booking' ? activeBtnClass : inactiveBtnClass;
+
+  // View containers toggle
+  if (viewPipelineTab) {
+    if (tab === 'pipeline') {
       viewPipelineTab.classList.remove('hidden');
       viewPipelineTab.classList.add('flex', 'flex-col');
-    }
-    if (viewTagihanTab) {
-      viewTagihanTab.classList.add('hidden');
-      viewTagihanTab.classList.remove('flex');
-    }
-
-    if (headerActionsPipeline) {
-      headerActionsPipeline.classList.remove('hidden');
-      headerActionsPipeline.classList.add('flex');
-    }
-    if (headerActionsTagihan) {
-      headerActionsTagihan.classList.add('hidden');
-      headerActionsTagihan.classList.remove('flex');
-    }
-
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    updateUI();
-  } else {
-    if (tabBtnTagihan) {
-      tabBtnTagihan.className = 'flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm bg-white text-mandiri-navy';
-    }
-    if (tabBtnPipeline) {
-      tabBtnPipeline.className = 'flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-blue-200 hover:text-white hover:bg-white/10';
-    }
-
-    if (viewPipelineTab) {
+    } else {
       viewPipelineTab.classList.add('hidden');
       viewPipelineTab.classList.remove('flex');
     }
-    if (viewTagihanTab) {
+  }
+
+  if (viewTagihanTab) {
+    if (tab === 'tagihan') {
       viewTagihanTab.classList.remove('hidden');
       viewTagihanTab.classList.add('flex', 'flex-col');
+    } else {
+      viewTagihanTab.classList.add('hidden');
+      viewTagihanTab.classList.remove('flex');
     }
+  }
 
-    if (headerActionsPipeline) {
+  if (viewBookingTab) {
+    if (tab === 'booking') {
+      viewBookingTab.classList.remove('hidden');
+      viewBookingTab.classList.add('flex', 'flex-col');
+    } else {
+      viewBookingTab.classList.add('hidden');
+      viewBookingTab.classList.remove('flex');
+    }
+  }
+
+  // Header actions toggle
+  if (headerActionsPipeline) {
+    if (tab === 'pipeline') {
+      headerActionsPipeline.classList.remove('hidden');
+      headerActionsPipeline.classList.add('flex');
+    } else {
       headerActionsPipeline.classList.add('hidden');
       headerActionsPipeline.classList.remove('flex');
     }
-    if (headerActionsTagihan) {
+  }
+
+  if (headerActionsTagihan) {
+    if (tab === 'tagihan') {
       headerActionsTagihan.classList.remove('hidden');
       headerActionsTagihan.classList.add('flex');
+    } else {
+      headerActionsTagihan.classList.add('hidden');
+      headerActionsTagihan.classList.remove('flex');
     }
+  }
 
-    window.scrollTo({ top: 0, behavior: 'instant' });
+  if (headerActionsBooking) {
+    if (tab === 'booking') {
+      headerActionsBooking.classList.remove('hidden');
+      headerActionsBooking.classList.add('flex');
+    } else {
+      headerActionsBooking.classList.add('hidden');
+      headerActionsBooking.classList.remove('flex');
+    }
+  }
+
+  window.scrollTo({ top: 0, behavior: 'instant' });
+
+  if (tab === 'pipeline') {
+    updateUI();
+  } else if (tab === 'tagihan') {
     updateTagihanUI();
+  } else if (tab === 'booking') {
+    updateBookingUI();
   }
 }
 window.switchMainTab = switchMainTab;
@@ -4286,3 +4313,1159 @@ function printAdvisDocument() {
 window.printAdvisDocument = printAdvisDocument;
 
 
+
+
+function getInitials(name) {
+  if (!name) return 'NS';
+  return name.trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'NS';
+}
+window.getInitials = getInitials;
+
+// ================= TAB 3: MASTER DATABASE NASABAH PENCAIRAN (BOOKING) =================
+let dbBooking = [];
+let currentBookingSearch = '';
+let currentBookingFilterJenis = 'all';
+let currentBookingFilterPencairan = 'all';
+let currentBookingFilterJaminan = 'all';
+let currentBookingView = 'cards';
+let currentBookingPage = 1;
+const bookingPageSize = 24;
+let currentActiveBooking = null;
+let pendingImportBookingData = [];
+
+const BOOKING_STORAGE_KEY = 'portal_mandiri_booking_v1';
+
+function loadBookingDatabase() {
+  try {
+    const raw = localStorage.getItem(BOOKING_STORAGE_KEY);
+    if (raw) {
+      dbBooking = JSON.parse(raw);
+    } else if (window.MANDIRI_BOOKING_DATA && window.MANDIRI_BOOKING_DATA.length > 0) {
+      dbBooking = [...window.MANDIRI_BOOKING_DATA];
+    }
+  } catch (e) {
+    console.error('Error loading booking database:', e);
+    if (window.MANDIRI_BOOKING_DATA) {
+      dbBooking = [...window.MANDIRI_BOOKING_DATA];
+    }
+  }
+}
+
+function saveBookingDatabase() {
+  try {
+    // Only save if reasonable size to avoid localStorage quota crash
+    const str = JSON.stringify(dbBooking);
+    if (str.length < 4500000) {
+      localStorage.setItem(BOOKING_STORAGE_KEY, str);
+    }
+  } catch (e) {
+    console.warn('LocalStorage quota exceeded for booking database, keeping in-memory:', e);
+  }
+}
+
+function updateBookingTabBadge() {
+  const badge = document.getElementById('tabBadgeBookingCount');
+  if (badge) {
+    badge.textContent = dbBooking.length.toLocaleString('id-ID');
+  }
+}
+
+function setupBookingEventListeners() {
+  // Drag & drop for Booking Excel upload
+  const dropZone = document.getElementById('dropZoneBooking');
+  const fileInput = document.getElementById('excelFileBookingInput');
+
+  if (dropZone && fileInput) {
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleBookingExcelUpload(e.target.files[0]);
+      }
+    });
+
+    ['dragenter', 'dragover'].forEach(name => {
+      dropZone.addEventListener(name, (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-emerald-500', 'bg-emerald-50/50');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(name => {
+      dropZone.addEventListener(name, (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-emerald-500', 'bg-emerald-50/50');
+      });
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleBookingExcelUpload(e.dataTransfer.files[0]);
+      }
+    });
+  }
+}
+
+function updateBookingUI() {
+  updateBookingTabBadge();
+  updateBookingDashboardStats();
+  renderBookingContent();
+}
+window.updateBookingUI = updateBookingUI;
+
+function updateBookingDashboardStats() {
+  const totalDebitur = dbBooking.length;
+  let totalFasilitas = 0;
+  let totalLimit = 0;
+  let multiCount = 0;
+  let kurCount = 0;
+  let kumCount = 0;
+
+  dbBooking.forEach(deb => {
+    const facCount = (deb.fasilitas && deb.fasilitas.length) || 1;
+    totalFasilitas += facCount;
+    if (facCount > 1) multiCount++;
+
+    (deb.fasilitas || []).forEach(f => {
+      totalLimit += (f.limit || 0);
+      const jk = (f.jenisKredit || '').toUpperCase();
+      if (jk === 'KUR') kurCount++;
+      else if (jk.startsWith('KUM')) kumCount++;
+    });
+  });
+
+  const elTotalDeb = document.getElementById('statBookingTotalDebitur');
+  if (elTotalDeb) elTotalDeb.textContent = totalDebitur.toLocaleString('id-ID');
+
+  const elTotalFac = document.getElementById('statBookingTotalFasilitas');
+  if (elTotalFac) elTotalFac.textContent = `${totalFasilitas.toLocaleString('id-ID')}x`;
+
+  const elTotalLimit = document.getElementById('statBookingTotalLimit');
+  if (elTotalLimit) {
+    if (totalLimit >= 1000000000) {
+      elTotalLimit.textContent = `Rp ${(totalLimit / 1000000000).toFixed(1).replace('.', ',')} M`;
+    } else {
+      elTotalLimit.textContent = formatRupiah(totalLimit);
+    }
+  }
+
+  const elMulti = document.getElementById('statBookingMultiCount');
+  if (elMulti) elMulti.textContent = `${multiCount.toLocaleString('id-ID')} nasabah`;
+
+  const elKur = document.getElementById('statBookingKurCount');
+  if (elKur) elKur.textContent = kurCount.toLocaleString('id-ID');
+
+  const elKum = document.getElementById('statBookingKumCount');
+  if (elKum) elKum.textContent = kumCount.toLocaleString('id-ID');
+}
+
+function getFilteredBookingData() {
+  const q = currentBookingSearch.toLowerCase().trim();
+
+  return dbBooking.filter(deb => {
+    // 1. Text Search
+    if (q) {
+      const matchNama = (deb.nama || '').toLowerCase().includes(q);
+      const matchKtp = (deb.ktp || '').toLowerCase().includes(q);
+      const matchCif = (deb.cif || '').toLowerCase().includes(q);
+      const matchUsaha = (deb.usaha || deb.namaPerusahaan || '').toLowerCase().includes(q);
+      const matchAlamat = (deb.alamatUsaha || deb.alamat || '').toLowerCase().includes(q);
+      const matchPasangan = (deb.namaPasangan || '').toLowerCase().includes(q);
+      const matchIbu = (deb.ibuKandung || '').toLowerCase().includes(q);
+      const matchTelp = (deb.telp || '').includes(q);
+
+      if (!matchNama && !matchKtp && !matchCif && !matchUsaha && !matchAlamat && !matchPasangan && !matchIbu && !matchTelp) {
+        return false;
+      }
+    }
+
+    // 2. Filter Jenis Kredit
+    if (currentBookingFilterJenis !== 'all') {
+      const hasJenis = (deb.fasilitas || []).some(f => {
+        const jk = (f.jenisKredit || '').toUpperCase();
+        if (currentBookingFilterJenis === 'KUR') return jk === 'KUR';
+        if (currentBookingFilterJenis === 'KUM') return jk.startsWith('KUM');
+        if (currentBookingFilterJenis === 'KSM') return jk.includes('KSM');
+        if (currentBookingFilterJenis === 'KTA') return jk.includes('KTA');
+        return jk.includes(currentBookingFilterJenis.toUpperCase());
+      });
+      if (!hasJenis) return false;
+    }
+
+    // 3. Filter Multi Pencairan
+    if (currentBookingFilterPencairan !== 'all') {
+      const facCount = (deb.fasilitas && deb.fasilitas.length) || 1;
+      if (currentBookingFilterPencairan === 'multi' && facCount < 2) return false;
+      if (currentBookingFilterPencairan === 'single' && facCount !== 1) return false;
+    }
+
+    // 4. Filter Jaminan
+    if (currentBookingFilterJaminan !== 'all') {
+      const hasJaminan = (deb.fasilitas || []).some(f => {
+        const jd = (f.jenisDokumen || f.jaminanUtama || '').toUpperCase();
+        if (currentBookingFilterJaminan === 'BPKB') return jd.includes('BPKB');
+        if (currentBookingFilterJaminan === 'SHM') return jd.includes('SHM') || jd.includes('SHGB') || jd.includes('AJB');
+        if (currentBookingFilterJaminan === 'TANPA') return jd.includes('TANPA') || jd === '' || jd === '-';
+        return jd.includes(currentBookingFilterJaminan.toUpperCase());
+      });
+      if (!hasJaminan) return false;
+    }
+
+    return true;
+  });
+}
+
+function renderBookingContent() {
+  const filtered = getFilteredBookingData();
+  const totalFiltered = filtered.length;
+
+  const countBadge = document.getElementById('badgeBookingResultCount');
+  if (countBadge) countBadge.textContent = `${totalFiltered.toLocaleString('id-ID')} debitur`;
+
+  const totalPages = Math.ceil(totalFiltered / bookingPageSize) || 1;
+  if (currentBookingPage > totalPages) currentBookingPage = totalPages;
+  const start = (currentBookingPage - 1) * bookingPageSize;
+  const paged = filtered.slice(start, start + bookingPageSize);
+
+  const containerCards = document.getElementById('bookingCardsViewContainer');
+  const containerTable = document.getElementById('bookingTableViewContainer');
+
+  if (currentBookingView === 'cards') {
+    if (containerCards) {
+      containerCards.classList.remove('hidden');
+      renderBookingCards(paged);
+    }
+    if (containerTable) containerTable.classList.add('hidden');
+  } else {
+    if (containerCards) containerCards.classList.add('hidden');
+    if (containerTable) {
+      containerTable.classList.remove('hidden');
+      renderBookingTable(paged, start);
+    }
+  }
+
+  renderBookingPagination(totalFiltered, start + 1, Math.min(start + bookingPageSize, totalFiltered), totalPages);
+}
+
+function renderBookingCards(items) {
+  const container = document.getElementById('bookingCardsViewContainer');
+  if (!container) return;
+
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div class="col-span-full p-12 text-center bg-white rounded-3xl border border-slate-200">
+        <i class="fa-solid fa-folder-open text-4xl text-slate-300 mb-3 block"></i>
+        <h3 class="text-base font-bold text-slate-700">Tidak ada debitur yang cocok</h3>
+        <p class="text-xs text-slate-400 mt-1">Coba gunakan kata kunci lain atau reset filter pencarian.</p>
+        <button onclick="clearBookingSearch()" class="mt-4 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-700 transition">
+          Reset Filter & Pencarian
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  const avatarGradients = [
+    'from-emerald-600 to-teal-700',
+    'from-blue-600 to-indigo-700',
+    'from-indigo-600 to-purple-700',
+    'from-amber-500 to-orange-600',
+    'from-cyan-600 to-blue-700',
+    'from-rose-500 to-pink-600'
+  ];
+
+  container.innerHTML = items.map((deb, idx) => {
+    const initials = getInitials(deb.nama);
+    const grad = avatarGradients[idx % avatarGradients.length];
+    const facCount = (deb.fasilitas && deb.fasilitas.length) || 1;
+    const lastFac = deb.fasilitasTerakhir || (deb.fasilitas && deb.fasilitas[deb.fasilitas.length - 1]) || {};
+    const totalPlafon = deb.totalLimit || lastFac.limit || 0;
+
+    let multiBadge = '';
+    if (facCount > 1) {
+      multiBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 flex items-center space-x-1 shrink-0">
+        <i class="fa-solid fa-repeat text-[9px]"></i>
+        <span>${facCount}x Pencairan</span>
+      </span>`;
+    } else {
+      multiBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+        1x Booking
+      </span>`;
+    }
+
+    const telpClean = (deb.telp || '').replace(/[^0-9]/g, '');
+    let waButton = '';
+    if (telpClean && telpClean.length >= 8) {
+      const waNumber = telpClean.startsWith('0') ? '62' + telpClean.slice(1) : telpClean;
+      waButton = `
+        <a href="https://wa.me/${waNumber}" target="_blank" onclick="event.stopPropagation()" class="text-emerald-600 hover:text-emerald-800 p-1.5 rounded-lg hover:bg-emerald-50 transition" title="Kirim WhatsApp">
+          <i class="fa-brands fa-whatsapp text-sm"></i>
+        </a>
+      `;
+    }
+
+    const jaminanText = lastFac.jenisDokumen || (lastFac.jaminanUtama ? 'Agunan Usaha' : 'Tanpa Agunan');
+
+    return `
+      <div class="bg-white rounded-2xl border border-slate-200 hover:border-mandiri-blue hover:shadow-card-hover transition-all duration-200 p-4 flex flex-col justify-between group cursor-pointer" onclick="openModalDetailBooking('${escapeHtml(deb.id)}')">
+        
+        <!-- Card Top Header -->
+        <div>
+          <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+            <div class="flex items-center space-x-3 min-w-0">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-br ${grad} text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-xs">
+                ${initials}
+              </div>
+              <div class="min-w-0">
+                <h4 class="font-bold text-slate-900 text-sm group-hover:text-mandiri-blue transition truncate">
+                  ${escapeHtml(deb.nama)}
+                </h4>
+                <div class="flex items-center space-x-1.5 text-[11px] text-slate-500 font-mono mt-0.5">
+                  <span>CIF: ${escapeHtml(deb.cif || '-')}</span>
+                  ${deb.ktp ? `<span>&bull; KTP: ${escapeHtml(deb.ktp.slice(0, 6))}...</span>` : ''}
+                </div>
+              </div>
+            </div>
+            ${multiBadge}
+          </div>
+
+          <!-- Card Body: Profil Usaha & Keluarga -->
+          <div class="py-3 space-y-2 text-xs text-slate-600">
+            
+            <!-- Usaha -->
+            <div class="flex items-start space-x-2">
+              <i class="fa-solid fa-shop text-slate-400 mt-0.5 text-xs shrink-0 w-3.5 text-center"></i>
+              <div class="min-w-0 flex-1">
+                <span class="font-semibold text-slate-800 truncate block">${escapeHtml(deb.usaha || deb.pekerjaan || 'Usaha Perdagangan')}</span>
+                <span class="text-[11px] text-slate-400 truncate block">${escapeHtml(deb.alamatUsaha || deb.alamat || '-')}</span>
+              </div>
+            </div>
+
+            <!-- Pasangan & Ibu Kandung -->
+            <div class="flex items-center space-x-2 text-[11px] text-slate-500 bg-slate-50 p-2 rounded-xl">
+              <i class="fa-solid fa-people-roof text-slate-400 shrink-0"></i>
+              <div class="truncate flex-1">
+                <span>Pasangan: <b class="text-slate-700">${escapeHtml(deb.namaPasangan || '-')}</b></span>
+                <span class="mx-1">&bull;</span>
+                <span>Ibu: <b class="text-slate-700">${escapeHtml(deb.ibuKandung || '-')}</b></span>
+              </div>
+            </div>
+
+            <!-- Fasilitas Terakhir Box -->
+            <div class="mt-2.5 p-2.5 rounded-xl bg-blue-50/60 border border-blue-100 flex items-center justify-between">
+              <div>
+                <span class="text-[10px] text-blue-700 font-bold block uppercase tracking-wider">
+                  ${escapeHtml(lastFac.jenisKredit || 'Fasilitas Kredit')} &bull; ${lastFac.tglPk || 'Pencairan'}
+                </span>
+                <span class="text-xs font-black text-mandiri-navy">
+                  ${formatRupiah(lastFac.limit || 0)}
+                </span>
+              </div>
+              <div class="text-right text-[11px]">
+                <span class="px-2 py-0.5 bg-white rounded-md text-slate-700 font-bold border border-slate-200">
+                  ${escapeHtml(jaminanText)}
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Card Footer -->
+        <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between">
+          <div class="flex items-center space-x-1.5">
+            ${waButton}
+            <span class="text-[11px] font-mono text-slate-500 truncate max-w-[120px]">${escapeHtml(deb.telp || '-')}</span>
+          </div>
+          <button class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-mandiri-blue hover:text-white text-slate-700 font-bold text-xs transition flex items-center space-x-1">
+            <span>Rincian & Riwayat</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+        </div>
+
+      </div>
+    `;
+  }).join('');
+}
+
+function renderBookingTable(items, startIdx) {
+  const tbody = document.getElementById('bookingTableBody');
+  if (!tbody) return;
+
+  if (items.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="9" class="p-8 text-center text-slate-400">
+          <i class="fa-solid fa-folder-open text-3xl mb-2 block"></i>
+          Tidak ada data nasabah yang sesuai kriteria filter.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = items.map((deb, idx) => {
+    const facCount = (deb.fasilitas && deb.fasilitas.length) || 1;
+    const lastFac = deb.fasilitasTerakhir || (deb.fasilitas && deb.fasilitas[deb.fasilitas.length - 1]) || {};
+    const totalPlafon = deb.totalLimit || lastFac.limit || 0;
+    const jaminanText = lastFac.jenisDokumen || (lastFac.jaminanUtama ? 'Agunan Usaha' : 'Tanpa Agunan');
+
+    let badgePencairan = '';
+    if (facCount > 1) {
+      badgePencairan = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300 whitespace-nowrap">${facCount}x Top Up</span>`;
+    } else {
+      badgePencairan = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 whitespace-nowrap">1x</span>`;
+    }
+
+    return `
+      <tr class="hover:bg-slate-50 transition cursor-pointer" onclick="openModalDetailBooking('${escapeHtml(deb.id)}')">
+        <td class="p-3 text-center text-slate-400 font-bold">${startIdx + idx + 1}</td>
+        <td class="p-3">
+          <div class="font-bold text-slate-900 group-hover:text-mandiri-blue">${escapeHtml(deb.nama)}</div>
+          <div class="text-[11px] text-slate-400">${escapeHtml(deb.pekerjaan || '-')}</div>
+        </td>
+        <td class="p-3 font-mono text-xs">
+          <div class="font-bold text-slate-800">${escapeHtml(deb.cif || '-')}</div>
+          <div class="text-[11px] text-slate-400">${escapeHtml(deb.ktp || '-')}</div>
+        </td>
+        <td class="p-3">
+          <div class="font-semibold text-slate-800 truncate max-w-[160px]">${escapeHtml(deb.usaha || '-')}</div>
+          <div class="text-[11px] text-slate-400 truncate max-w-[180px]">${escapeHtml(deb.alamatUsaha || deb.alamat || '-')}</div>
+        </td>
+        <td class="p-3">
+          <span class="px-2 py-0.5 rounded-md font-bold text-[11px] bg-slate-100 text-slate-700 border border-slate-200">
+            ${escapeHtml(jaminanText)}
+          </span>
+        </td>
+        <td class="p-3 text-center">${badgePencairan}</td>
+        <td class="p-3 text-xs">
+          <div class="font-bold text-slate-800">${escapeHtml(lastFac.jenisKredit || 'Kredit')}</div>
+          <div class="text-[11px] text-slate-400">${escapeHtml(lastFac.tglPk || '-')} &bull; ${lastFac.jkWaktu || 0} Bln</div>
+        </td>
+        <td class="p-3 text-right font-mono font-black text-mandiri-navy">
+          ${formatRupiah(totalPlafon)}
+        </td>
+        <td class="p-3 text-center" onclick="event.stopPropagation()">
+          <button onclick="openModalDetailBooking('${escapeHtml(deb.id)}')" class="px-2.5 py-1 rounded-lg bg-blue-50 text-mandiri-blue hover:bg-mandiri-blue hover:text-white font-bold text-xs transition">
+            Lihat
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderBookingPagination(totalFiltered, startIdx, endIdx, totalPages) {
+  const info = document.getElementById('bookingPaginationInfo');
+  if (info) {
+    if (totalFiltered === 0) {
+      info.textContent = 'Menampilkan 0 nasabah';
+    } else {
+      info.textContent = `Menampilkan ${startIdx} - ${endIdx} dari ${totalFiltered.toLocaleString('id-ID')} nasabah`;
+    }
+  }
+
+  const container = document.getElementById('bookingPaginationButtons');
+  if (!container) return;
+
+  if (totalPages <= 1) {
+    container.innerHTML = '';
+    return;
+  }
+
+  let html = '';
+  // Prev button
+  html += `
+    <button onclick="changeBookingPage(${currentBookingPage - 1})" ${currentBookingPage === 1 ? 'disabled class="px-2 py-1 border rounded bg-slate-100 text-slate-300 cursor-not-allowed"' : 'class="px-2 py-1 border border-slate-200 rounded bg-white hover:bg-slate-50 text-slate-600 font-bold"'}>
+      <i class="fa-solid fa-chevron-left text-xs"></i>
+    </button>
+  `;
+
+  // Page numbers (max 5 page numbers centered around current)
+  const maxButtons = 5;
+  let startP = Math.max(1, currentBookingPage - Math.floor(maxButtons / 2));
+  let endP = Math.min(totalPages, startP + maxButtons - 1);
+  if (endP - startP + 1 < maxButtons) {
+    startP = Math.max(1, endP - maxButtons + 1);
+  }
+
+  for (let p = startP; p <= endP; p++) {
+    if (p === currentBookingPage) {
+      html += `<button class="px-3 py-1 rounded-lg bg-mandiri-navy text-white font-bold text-xs shadow-xs">${p}</button>`;
+    } else {
+      html += `<button onclick="changeBookingPage(${p})" class="px-3 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs">${p}</button>`;
+    }
+  }
+
+  // Next button
+  html += `
+    <button onclick="changeBookingPage(${currentBookingPage + 1})" ${currentBookingPage === totalPages ? 'disabled class="px-2 py-1 border rounded bg-slate-100 text-slate-300 cursor-not-allowed"' : 'class="px-2 py-1 border border-slate-200 rounded bg-white hover:bg-slate-50 text-slate-600 font-bold"'}>
+      <i class="fa-solid fa-chevron-right text-xs"></i>
+    </button>
+  `;
+
+  container.innerHTML = html;
+}
+
+function changeBookingPage(page) {
+  currentBookingPage = page;
+  renderBookingContent();
+  const el = document.getElementById('viewBookingTab');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+window.changeBookingPage = changeBookingPage;
+
+function setBookingView(view) {
+  currentBookingView = view;
+  const btnCards = document.getElementById('btnViewBookingCards');
+  const btnTable = document.getElementById('btnViewBookingTable');
+
+  if (view === 'cards') {
+    if (btnCards) btnCards.className = 'p-2 rounded-lg bg-mandiri-navy text-white text-xs shadow-xs';
+    if (btnTable) btnTable.className = 'p-2 rounded-lg bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 text-xs shadow-xs ml-1';
+  } else {
+    if (btnCards) btnCards.className = 'p-2 rounded-lg bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 text-xs shadow-xs';
+    if (btnTable) btnTable.className = 'p-2 rounded-lg bg-mandiri-navy text-white text-xs shadow-xs ml-1';
+  }
+  renderBookingContent();
+}
+window.setBookingView = setBookingView;
+
+function handleBookingSearchInput(val) {
+  currentBookingSearch = val;
+  currentBookingPage = 1;
+  const btnClear = document.getElementById('btnClearSearchBooking');
+  if (btnClear) {
+    if (val) btnClear.classList.remove('hidden');
+    else btnClear.classList.add('hidden');
+  }
+  renderBookingContent();
+}
+window.handleBookingSearchInput = handleBookingSearchInput;
+
+function clearBookingSearch() {
+  currentBookingSearch = '';
+  currentBookingFilterJenis = 'all';
+  currentBookingFilterPencairan = 'all';
+  currentBookingFilterJaminan = 'all';
+  currentBookingPage = 1;
+
+  const input = document.getElementById('searchBookingInput');
+  if (input) input.value = '';
+
+  const btnClear = document.getElementById('btnClearSearchBooking');
+  if (btnClear) btnClear.classList.add('hidden');
+
+  const selJenis = document.getElementById('filterBookingJenisKredit');
+  if (selJenis) selJenis.value = 'all';
+
+  const selPencairan = document.getElementById('filterBookingPencairanCount');
+  if (selPencairan) selPencairan.value = 'all';
+
+  const selJaminan = document.getElementById('filterBookingJaminan');
+  if (selJaminan) selJaminan.value = 'all';
+
+  renderBookingContent();
+}
+window.clearBookingSearch = clearBookingSearch;
+
+function handleBookingFilterChange() {
+  const selJenis = document.getElementById('filterBookingJenisKredit');
+  if (selJenis) currentBookingFilterJenis = selJenis.value;
+
+  const selPencairan = document.getElementById('filterBookingPencairanCount');
+  if (selPencairan) currentBookingFilterPencairan = selPencairan.value;
+
+  const selJaminan = document.getElementById('filterBookingJaminan');
+  if (selJaminan) currentBookingFilterJaminan = selJaminan.value;
+
+  currentBookingPage = 1;
+  renderBookingContent();
+}
+window.handleBookingFilterChange = handleBookingFilterChange;
+
+function filterBookingByJenis(jenis) {
+  currentBookingFilterJenis = jenis;
+  const sel = document.getElementById('filterBookingJenisKredit');
+  if (sel) sel.value = jenis;
+  currentBookingPage = 1;
+  renderBookingContent();
+}
+window.filterBookingByJenis = filterBookingByJenis;
+
+function filterBookingByPencairan(type) {
+  currentBookingFilterPencairan = type;
+  const sel = document.getElementById('filterBookingPencairanCount');
+  if (sel) sel.value = type;
+  currentBookingPage = 1;
+  renderBookingContent();
+}
+window.filterBookingByPencairan = filterBookingByPencairan;
+
+// ================= MODAL DETAIL PROFIL & RIWAYAT PENCAIRAN =================
+function openModalDetailBooking(id) {
+  const deb = dbBooking.find(x => x.id === id);
+  if (!deb) {
+    showToast('Data debitur tidak ditemukan!', 'error');
+    return;
+  }
+  currentActiveBooking = deb;
+
+  // Avatar & Header
+  const avatar = document.getElementById('modalBookingAvatar');
+  if (avatar) avatar.textContent = getInitials(deb.nama);
+
+  const elNama = document.getElementById('modalBookingNama');
+  if (elNama) elNama.textContent = deb.nama;
+
+  const facCount = (deb.fasilitas && deb.fasilitas.length) || 1;
+  const badgePencairan = document.getElementById('modalBookingPencairanBadge');
+  if (badgePencairan) {
+    if (facCount > 1) {
+      badgePencairan.textContent = `${facCount}x Pencairan (Top Up / Refill)`;
+      badgePencairan.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950';
+    } else {
+      badgePencairan.textContent = '1x Pencairan';
+      badgePencairan.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-400 text-emerald-950';
+    }
+  }
+
+  const badgeCif = document.getElementById('modalBookingCifBadge');
+  if (badgeCif) badgeCif.textContent = `CIF: ${deb.cif || '-'}`;
+
+  // Quick action bar contacts
+  const telpText = document.getElementById('modalBookingTelpText');
+  if (telpText) telpText.textContent = deb.telp || '-';
+
+  const telpClean = (deb.telp || '').replace(/[^0-9]/g, '');
+  const btnWa = document.getElementById('btnBookingWa');
+  if (btnWa) {
+    if (telpClean && telpClean.length >= 8) {
+      const waNumber = telpClean.startsWith('0') ? '62' + telpClean.slice(1) : telpClean;
+      btnWa.href = `https://wa.me/${waNumber}?text=Halo%20Bapak%2FIbu%20${encodeURIComponent(deb.nama)}%2C%20kami%20dari%20Bank%20Mandiri...`;
+      btnWa.classList.remove('hidden');
+    } else {
+      btnWa.classList.add('hidden');
+    }
+  }
+
+  const btnCall = document.getElementById('btnBookingCall');
+  if (btnCall) {
+    if (telpClean && telpClean.length >= 8) {
+      btnCall.href = `tel:${telpClean}`;
+      btnCall.classList.remove('hidden');
+    } else {
+      btnCall.classList.add('hidden');
+    }
+  }
+
+  // Identitas Pribadi
+  const elKtp = document.getElementById('modalBookingKtp');
+  if (elKtp) elKtp.textContent = deb.ktp || '-';
+
+  const elTtl = document.getElementById('modalBookingTtl');
+  if (elTtl) {
+    const tempat = deb.tempatLahir ? deb.tempatLahir + ', ' : '';
+    const tgl = deb.tglLahir || '-';
+    const umur = deb.umur ? ` (${deb.umur} thn)` : '';
+    elTtl.textContent = `${tempat}${tgl}${umur}`;
+  }
+
+  const elPekerjaan = document.getElementById('modalBookingPekerjaan');
+  if (elPekerjaan) elPekerjaan.textContent = deb.pekerjaan || '-';
+
+  const elAlamat = document.getElementById('modalBookingAlamat');
+  if (elAlamat) {
+    const parts = [deb.alamat, deb.kelurahan, deb.kecamatan, deb.kota, deb.kodePos].filter(Boolean);
+    elAlamat.textContent = parts.length > 0 ? parts.join(', ') : '-';
+  }
+
+  // Keluarga & Pasangan
+  const elIbu = document.getElementById('modalBookingIbuKandung');
+  if (elIbu) elIbu.textContent = deb.ibuKandung || '-';
+
+  const elPasangan = document.getElementById('modalBookingNamaPasangan');
+  if (elPasangan) elPasangan.textContent = deb.namaPasangan || '-';
+
+  const elKtpPasangan = document.getElementById('modalBookingKtpPasangan');
+  if (elKtpPasangan) elKtpPasangan.textContent = deb.ktpPasangan || '-';
+
+  const elPekerjaanPasangan = document.getElementById('modalBookingPekerjaanPasangan');
+  if (elPekerjaanPasangan) elPekerjaanPasangan.textContent = deb.pekerjaanPasangan || '-';
+
+  // Profil Usaha
+  const elUsaha = document.getElementById('modalBookingUsaha');
+  if (elUsaha) elUsaha.textContent = deb.usaha || '-';
+
+  const elPerusahaan = document.getElementById('modalBookingPerusahaan');
+  if (elPerusahaan) elPerusahaan.textContent = deb.namaPerusahaan || '-';
+
+  const elAlamatUsaha = document.getElementById('modalBookingAlamatUsaha');
+  if (elAlamatUsaha) elAlamatUsaha.textContent = deb.alamatUsaha || '-';
+
+  // Rekening Bank Mandiri
+  const elCif = document.getElementById('modalBookingCIF');
+  if (elCif) elCif.textContent = deb.cif || '-';
+
+  const lastFac = deb.fasilitasTerakhir || (deb.fasilitas && deb.fasilitas[deb.fasilitas.length - 1]) || {};
+  const elRekPjm = document.getElementById('modalBookingRekPjm');
+  if (elRekPjm) elRekPjm.textContent = lastFac.rekPjm || '-';
+
+  const elRekTab = document.getElementById('modalBookingRekTab');
+  if (elRekTab) elRekTab.textContent = lastFac.rekTab || '-';
+
+  // Akumulasi Total Plafon Limit
+  const elTotalLimitBadge = document.getElementById('modalBookingTotalLimitBadge');
+  if (elTotalLimitBadge) {
+    elTotalLimitBadge.textContent = `Total Akumulasi Plafon: ${formatRupiah(deb.totalLimit || 0)}`;
+  }
+
+  // Timeline Riwayat Fasilitas Pencairan
+  const timeline = document.getElementById('modalBookingFasilitasTimeline');
+  if (timeline) {
+    const list = deb.fasilitas || [];
+    timeline.innerHTML = list.map((f, idx) => {
+      const isFirst = idx === 0;
+      const urutanLabel = isFirst 
+        ? 'Pencairan Pertama (Fasilitas Awal)' 
+        : `Pencairan Ke-${idx + 1} (Fasilitas Top Up / Suplesi)`;
+      const headerBg = isFirst 
+        ? 'bg-blue-600 text-white' 
+        : 'bg-emerald-600 text-white';
+
+      const jaminanDoc = f.jenisDokumen || (f.jaminanUtama ? 'Agunan Fisik' : 'Tanpa Agunan');
+
+      return `
+        <div class="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs">
+          
+          <!-- Facility Header -->
+          <div class="${headerBg} px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center space-x-2">
+              <span class="w-6 h-6 rounded-full bg-white/20 text-white font-extrabold flex items-center justify-center text-xs">
+                ${idx + 1}
+              </span>
+              <span class="font-bold text-xs sm:text-sm tracking-wide">
+                ${urutanLabel}
+              </span>
+            </div>
+            <div class="flex items-center space-x-2 text-xs">
+              <span class="px-2 py-0.5 rounded-md bg-white/20 font-bold">${escapeHtml(f.jenisKredit || 'Kredit')}</span>
+              <span class="font-semibold text-blue-100">Tgl PK: <b>${escapeHtml(f.tglPk || '-')}</b></span>
+            </div>
+          </div>
+
+          <!-- Facility Body -->
+          <div class="p-4 space-y-3 text-xs text-slate-700">
+            
+            <!-- Limit & Angsuran Highlight -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+              <div>
+                <span class="text-[10px] text-slate-400 block font-medium">Limit Plafon Pinjaman:</span>
+                <span class="text-sm font-black text-mandiri-navy block">${formatRupiah(f.limit || 0)}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 block font-medium">Jangka Waktu (Tenor):</span>
+                <span class="text-xs sm:text-sm font-bold text-slate-800 block">${f.jkWaktu || 0} Bulan</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 block font-medium">Suku Bunga:</span>
+                <span class="text-xs sm:text-sm font-bold text-slate-800 block">${f.bunga ? f.bunga + '% p.a.' : '-'}</span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-400 block font-medium">Angsuran per Bulan:</span>
+                <span class="text-xs sm:text-sm font-extrabold text-emerald-700 block">${formatRupiah(f.angsuran || 0)}</span>
+              </div>
+            </div>
+
+            <!-- Detail Agunan / Jaminan pada Pencairan ini -->
+            <div class="p-3 rounded-xl bg-amber-50/50 border border-amber-200/80 space-y-1.5">
+              <div class="flex items-center justify-between border-b border-amber-200/60 pb-1.5">
+                <span class="font-bold text-amber-900 flex items-center space-x-1.5">
+                  <i class="fa-solid fa-shield-halved text-xs text-amber-700"></i>
+                  <span>Agunan Fasilitas Ini:</span>
+                  <span class="px-2 py-0.5 rounded-md bg-amber-200/80 text-amber-950 font-black text-[10px] uppercase">
+                    ${escapeHtml(jaminanDoc)}
+                  </span>
+                </span>
+                ${f.hargaTaksasi > 0 ? `<span class="text-[11px] font-bold text-amber-900">Taksasi: ${formatRupiah(f.hargaTaksasi)}</span>` : ''}
+              </div>
+
+              ${f.jaminanUtama ? `
+                <div class="text-[11px] leading-relaxed text-slate-700">
+                  <span class="font-semibold text-slate-800">Jaminan Utama:</span> ${escapeHtml(f.jaminanUtama)}
+                </div>
+              ` : ''}
+
+              ${f.jaminanTambahan1 && f.jaminanTambahan1 !== '`' ? `
+                <div class="text-[11px] leading-relaxed text-slate-700">
+                  <span class="font-semibold text-slate-800">Jaminan Tambahan 1:</span> ${escapeHtml(f.jaminanTambahan1)}
+                </div>
+              ` : ''}
+
+              ${f.jaminanTambahan2 && f.jaminanTambahan2 !== '`' ? `
+                <div class="text-[11px] leading-relaxed text-slate-700">
+                  <span class="font-semibold text-slate-800">Jaminan Tambahan 2:</span> ${escapeHtml(f.jaminanTambahan2)}
+                </div>
+              ` : ''}
+
+              ${!f.jaminanUtama && (!f.jaminanTambahan1 || f.jaminanTambahan1 === '`') ? `
+                <div class="text-[11px] text-slate-500 italic">
+                  Fasilitas Kredit Tanpa Agunan Fisik (KSM / KTA / Pre-Approved).
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Metadata Fasilitas: No PK, Rekening, Marketing -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-slate-500 pt-1">
+              <div>
+                <span class="block text-slate-400">Nomor Perjanjian Kredit (PK):</span>
+                <span class="font-mono font-semibold text-slate-700 truncate block">${escapeHtml(f.noPk || '-')}</span>
+              </div>
+              <div>
+                <span class="block text-slate-400">Rekening Pinjaman (PJM):</span>
+                <span class="font-mono font-semibold text-slate-700 truncate block">${escapeHtml(f.rekPjm || '-')}</span>
+              </div>
+              <div>
+                <span class="block text-slate-400">Marketing Pemroses (MKS):</span>
+                <span class="font-semibold text-slate-700 truncate block">${escapeHtml(f.mks || '-')}</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      `;
+    }).join('');
+  }
+
+  const modal = document.getElementById('modalDetailBooking');
+  if (modal) modal.classList.remove('hidden');
+}
+window.openModalDetailBooking = openModalDetailBooking;
+
+function closeModalDetailBooking() {
+  const modal = document.getElementById('modalDetailBooking');
+  if (modal) modal.classList.add('hidden');
+  currentActiveBooking = null;
+}
+window.closeModalDetailBooking = closeModalDetailBooking;
+
+function copyBookingDetails() {
+  if (!currentActiveBooking) return;
+  const deb = currentActiveBooking;
+
+  let text = `=====================================\n`;
+  text += `PROFIL NASABAH PENCAIRAN MANDIRI\n`;
+  text += `=====================================\n`;
+  text += `Nama Nasabah   : ${deb.nama}\n`;
+  text += `CIF            : ${deb.cif || '-'}\n`;
+  text += `No. KTP        : ${deb.ktp || '-'}\n`;
+  text += `No. Telepon    : ${deb.telp || '-'}\n`;
+  text += `Ibu Kandung    : ${deb.ibuKandung || '-'}\n`;
+  text += `Nama Pasangan  : ${deb.namaPasangan || '-'}\n`;
+  text += `Jenis Usaha    : ${deb.usaha || '-'}\n`;
+  text += `Alamat Usaha   : ${deb.alamatUsaha || '-'}\n`;
+  text += `Alamat Rumah   : ${deb.alamat || '-'}\n`;
+  text += `Total Plafon   : ${formatRupiah(deb.totalLimit || 0)}\n\n`;
+  text += `REKAM JEJAK FASILITAS PENCAIRAN (${deb.fasilitas.length}x Pencairan):\n`;
+
+  (deb.fasilitas || []).forEach((f, idx) => {
+    text += `\n[Pencairan Ke-${idx + 1}]\n`;
+    text += `- Tanggal PK   : ${f.tglPk || '-'}\n`;
+    text += `- Jenis Kredit : ${f.jenisKredit || '-'}\n`;
+    text += `- Limit Plafon : ${formatRupiah(f.limit || 0)}\n`;
+    text += `- Jangka Waktu : ${f.jkWaktu || 0} Bulan\n`;
+    text += `- Angsuran/Bln : ${formatRupiah(f.angsuran || 0)}\n`;
+    text += `- Jaminan      : ${f.jenisDokumen || f.jaminanUtama || 'Tanpa Agunan'}\n`;
+    text += `- No. PK       : ${f.noPk || '-'}\n`;
+  });
+
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Profil dan seluruh riwayat pencairan berhasil disalin!', 'success');
+  }).catch(() => {
+    showToast('Gagal menyalin teks ke clipboard', 'error');
+  });
+}
+window.copyBookingDetails = copyBookingDetails;
+
+// ================= EXPORT BOOKING EXCEL =================
+function exportBookingExcel() {
+  if (typeof XLSX === 'undefined') {
+    showToast('Library Excel belum siap', 'error');
+    return;
+  }
+
+  showToast('Menyiapkan file Rekap Database Booking...', 'info');
+
+  const filtered = getFilteredBookingData();
+  const rows = [
+    [
+      'NO',
+      'NAMA NASABAH',
+      'CIF',
+      'NO. KTP',
+      'NO. TELEPON',
+      'JENIS USAHA',
+      'ALAMAT USAHA',
+      'NAMA PASANGAN',
+      'IBU KANDUNG',
+      'JML PENCAIRAN',
+      'AKUMULASI PLAFON',
+      'PENCAIRAN TERAKHIR (TGL)',
+      'JENIS KREDIT TERAKHIR',
+      'LIMIT TERAKHIR',
+      'TENOR (BULAN)',
+      'JAMINAN TERAKHIR',
+      'ALAMAT TINGGAL'
+    ]
+  ];
+
+  filtered.forEach((deb, idx) => {
+    const lastFac = deb.fasilitasTerakhir || (deb.fasilitas && deb.fasilitas[deb.fasilitas.length - 1]) || {};
+    rows.push([
+      idx + 1,
+      deb.nama,
+      deb.cif || '-',
+      deb.ktp || '-',
+      deb.telp || '-',
+      deb.usaha || '-',
+      deb.alamatUsaha || '-',
+      deb.namaPasangan || '-',
+      deb.ibuKandung || '-',
+      (deb.fasilitas && deb.fasilitas.length) || 1,
+      deb.totalLimit || 0,
+      lastFac.tglPk || '-',
+      lastFac.jenisKredit || '-',
+      lastFac.limit || 0,
+      lastFac.jkWaktu || 0,
+      lastFac.jenisDokumen || (lastFac.jaminanUtama ? 'Agunan' : 'Tanpa Agunan'),
+      deb.alamat || '-'
+    ]);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Database Booking');
+
+  const now = new Date();
+  const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+  XLSX.writeFile(wb, `Mandiri_Database_Booking_${dateStr}.xlsx`);
+  showToast('File Excel Database Booking berhasil diunduh!', 'success');
+}
+window.exportBookingExcel = exportBookingExcel;
+
+// ================= UPLOAD EXCEL BOOKING =================
+function openModalUploadBooking() {
+  const modal = document.getElementById('modalUploadBooking');
+  if (modal) modal.classList.remove('hidden');
+  pendingImportBookingData = [];
+  const btnProcess = document.getElementById('btnProcessImportBooking');
+  if (btnProcess) btnProcess.disabled = true;
+  const container = document.getElementById('previewBookingContainer');
+  if (container) container.classList.add('hidden');
+}
+window.openModalUploadBooking = openModalUploadBooking;
+
+function closeModalUploadBooking() {
+  const modal = document.getElementById('modalUploadBooking');
+  if (modal) modal.classList.add('hidden');
+  pendingImportBookingData = [];
+}
+window.closeModalUploadBooking = closeModalUploadBooking;
+
+function handleBookingExcelUpload(file) {
+  if (!file) return;
+  if (typeof XLSX === 'undefined') {
+    showToast('Library Excel belum dimuat', 'error');
+    return;
+  }
+
+  showToast(`Membaca file "${file.name}"...`, 'info');
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+
+      if (!rawRows || rawRows.length < 2) {
+        showToast('File Excel kosong atau format tidak sesuai!', 'error');
+        return;
+      }
+
+      // Grouping process
+      const debiturMap = new Map();
+      let currentPeriod = '';
+
+      for (let i = 1; i < rawRows.length; i++) {
+        const row = rawRows[i];
+        const col0 = String(row[0] || '').trim();
+        const col1 = String(row[1] || '').trim();
+
+        if (col0 && !col1 && isNaN(Number(col0))) {
+          currentPeriod = col0;
+          continue;
+        }
+        if (col0.toLowerCase().includes('total booking') || col1.toLowerCase().includes('total booking')) {
+          continue;
+        }
+        if (col1 && col1.toUpperCase() !== 'NASABAH' && !col0.toLowerCase().startsWith('total')) {
+          const nama = col1;
+          const ktp = String(row[2] || '').trim().replace(/'/g, '');
+          const cif = String(row[65] || '').trim().replace(/'/g, '');
+
+          const key = cif && cif.length >= 7 
+            ? `CIF:${cif}` 
+            : (ktp && ktp.length >= 10 ? `KTP:${ktp}` : `NAMA:${nama.toUpperCase()}`);
+
+          const facility = {
+            id: `fac-${i}`,
+            period: currentPeriod,
+            noPk: String(row[27] || '').trim(),
+            tglPk: formatBookingDate(row[24]),
+            jenisKredit: String(row[22] || '').trim() || 'Kredit',
+            tujuanKredit: String(row[21] || '').trim(),
+            limit: Math.round(Number(String(row[30] || '').replace(/[^0-9.-]/g, ''))) || 0,
+            jkWaktu: Math.round(Number(String(row[32] || '').replace(/[^0-9.-]/g, ''))) || 0,
+            bunga: Number(Number(String(row[34] || '').replace(/[^0-9.-]/g, '')).toFixed(2)) || 0,
+            angsuran: Math.round(Number(String(row[40] || '').replace(/[^0-9.-]/g, ''))) || 0,
+            tglJatuhTempo: formatBookingDate(row[29]),
+            rekPjm: String(row[66] || '').trim(),
+            rekTab: String(row[67] || '').trim(),
+            jaminanUtama: String(row[42] || '').trim(),
+            jaminanTambahan1: String(row[43] || '').trim(),
+            jaminanTambahan2: String(row[44] || '').trim(),
+            jaminanTambahan3: String(row[45] || '').trim(),
+            hargaTaksasi: Math.round(Number(String(row[46] || '').replace(/[^0-9.-]/g, ''))) || 0,
+            jenisDokumen: String(row[48] || '').trim(),
+            alamatUsaha: String(row[49] || '').trim(),
+            ijinUsaha: String(row[50] || '').trim(),
+            mks: String(row[83] || row[80] || '').trim(),
+            keterangan: String(row[89] || row[90] || row[88] || '').trim()
+          };
+
+          if (!debiturMap.has(key)) {
+            debiturMap.set(key, {
+              id: `deb-${debiturMap.size + 1}`,
+              key: key,
+              nama: nama,
+              ktp: ktp,
+              tempatLahir: String(row[3] || '').trim(),
+              tglLahir: formatBookingDate(row[4]),
+              pekerjaan: String(row[6] || '').trim(),
+              umur: Math.round(Number(row[7])) || 0,
+              namaPerusahaan: String(row[8] || '').trim(),
+              alamat: String(row[11] || '').trim(),
+              kelurahan: String(row[12] || '').trim(),
+              kecamatan: String(row[13] || '').trim(),
+              kota: String(row[14] || '').trim(),
+              kodePos: String(row[15] || '').trim(),
+              telp: String(row[16] || '').trim().replace(/'/g, ''),
+              alamatUsaha: String(row[49] || '').trim(),
+              usaha: String(row[8] || row[6] || row[21] || '').trim(),
+              namaPasangan: String(row[53] || '').trim(),
+              ktpPasangan: String(row[54] || '').trim(),
+              pekerjaanPasangan: String(row[58] || '').trim(),
+              alamatPasangan: String(row[59] || '').trim(),
+              cif: cif,
+              ibuKandung: String(row[68] || '').trim(),
+              fasilitas: [facility]
+            });
+          } else {
+            const existing = debiturMap.get(key);
+            if (!existing.telp && row[16]) existing.telp = String(row[16]).trim().replace(/'/g, '');
+            if (!existing.namaPasangan && row[53]) existing.namaPasangan = String(row[53]).trim();
+            if (!existing.ibuKandung && row[68]) existing.ibuKandung = String(row[68]).trim();
+            if (!existing.alamatUsaha && row[49]) existing.alamatUsaha = String(row[49]).trim();
+            if (!existing.cif && cif) existing.cif = cif;
+            existing.fasilitas.push(facility);
+          }
+        }
+      }
+
+      const parsedList = Array.from(debiturMap.values());
+      parsedList.forEach(deb => {
+        deb.totalPencairan = deb.fasilitas.length;
+        deb.totalLimit = deb.fasilitas.reduce((acc, cur) => acc + (cur.limit || 0), 0);
+        deb.fasilitasTerakhir = deb.fasilitas[deb.fasilitas.length - 1];
+      });
+
+      if (parsedList.length === 0) {
+        showToast('Tidak ada baris debitur yang valid!', 'warning');
+        return;
+      }
+
+      pendingImportBookingData = parsedList;
+
+      // Show preview
+      const previewContainer = document.getElementById('previewBookingContainer');
+      const rowCountEl = document.getElementById('previewBookingRowCount');
+      const tbody = document.getElementById('previewBookingTableBody');
+      const btnProcess = document.getElementById('btnProcessImportBooking');
+
+      if (rowCountEl) rowCountEl.textContent = `${parsedList.length.toLocaleString('id-ID')} debitur terdeteksi`;
+
+      if (tbody) {
+        tbody.innerHTML = parsedList.slice(0, 5).map(deb => {
+          const lastFac = deb.fasilitasTerakhir || {};
+          return `
+            <tr>
+              <td class="p-2 font-bold text-slate-800">${escapeHtml(deb.nama)}</td>
+              <td class="p-2 font-mono">${escapeHtml(deb.cif || '-')}</td>
+              <td class="p-2">${escapeHtml(deb.usaha || '-')}</td>
+              <td class="p-2">${escapeHtml(lastFac.jenisDokumen || 'Agunan')}</td>
+              <td class="p-2 font-bold text-mandiri-navy">${formatRupiah(lastFac.limit || 0)}</td>
+              <td class="p-2 text-slate-500">${escapeHtml(lastFac.tglPk || '-')}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      if (previewContainer) previewContainer.classList.remove('hidden');
+      if (btnProcess) btnProcess.disabled = false;
+
+      showToast(`Berhasil membaca ${parsedList.length} profil debitur!`, 'success');
+    } catch (err) {
+      console.error('Error parsing booking excel:', err);
+      showToast('Gagal memproses file Excel: ' + err.message, 'error');
+    }
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+window.handleBookingExcelUpload = handleBookingExcelUpload;
+
+function formatBookingDate(val) {
+  if (!val) return '';
+  if (typeof val === 'string') {
+    const s = val.trim();
+    if (s.includes('/') || s.includes('-') || s.includes(' ')) return s;
+    const num = Number(s);
+    if (!isNaN(num) && num > 20000 && num < 60000) val = num;
+    else return s;
+  }
+  if (typeof val === 'number') {
+    const date = new Date(Math.round((val - 25569) * 86400 * 1000));
+    const d = String(date.getDate()).padStart(2, '0');
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const y = date.getFullYear();
+    return `${d}/${m}/${y}`;
+  }
+  return String(val);
+}
+
+function saveImportedBookingData() {
+  if (!pendingImportBookingData || pendingImportBookingData.length === 0) {
+    showToast('Tidak ada data booking untuk disimpan!', 'warning');
+    return;
+  }
+
+  dbBooking = [...pendingImportBookingData];
+  saveBookingDatabase();
+  closeModalUploadBooking();
+  updateBookingUI();
+  showToast(`Database Booking berhasil diperbarui dengan ${dbBooking.length} debitur!`, 'success');
+}
+window.saveImportedBookingData = saveImportedBookingData;
