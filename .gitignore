@@ -3,22 +3,20 @@ node_modules/
 *.log
 
 # -------------------------------------------------------
-# DATA NASABAH — WAJIB TIDAK DI-COMMIT (PII/PDPA)
-# File-file ini berisi data pribadi nasabah nyata dan
-# TIDAK BOLEH masuk ke riwayat Git dalam kondisi apapun.
+# DATA NASABAH — WAJIB TIDAK DI-COMMIT (PII / PDPA)
 # -------------------------------------------------------
 cleaned_leads.json
 data_leads.js
 data_tagihan.js
 data_booking.js
-template_advis.js
-convert_tagihan.js
+*.csv
+*.xlsx
+*.xls
 
 # Kredensial & environment
 .env
 *.env
 !.env.example
 
-# Library lokal
-lib/
-
+# Library lokal (jika perlu)
+# lib/
