@@ -36,7 +36,16 @@ const BLOCKED_PATTERNS = [
   /\.xlsx?$/i,         // blokir data mentah excel
 ];
 
-function isBlockedPath(urlPath) {
+function isBlockedPath(urlPath, req) {
+  // Jika di server cloud publik (Render / production / IP luar), blokir mutlak file data nasabah (PII)
+  const isCloudDeploy = process.env.RENDER === 'true' || process.env.NODE_ENV === 'production' || !!process.env.RENDER_EXTERNAL_URL;
+  const remoteIp = (req && req.socket && req.socket.remoteAddress) || '';
+  const isLocalhost = remoteIp.includes('127.0.0.1') || remoteIp.includes('::1') || remoteIp === '';
+
+  // Hanya perbolehkan akses data nasabah jika dijalankan secara lokal di komputer pengguna offline
+  if (!isCloudDeploy && isLocalhost) {
+    return false;
+  }
   return BLOCKED_PATTERNS.some((pattern) => pattern.test(urlPath));
 }
 
@@ -71,7 +80,7 @@ const server = http.createServer((req, res) => {
   // ----------------------------------------------------------------
   // BLOKIR AKSES LANGSUNG KE FILE DATA NASABAH (PII PROTECTION)
   // ----------------------------------------------------------------
-  if (isBlockedPath(sanitizedUrl)) {
+  if (isBlockedPath(sanitizedUrl, req)) {
     res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({ error: 'Akses Ditolak', code: 403 }));
     console.warn(`[SECURITY] Akses ditolak ke file sensitif: ${sanitizedUrl} dari ${req.headers['x-forwarded-for'] || req.socket.remoteAddress}`);

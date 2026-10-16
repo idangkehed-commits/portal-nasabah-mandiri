@@ -2471,6 +2471,10 @@
   <script src="lib/html2pdf.bundle.min.js"></script>
   <!-- Advis LMAP Template & Assets Base64 (Wajib untuk Cetak Advis) -->
   <script src="template_advis.js?v=20261013_v1"></script>
+  <!-- Data Nasabah (Hanya aktif otomatis jika file tersedia secara lokal di komputer pengguna) -->
+  <script src="data_booking.js?v=20261015_v1" onerror="console.info('Mode online: data booking offline tidak dimuat.')"></script>
+  <script src="data_leads.js?v=20261013_v3" onerror="console.info('Mode online: data leads offline tidak dimuat.')"></script>
+  <script src="data_tagihan.js?v=20261013_v4" onerror="console.info('Mode online: data tagihan offline tidak dimuat.')"></script>
   <!-- App Logic JavaScript -->
   <script src="app.js?v=20261015_v1"></script>
 </body>

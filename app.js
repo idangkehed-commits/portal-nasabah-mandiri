@@ -44,8 +44,9 @@ document.addEventListener('DOMContentLoaded', () => {
 function loadDatabase() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      dbNasabah = JSON.parse(raw);
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (parsed && Array.isArray(parsed) && parsed.length > 0) {
+      dbNasabah = parsed;
     } else if (window.MANDIRI_PIPELINE_DATA && window.MANDIRI_PIPELINE_DATA.length > 0) {
       dbNasabah = [...window.MANDIRI_PIPELINE_DATA];
       saveDatabase();
@@ -1913,8 +1914,9 @@ const TAGIHAN_FOLLOWUP_STORAGE_KEY = 'portal_mandiri_tagihan_followup_v2';
 function loadTagihanDatabase() {
   try {
     const raw = localStorage.getItem(TAGIHAN_STORAGE_KEY);
-    if (raw) {
-      dbTagihan = JSON.parse(raw);
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (parsed && Array.isArray(parsed) && parsed.length > 0) {
+      dbTagihan = parsed;
       // Migrasi/sinkronisasi: Pastikan totalKewajiban sama dengan tunggakan
       let needsSave = false;
       dbTagihan.forEach(item => {
@@ -4290,8 +4292,9 @@ const BOOKING_STORAGE_KEY = 'portal_mandiri_booking_v1';
 function loadBookingDatabase() {
   try {
     const raw = localStorage.getItem(BOOKING_STORAGE_KEY);
-    if (raw) {
-      dbBooking = JSON.parse(raw);
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (parsed && Array.isArray(parsed) && parsed.length > 0) {
+      dbBooking = parsed;
     } else if (window.MANDIRI_BOOKING_DATA && window.MANDIRI_BOOKING_DATA.length > 0) {
       dbBooking = [...window.MANDIRI_BOOKING_DATA];
     }
