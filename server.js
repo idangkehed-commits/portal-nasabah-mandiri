@@ -47,6 +47,14 @@ const server = http.createServer((req, res) => {
 
   let sanitizedUrl = req.url.split('?')[0].split('#')[0];
 
+  // Cegah directory traversal / path manipulation dengan '..'
+  if (sanitizedUrl.includes('..')) {
+    res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ error: 'Path Tidak Valid', code: 400 }));
+    console.warn(`[SECURITY] Dot-dot traversal attempt: ${sanitizedUrl} dari ${req.headers['x-forwarded-for'] || req.socket.remoteAddress}`);
+    return;
+  }
+
   // Health check endpoint (Dipakai untuk Render & Uptime Ping 24 Jam)
   if (sanitizedUrl === '/health' || sanitizedUrl === '/ping') {
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
