@@ -30,9 +30,10 @@ const BLOCKED_PATTERNS = [
   /^\/data_leads\.js$/i,
   /^\/data_tagihan\.js$/i,
   /^\/data_booking\.js$/i,
-  /^\/template_advis\.js$/i,
   /^\/convert_tagihan\.js$/i,
-  /\.json$/i,          // blokir semua .json lainnya secara umum
+  /\.json$/i,          // blokir semua .json
+  /\.csv$/i,           // blokir data mentah csv
+  /\.xlsx?$/i,         // blokir data mentah excel
 ];
 
 function isBlockedPath(urlPath) {
