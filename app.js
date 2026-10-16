@@ -2469,7 +2469,7 @@ function renderTagihanCards(items) {
     const isSelected = selectedTagihanIds.has(item.id);
 
     return `
-      <div class="bg-white rounded-2xl border ${isSelected ? 'ring-2 ring-mandiri-blue border-mandiri-blue bg-blue-50/10' : 'border-slate-200/90'} shadow-card hover:shadow-card-hover transition-all duration-200 flex flex-col justify-between overflow-hidden">
+      <div class="tagihan-card-item bg-white rounded-2xl border ${isSelected ? 'ring-2 ring-mandiri-blue border-mandiri-blue bg-blue-50/10' : 'border-slate-200/90'} shadow-card hover:shadow-card-hover transition-all duration-200 flex flex-col justify-between overflow-hidden">
         
         <!-- Card Top Bar -->
         <div class="p-4 sm:p-5 space-y-3 flex-1">
@@ -3524,9 +3524,6 @@ function setupTagihanEventListeners() {
   if (btnProcessImport) btnProcessImport.addEventListener('click', processFinalImportTagihan);
 
   // Modal Cetak Advis LMAP
-  const btnOpenAdvis = document.getElementById('btnOpenCetakAdvisModal');
-  if (btnOpenAdvis) btnOpenAdvis.addEventListener('click', () => openModalCetakAdvis());
-
   const btnCloseAdvis = document.getElementById('btnCloseModalCetakAdvis');
   if (btnCloseAdvis) btnCloseAdvis.addEventListener('click', closeModalCetakAdvis);
 
@@ -3600,7 +3597,9 @@ function toggleSelectTagihan(id, isChecked) {
     selectedTagihanIds.add(id);
   } else {
     selectedTagihanIds.delete(id);
+    delete currentAdvisNominalMap[id];
   }
+  syncSelectedTagihanToAdvis(false);
   updateTagihanSelectionUI();
 }
 window.toggleSelectTagihan = toggleSelectTagihan;
@@ -3614,15 +3613,19 @@ function toggleSelectAllTagihan(isChecked) {
         selectedTagihanIds.add(id);
       } else {
         selectedTagihanIds.delete(id);
+        delete currentAdvisNominalMap[id];
       }
     }
   });
+  syncSelectedTagihanToAdvis(true);
   updateTagihanSelectionUI();
 }
 window.toggleSelectAllTagihan = toggleSelectAllTagihan;
 
 function clearTagihanSelection() {
   selectedTagihanIds.clear();
+  currentAdvisNominalMap = {};
+  advisDebiturList = [];
   updateTagihanSelectionUI();
 }
 window.clearTagihanSelection = clearTagihanSelection;
@@ -3633,7 +3636,10 @@ function updateTagihanSelectionUI() {
   if (countBadge) countBadge.textContent = count;
 
   const countBadgeModal = document.getElementById('advisDebiturCountBadge');
-  if (countBadgeModal) countBadgeModal.textContent = `${count} debitur dipilih`;
+  if (countBadgeModal) {
+    const activeCount = advisDebiturList.filter(item => (item.nama && item.nama.trim()) || (item.nominal && item.nominal > 0)).length;
+    countBadgeModal.textContent = `${activeCount || count} debitur dipilih`;
+  }
 
   const floatingBar = document.getElementById('tagihanSelectionFloatingBar');
   if (floatingBar) {
@@ -3676,9 +3682,48 @@ window.updateTagihanSelectionUI = updateTagihanSelectionUI;
 // ================= CETAK ADVIS LMAP (STANDALONE / MANUAL & SELECTION) =================
 let advisDebiturList = []; // Array of { id, nama, rekAgf, rekening, nominal }
 
+function syncSelectedTagihanToAdvis(force = true) {
+  if (selectedTagihanIds.size > 0) {
+    const syncedList = [];
+    selectedTagihanIds.forEach(id => {
+      // Cari data nasabah di dbTagihan berdasarkan id atau rekening
+      const item = dbTagihan.find(x => x.id === id || String(x.id) === String(id) || String(x.rekening) === String(id));
+      if (item) {
+        // Cek apakah nominal sudah pernah diinput/disunting oleh user sebelumnya
+        const savedNominal = currentAdvisNominalMap[item.id] !== undefined 
+          ? currentAdvisNominalMap[item.id] 
+          : (currentAdvisNominalMap[item.rekening] !== undefined ? currentAdvisNominalMap[item.rekening] : undefined);
+
+        // Nilai default: samakan dengan tunggakan (totalKewajiban), atau jika 0 gunakan angsuran
+        const defaultNominal = (Number(item.tunggakan) > 0) 
+          ? Number(item.tunggakan) 
+          : (Number(item.totalKewajiban) > 0 ? Number(item.totalKewajiban) : (Number(item.angsuran) || 0));
+
+        const finalNominal = savedNominal !== undefined ? savedNominal : defaultNominal;
+
+        syncedList.push({
+          id: item.id || ('tagihan-' + item.rekening),
+          nama: item.nama || '',
+          rekAgf: item.rekAgf || '',
+          rekening: item.rekening || '',
+          nominal: finalNominal
+        });
+      }
+    });
+
+    if (syncedList.length > 0) {
+      advisDebiturList = syncedList;
+    }
+  } else if (force) {
+    advisDebiturList = [];
+  }
+}
+window.syncSelectedTagihanToAdvis = syncSelectedTagihanToAdvis;
+
 function cetakAdvisSingle(id) {
   selectedTagihanIds.clear();
   selectedTagihanIds.add(id);
+  syncSelectedTagihanToAdvis(true);
   updateTagihanSelectionUI();
   openModalCetakAdvis(id);
 }
@@ -3704,6 +3749,7 @@ function clearAdvisRows() {
   advisDebiturList = [];
   selectedTagihanIds.clear();
   currentAdvisNominalMap = {};
+  updateTagihanSelectionUI();
   renderAdvisFormTable();
   updateAdvisPreview();
   showToast('Seluruh baris debitur dikosongkan', 'info');
@@ -3713,6 +3759,11 @@ window.clearAdvisRows = clearAdvisRows;
 function removeAdvisDebitur(id) {
   advisDebiturList = advisDebiturList.filter(item => item.id !== id);
   selectedTagihanIds.delete(id);
+  const match = dbTagihan.find(x => x.id === id || String(x.rekening) === String(id));
+  if (match) {
+    if (match.id) selectedTagihanIds.delete(match.id);
+    if (match.rekening) selectedTagihanIds.delete(match.rekening);
+  }
   delete currentAdvisNominalMap[id];
   updateTagihanSelectionUI();
   renderAdvisFormTable();
@@ -3738,39 +3789,28 @@ window.handleAdvisFieldInput = handleAdvisFieldInput;
 
 function openModalCetakAdvis(specificId) {
   if (specificId) {
+    selectedTagihanIds.clear();
     selectedTagihanIds.add(specificId);
-    updateTagihanSelectionUI();
   }
 
-  // Jika daftar debitur masih kosong, sinkronkan dari selectedTagihanIds atau berikan baris awal
+  // Jika ada debitur yang dipilih dari tabel/kartu tagihan, selalu sinkronkan otomatis ke tabel Advis
+  if (selectedTagihanIds.size > 0) {
+    syncSelectedTagihanToAdvis(true);
+  }
+
+  // Jika daftar debitur masih kosong (misal buka dari header tanpa memilih nasabah),
+  // sediakan 1 baris kosong untuk entri manual langsung
   if (advisDebiturList.length === 0) {
-    if (selectedTagihanIds.size > 0) {
-      selectedTagihanIds.forEach(id => {
-        const item = dbTagihan.find(x => x.id === id);
-        if (item) {
-          const nominal = currentAdvisNominalMap[id] !== undefined ? currentAdvisNominalMap[id] : (item.totalKewajiban > 0 ? item.totalKewajiban : (item.angsuran || 0));
-          advisDebiturList.push({
-            id: item.id,
-            nama: item.nama || '',
-            rekAgf: item.rekAgf || '',
-            rekening: item.rekening || '',
-            nominal: nominal
-          });
-        }
-      });
-    }
-
-    if (advisDebiturList.length === 0) {
-      // Inisialisasi 1 baris kosong untuk kemudahan entri manual
-      advisDebiturList.push({
-        id: 'adv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-        nama: '',
-        rekAgf: '',
-        rekening: '',
-        nominal: 0
-      });
-    }
+    advisDebiturList.push({
+      id: 'adv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+      nama: '',
+      rekAgf: '',
+      rekening: '',
+      nominal: 0
+    });
   }
+
+  updateTagihanSelectionUI();
 
   // Isi default tanggal jika kosong
   const tglInput = document.getElementById('advisInputTanggal');
