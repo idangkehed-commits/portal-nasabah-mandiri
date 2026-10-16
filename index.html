@@ -149,80 +149,11 @@
           </div>
         </div>
 
-        <!-- Header Actions: Pipeline Mode -->
-        <div id="headerActionsPipeline" class="flex items-center space-x-1.5 sm:space-x-2">
-          <!-- Button Live Team Sync -->
-          <button id="btnSyncTeam" class="flex items-center space-x-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 backdrop-blur transition" title="Sinkronisasi status kunjungan tim sales (Realtime Cloud)">
-            <i class="fa-solid fa-arrows-rotate text-emerald-400 text-xs" id="iconSyncSpinner"></i>
-            <span class="inline text-[11px] sm:text-xs">Sync Tim</span>
-            <span id="badgeSyncStatus" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span id="lblLastSync" class="text-[10px] text-emerald-200 font-normal hidden lg:inline">Live</span>
-          </button>
-
-          <!-- Button Laporan Kunjungan Excel -->
-          <button id="btnExportLaporanKunjungan" class="flex items-center space-x-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 backdrop-blur transition" title="Unduh Rekap Laporan Kunjungan Seluruh Tim ke Excel">
-            <i class="fa-solid fa-file-invoice text-amber-300"></i>
-            <span class="hidden lg:inline">Rekap Kunjungan</span>
-          </button>
-
-          <!-- Button Upload Excel -->
-          <button id="btnOpenUploadModal" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-medium text-xs sm:text-sm shadow-md transition-all duration-200">
-            <i class="fa-solid fa-file-excel text-base"></i>
-            <span class="hidden sm:inline">Upload Pipeline</span>
-            <span class="sm:hidden">Upload</span>
-          </button>
-
-          <!-- Button Add Nasabah Manual -->
-          <button id="btnOpenAddModal" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-white text-mandiri-navy hover:bg-blue-50 text-xs sm:text-sm font-semibold shadow transition" title="Tambah Debitur Baru">
-            <i class="fa-solid fa-plus"></i>
-            <span class="hidden sm:inline">Tambah</span>
-          </button>
-        </div>
-
-        <!-- Header Actions: Tagihan Mode -->
-        <div id="headerActionsTagihan" class="hidden flex items-center space-x-1.5 sm:space-x-2">
-          <!-- Button Laporan Tagihan Excel -->
-          <button id="btnExportTagihanExcel" class="flex items-center space-x-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 backdrop-blur transition" title="Unduh Rekap Tagihan & Kolektibilitas ke Excel">
-            <i class="fa-solid fa-file-excel text-emerald-400"></i>
-            <span class="hidden md:inline">Rekap Tagihan</span>
-            <span class="md:hidden">Rekap</span>
-          </button>
-
-          <!-- Button Download Format Tagihan -->
-          <button id="btnDownloadTemplateTagihan" class="flex items-center space-x-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 backdrop-blur transition" title="Unduh Format Excel Tagihan">
-            <i class="fa-solid fa-download text-amber-300"></i>
-            <span class="hidden lg:inline">Format Excel</span>
-          </button>
-
-          <!-- Button Upload Excel Tagihan -->
-          <button id="btnOpenUploadTagihanModal" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-medium text-xs sm:text-sm shadow-md transition-all duration-200">
-            <i class="fa-solid fa-cloud-arrow-up text-base"></i>
-            <span class="hidden sm:inline">Upload Tagihan</span>
-            <span class="sm:hidden">Upload</span>
-          </button>
-
-          <!-- Button Cetak Advis LMAP -->
-          <button id="btnOpenCetakAdvisModal" onclick="openModalCetakAdvis()" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 font-extrabold text-xs sm:text-sm shadow-md transition-all duration-200" title="Cetak Surat Permohonan Posting Angsuran (Advis LMAP)">
-            <i class="fa-solid fa-file-invoice"></i>
-            <span class="hidden sm:inline">Cetak Advis LMAP</span>
-            <span class="sm:hidden">Advis</span>
-          </button>
-        </div>
-
-        <!-- Header Actions: Booking Mode -->
-        <div id="headerActionsBooking" class="hidden flex items-center space-x-1.5 sm:space-x-2">
-          <!-- Button Laporan Booking Excel -->
-          <button id="btnExportBookingExcel" onclick="exportBookingExcel()" class="flex items-center space-x-1.5 px-2.5 sm:px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 backdrop-blur transition" title="Unduh Seluruh Database Booking ke Excel">
-            <i class="fa-solid fa-file-excel text-emerald-400"></i>
-            <span class="hidden md:inline">Rekap Booking</span>
-            <span class="md:hidden">Rekap</span>
-          </button>
-
-          <!-- Button Upload Excel Booking -->
-          <button id="btnOpenUploadBookingModal" onclick="openModalUploadBooking()" class="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-medium text-xs sm:text-sm shadow-md transition-all duration-200" title="Upload Database Booking Baru">
-            <i class="fa-solid fa-cloud-arrow-up text-base"></i>
-            <span class="hidden sm:inline">Upload Booking</span>
-            <span class="sm:hidden">Upload</span>
+        <!-- Header Action: Cetak Advis LMAP (Fokus Utama) -->
+        <div class="flex items-center space-x-2">
+          <button id="btnOpenCetakAdvisModal" onclick="openModalCetakAdvis()" class="flex items-center space-x-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs sm:text-sm shadow-md transition-all duration-200" title="Buka Formulir & Cetak Surat Advis LMAP Mandiri">
+            <i class="fa-solid fa-file-invoice text-base"></i>
+            <span>Cetak Advis LMAP</span>
           </button>
         </div>
 
@@ -454,16 +385,6 @@
           </button>
         </div>
 
-        <!-- Export to Excel Button -->
-        <button id="btnExportExcel" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center space-x-1.5 shadow-xs transition" title="Download data nasabah saat ini ke Excel">
-          <i class="fa-solid fa-file-export text-emerald-600"></i>
-          <span class="hidden md:inline">Ekspor Excel</span>
-        </button>
-
-        <!-- Reset / Clear Database Button -->
-        <button id="btnResetDatabase" class="px-2.5 py-1.5 rounded-xl border border-red-200 bg-white hover:bg-red-50 text-red-600 text-xs font-semibold flex items-center transition" title="Kosongkan database">
-          <i class="fa-solid fa-trash-can"></i>
-        </button>
       </div>
 
     </div>
@@ -482,13 +403,9 @@
         Silakan upload file Excel daftar nasabah Anda atau muat ulang data pipeline asli (118 debitur).
       </p>
       <div class="flex items-center justify-center flex-wrap gap-3 mt-6">
-        <button id="btnEmptyUpload" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold shadow-md transition flex items-center space-x-2">
-          <i class="fa-solid fa-cloud-arrow-up"></i>
-          <span>Upload File Excel (.xlsx)</span>
-        </button>
-        <button id="btnEmptyDemo" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-mandiri-dark text-sm font-bold shadow-gold transition flex items-center space-x-2">
-          <i class="fa-solid fa-rotate"></i>
-          <span>Muat Data Asli Pipeline</span>
+        <button type="button" onclick="openModalCetakAdvis()" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-sm font-extrabold shadow-md transition flex items-center space-x-2">
+          <i class="fa-solid fa-file-invoice"></i>
+          <span>Buka Cetak Advis LMAP</span>
         </button>
       </div>
     </div>
@@ -508,9 +425,6 @@
       <div class="mt-5 flex items-center justify-center gap-3">
         <button id="btnResetSearchMatch" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">
           Lihat Semua Nasabah
-        </button>
-        <button id="btnDirectAddNasabah" class="px-4 py-2 rounded-xl bg-mandiri-navy hover:bg-mandiri-blue text-white text-xs font-semibold shadow transition">
-          + Tambah Nasabah Ini
         </button>
       </div>
     </div>
@@ -2076,11 +1990,21 @@
             </div>
           </div>
 
-          <!-- Petunjuk Nominal -->
-          <div class="bg-blue-50/70 border border-blue-200 rounded-2xl p-3.5 text-xs text-slate-700 flex items-start space-x-2.5">
-            <i class="fa-solid fa-circle-info text-mandiri-blue mt-0.5 text-sm"></i>
-            <div class="leading-relaxed">
-              <strong>Aturan Pengisian:</strong> Nama Debitur otomatis terisi dari data <strong>NASABAH</strong>, No. Rekening Debit dari <strong>REK AGF</strong>, No. Rekening Kredit dari <strong>REKENING</strong> pinjaman. <strong>Nominal pembayaran dapat Anda edit manual</strong> per baris di bawah ini.
+          <!-- Petunjuk Nominal & Tombol Tambah Baris Manual -->
+          <div class="flex flex-wrap items-center justify-between gap-2 bg-blue-50/70 border border-blue-200 rounded-2xl p-3.5 text-xs text-slate-700">
+            <div class="flex items-start space-x-2.5 max-w-lg leading-relaxed">
+              <i class="fa-solid fa-circle-info text-mandiri-blue mt-0.5 text-sm"></i>
+              <span>Anda dapat mengisi nomor surat, tanggal, serta menambah atau mengubah nama debitur, rekening, dan nominal pembayaran secara bebas di bawah ini.</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button type="button" onclick="addAdvisManualRow()" class="px-3 py-1.5 rounded-xl bg-mandiri-blue hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition flex items-center space-x-1.5">
+                <i class="fa-solid fa-plus"></i>
+                <span>+ Tambah Baris Debitur</span>
+              </button>
+              <button type="button" onclick="clearAdvisRows()" class="px-2.5 py-1.5 rounded-xl bg-slate-200 hover:bg-red-50 hover:text-red-600 text-slate-600 font-semibold text-xs transition flex items-center space-x-1" title="Kosongkan seluruh baris">
+                <i class="fa-solid fa-trash-can"></i>
+                <span>Kosongkan</span>
+              </button>
             </div>
           </div>
 
@@ -2545,14 +2469,8 @@
   <script src="lib/jszip.min.js"></script>
   <!-- HTML2PDF for direct PDF export -->
   <script src="lib/html2pdf.bundle.min.js"></script>
-  <!-- Advis LMAP Template & Assets Base64 -->
+  <!-- Advis LMAP Template & Assets Base64 (Wajib untuk Cetak Advis) -->
   <script src="template_advis.js?v=20261013_v1"></script>
-  <!-- Data Leads JS (118 Pre-loaded authentic Mandiri leads) -->
-  <script src="data_leads.js?v=20261013_v3"></script>
-  <!-- Data Tagihan JS (170 Pre-loaded authentic Mandiri monthly bills) -->
-  <script src="data_tagihan.js?v=20261013_v4"></script>
-  <!-- Data Booking JS (1.071 Pre-loaded authentic Mandiri historical bookings) -->
-  <script src="data_booking.js?v=20261015_v1"></script>
   <!-- App Logic JavaScript -->
   <script src="app.js?v=20261015_v1"></script>
 </body>

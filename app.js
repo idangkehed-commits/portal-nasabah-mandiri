@@ -38,20 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
   updateTagihanUI();
   updateTagihanTabBadge();
   updateBookingTabBadge();
-
-  // Jalankan sinkronisasi cloud tim segera & ulangi berkala
-  syncFromCloud(true);
-  setInterval(() => syncFromCloud(false), 12000); // Polling tiap 12 detik
-
-  // Sinkronkan instan saat layar HP aktif kembali / berpindah tab browser
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-      syncFromCloud(false);
-    }
-  });
-  window.addEventListener('focus', () => {
-    syncFromCloud(false);
-  });
 });
 
 // ================= STORAGE & SYNC FUNCTIONS =================
@@ -124,117 +110,22 @@ function getVisitRecord(item) {
   return rec;
 }
 
-// ================= CLOUD TEAM SYNC =================
+// ================= CLOUD TEAM SYNC (DISABLED / LOCAL ONLY) =================
 async function syncFromCloud(showFeedback = false) {
-  if (isSyncing) return;
-  isSyncing = true;
-  const icon = document.getElementById('iconSyncSpinner');
-  if (icon) icon.classList.add('animate-spin');
-
-  try {
-    // Gunakan query param timestamp agar respon tidak tertahan cache CDN/HP
-    const res = await fetch(`${CLOUD_SYNC_URL}?_t=${Date.now()}`, {
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
-      }
-    });
-
-    if (res.ok) {
-      const json = await res.json();
-      if (json && json.data && typeof json.data === 'object') {
-        let hasNew = false;
-        Object.keys(json.data).forEach(key => {
-          if (!visitRecords[key] || JSON.stringify(visitRecords[key]) !== JSON.stringify(json.data[key])) {
-            visitRecords[key] = json.data[key];
-            hasNew = true;
-          }
-        });
-
-        if (hasNew) {
-          saveVisitRecordsLocally();
-          updateUI();
-          if (showFeedback) showToast('Data kunjungan tim berhasil disinkronkan!', 'success');
-        } else if (showFeedback) {
-          showToast('Data tim sudah paling baru.', 'info');
-        }
-        updateLastSyncTime();
-      }
-    }
-  } catch (err) {
-    console.warn('Cloud sync offline or unavailable:', err.message);
-    if (showFeedback) {
-      showToast('Koneksi internet lambat. Menggunakan data lokal.', 'warning');
-    }
-  } finally {
-    isSyncing = false;
-    if (icon) icon.classList.remove('animate-spin');
+  // Cloud sync disabled for data privacy and security
+  if (showFeedback) {
+    showToast('Mode offline aktif - data hanya disimpan di browser lokal.', 'info');
   }
 }
 
 async function pushVisitToCloud(key, record) {
-  // Simpan lokal terlebih dahulu (agar UI instan)
+  // Simpan lokal saja (tidak mengirim data ke server publik pihak ketiga)
   visitRecords[key] = record;
   saveVisitRecordsLocally();
   updateUI();
-
-  try {
-    // 1. Fetch remote data terbaru terlebih dahulu untuk mencegah penimpaan (merge)
-    let remoteData = {};
-    try {
-      const getRes = await fetch(`${CLOUD_SYNC_URL}?_t=${Date.now()}`, {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      });
-      if (getRes.ok) {
-        const json = await getRes.json();
-        if (json && json.data && typeof json.data === 'object') {
-          remoteData = json.data;
-        }
-      }
-    } catch (e) {
-      console.warn('Gagal fetch remote sebelum merge:', e.message);
-    }
-
-    // 2. Gabungkan remote data + local records + update terbaru
-    const mergedData = {
-      ...remoteData,
-      ...visitRecords,
-      [key]: record
-    };
-    visitRecords = mergedData;
-    saveVisitRecordsLocally();
-    updateUI();
-
-    // 3. Kirim ke shared cloud storage agar semua HP sales lain menerima
-    const payload = {
-      name: 'mandiri_mikro_progress_leads',
-      data: mergedData
-    };
-    const putRes = await fetch(CLOUD_SYNC_URL, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache'
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!putRes.ok) {
-      throw new Error(`HTTP ${putRes.status}`);
-    }
-
-    updateLastSyncTime();
-    return { success: true };
-  } catch (err) {
-    console.warn('Gagal push ke cloud, data tetap tersimpan di lokal:', err.message);
-    return { success: false, error: err.message };
-  }
+  return { success: true };
 }
+
 
 // ================= FORMATTERS & HELPERS =================
 function formatRupiah(num) {
@@ -1902,46 +1793,49 @@ function setupEventListeners() {
     renderContent();
   });
 
-  document.getElementById('btnDirectAddNasabah').addEventListener('click', () => {
+  const addListenerSafe = (id, event, handler) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener(event, handler);
+  };
+
+  addListenerSafe('btnDirectAddNasabah', 'click', () => {
     openAddModal();
     if (currentSearch) {
-      document.getElementById('formNama').value = currentSearch;
+      const fn = document.getElementById('formNama');
+      if (fn) fn.value = currentSearch;
     }
   });
 
-  // Top Buttons
-  document.getElementById('btnSyncTeam').addEventListener('click', () => syncFromCloud(true));
-  document.getElementById('btnExportLaporanKunjungan').addEventListener('click', exportLaporanKunjunganExcel);
-  document.getElementById('btnOpenUploadModal').addEventListener('click', openUploadModal);
-  document.getElementById('btnEmptyUpload').addEventListener('click', openUploadModal);
-  document.getElementById('btnCloseModalUpload').addEventListener('click', closeUploadModal);
-  document.getElementById('btnCancelUpload').addEventListener('click', closeUploadModal);
+  // Top Buttons & Modals
+  addListenerSafe('btnSyncTeam', 'click', () => syncFromCloud(true));
+  addListenerSafe('btnExportLaporanKunjungan', 'click', exportLaporanKunjunganExcel);
+  addListenerSafe('btnOpenUploadModal', 'click', openUploadModal);
+  addListenerSafe('btnEmptyUpload', 'click', openUploadModal);
+  addListenerSafe('btnCloseModalUpload', 'click', closeUploadModal);
+  addListenerSafe('btnCancelUpload', 'click', closeUploadModal);
 
-  document.getElementById('btnDownloadTemplateFromModal').addEventListener('click', downloadTemplateExcel);
+  addListenerSafe('btnDownloadTemplateFromModal', 'click', downloadTemplateExcel);
+  addListenerSafe('btnExportExcel', 'click', exportDatabaseToExcel);
+  addListenerSafe('btnResetDatabase', 'click', resetAllDatabase);
 
-  document.getElementById('btnExportExcel').addEventListener('click', exportDatabaseToExcel);
-  document.getElementById('btnResetDatabase').addEventListener('click', resetAllDatabase);
-
-  document.getElementById('btnOpenAddModal').addEventListener('click', openAddModal);
-  document.getElementById('btnCloseModalForm').addEventListener('click', closeFormModal);
-  document.getElementById('btnCancelForm').addEventListener('click', closeFormModal);
-  document.getElementById('nasabahForm').addEventListener('submit', handleFormSubmit);
+  addListenerSafe('btnOpenAddModal', 'click', openAddModal);
+  addListenerSafe('btnCloseModalForm', 'click', closeFormModal);
+  addListenerSafe('btnCancelForm', 'click', closeFormModal);
+  addListenerSafe('nasabahForm', 'submit', handleFormSubmit);
 
   // Modal Catat Kunjungan
-  document.getElementById('btnCloseModalVisit').addEventListener('click', closeVisitModal);
-  document.getElementById('btnCancelVisit').addEventListener('click', closeVisitModal);
-  document.getElementById('formVisitStatus').addEventListener('submit', handleVisitSubmit);
-  document.getElementById('btnOpenVisitFromDetail').addEventListener('click', () => {
+  addListenerSafe('btnCloseModalVisit', 'click', closeVisitModal);
+  addListenerSafe('btnCancelVisit', 'click', closeVisitModal);
+  addListenerSafe('formVisitStatus', 'submit', handleVisitSubmit);
+  addListenerSafe('btnOpenVisitFromDetail', 'click', () => {
     if (currentActiveNasabah) {
       openVisitModal(currentActiveNasabah.id);
     }
   });
 
-  // Modal Detail Close
-  document.getElementById('btnCloseModalDetail').addEventListener('click', closeDetailModal);
-
-  // Copy CIF
-  document.getElementById('btnCopyCIF').addEventListener('click', () => {
+  // Modal Detail Close & Copy
+  addListenerSafe('btnCloseModalDetail', 'click', closeDetailModal);
+  addListenerSafe('btnCopyCIF', 'click', () => {
     if (!currentActiveNasabah) return;
     navigator.clipboard.writeText(currentActiveNasabah.cifno || '').then(() => {
       showToast('Nomor CIF berhasil disalin!', 'success');
@@ -1949,41 +1843,43 @@ function setupEventListeners() {
   });
 
   // WhatsApp actions
-  document.getElementById('selectWaTemplate').addEventListener('change', updateWhatsAppPreview);
-  document.getElementById('btnSendWA').addEventListener('click', sendWhatsAppMessage);
-  document.getElementById('btnCopySummary').addEventListener('click', copySummaryToClipboard);
-  document.getElementById('btnPrintSlip').addEventListener('click', printScreeningSlip);
+  addListenerSafe('selectWaTemplate', 'change', updateWhatsAppPreview);
+  addListenerSafe('btnSendWA', 'click', sendWhatsAppMessage);
+  addListenerSafe('btnCopySummary', 'click', copySummaryToClipboard);
+  addListenerSafe('btnPrintSlip', 'click', printScreeningSlip);
 
   // Upload Drag & Drop & File Input
   const dropZone = document.getElementById('dropZone');
   const fileInput = document.getElementById('excelFileInput');
 
-  dropZone.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', (e) => {
-    if (e.target.files && e.target.files[0]) {
-      handleExcelUpload(e.target.files[0]);
-    }
-  });
+  if (dropZone && fileInput) {
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleExcelUpload(e.target.files[0]);
+      }
+    });
 
-  dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropZone.classList.add('border-mandiri-blue', 'bg-blue-50/60');
-  });
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('border-mandiri-blue', 'bg-blue-50/60');
+    });
 
-  dropZone.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    dropZone.classList.remove('border-mandiri-blue', 'bg-blue-50/60');
-  });
+    dropZone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('border-mandiri-blue', 'bg-blue-50/60');
+    });
 
-  dropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropZone.classList.remove('border-mandiri-blue', 'bg-blue-50/60');
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleExcelUpload(e.dataTransfer.files[0]);
-    }
-  });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('border-mandiri-blue', 'bg-blue-50/60');
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleExcelUpload(e.dataTransfer.files[0]);
+      }
+    });
+  }
 
-  document.getElementById('btnProcessImport').addEventListener('click', processFinalImport);
+  addListenerSafe('btnProcessImport', 'click', processFinalImport);
 }
 
 // =========================================================================
@@ -3775,6 +3671,9 @@ function updateTagihanSelectionUI() {
 }
 window.updateTagihanSelectionUI = updateTagihanSelectionUI;
 
+// ================= CETAK ADVIS LMAP (STANDALONE / MANUAL & SELECTION) =================
+let advisDebiturList = []; // Array of { id, nama, rekAgf, rekening, nominal }
+
 function cetakAdvisSingle(id) {
   selectedTagihanIds.clear();
   selectedTagihanIds.add(id);
@@ -3783,26 +3682,93 @@ function cetakAdvisSingle(id) {
 }
 window.cetakAdvisSingle = cetakAdvisSingle;
 
+function addAdvisManualRow(nama = '', rekAgf = '', rekening = '', nominal = 0) {
+  const newRow = {
+    id: 'adv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+    nama: nama,
+    rekAgf: rekAgf,
+    rekening: rekening,
+    nominal: Number(nominal) || 0
+  };
+  advisDebiturList.push(newRow);
+  renderAdvisFormTable();
+  updateAdvisPreview();
+  showToast('Baris debitur baru ditambahkan', 'info');
+}
+window.addAdvisManualRow = addAdvisManualRow;
+
+function clearAdvisRows() {
+  if (advisDebiturList.length === 0) return;
+  advisDebiturList = [];
+  selectedTagihanIds.clear();
+  currentAdvisNominalMap = {};
+  renderAdvisFormTable();
+  updateAdvisPreview();
+  showToast('Seluruh baris debitur dikosongkan', 'info');
+}
+window.clearAdvisRows = clearAdvisRows;
+
+function removeAdvisDebitur(id) {
+  advisDebiturList = advisDebiturList.filter(item => item.id !== id);
+  selectedTagihanIds.delete(id);
+  delete currentAdvisNominalMap[id];
+  updateTagihanSelectionUI();
+  renderAdvisFormTable();
+  updateAdvisPreview();
+}
+window.removeAdvisDebitur = removeAdvisDebitur;
+
+function handleAdvisFieldInput(id, field, value) {
+  const item = advisDebiturList.find(x => x.id === id);
+  if (!item) return;
+
+  if (field === 'nominal') {
+    item.nominal = parseNumberInput(value);
+    currentAdvisNominalMap[id] = item.nominal;
+    updateAdvisTotalNominal();
+    updateAdvisPreview();
+  } else {
+    item[field] = value;
+    updateAdvisPreview();
+  }
+}
+window.handleAdvisFieldInput = handleAdvisFieldInput;
+
 function openModalCetakAdvis(specificId) {
   if (specificId) {
     selectedTagihanIds.add(specificId);
     updateTagihanSelectionUI();
   }
 
-  if (selectedTagihanIds.size === 0) {
-    showToast('Pilih minimal 1 nasabah terlebih dahulu untuk mencetak Advis LMAP!', 'warning');
-    return;
-  }
-
-  // Pastikan nominal terisi default untuk setiap nasabah terpilih
-  selectedTagihanIds.forEach(id => {
-    if (currentAdvisNominalMap[id] === undefined) {
-      const item = dbTagihan.find(x => x.id === id);
-      if (item) {
-        currentAdvisNominalMap[id] = item.totalKewajiban > 0 ? item.totalKewajiban : (item.angsuran || 0);
-      }
+  // Jika daftar debitur masih kosong, sinkronkan dari selectedTagihanIds atau berikan baris awal
+  if (advisDebiturList.length === 0) {
+    if (selectedTagihanIds.size > 0) {
+      selectedTagihanIds.forEach(id => {
+        const item = dbTagihan.find(x => x.id === id);
+        if (item) {
+          const nominal = currentAdvisNominalMap[id] !== undefined ? currentAdvisNominalMap[id] : (item.totalKewajiban > 0 ? item.totalKewajiban : (item.angsuran || 0));
+          advisDebiturList.push({
+            id: item.id,
+            nama: item.nama || '',
+            rekAgf: item.rekAgf || '',
+            rekening: item.rekening || '',
+            nominal: nominal
+          });
+        }
+      });
     }
-  });
+
+    if (advisDebiturList.length === 0) {
+      // Inisialisasi 1 baris kosong untuk kemudahan entri manual
+      advisDebiturList.push({
+        id: 'adv_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+        nama: '',
+        rekAgf: '',
+        rekening: '',
+        nominal: 0
+      });
+    }
+  }
 
   // Isi default tanggal jika kosong
   const tglInput = document.getElementById('advisInputTanggal');
@@ -3874,14 +3840,12 @@ function renderAdvisFormTable() {
   const tbody = document.getElementById('advisFormTableBody');
   if (!tbody) return;
 
-  const selectedItems = Array.from(selectedTagihanIds).map(id => dbTagihan.find(x => x.id === id)).filter(Boolean);
-
-  if (selectedItems.length === 0) {
+  if (advisDebiturList.length === 0) {
     tbody.innerHTML = `
       <tr>
         <td colspan="6" class="p-6 text-center text-slate-400">
           <i class="fa-solid fa-folder-open text-2xl mb-2 block"></i>
-          Tidak ada nasabah yang dipilih. Silakan tutup dan pilih nasabah dari tabel/kartu.
+          Belum ada baris debitur. Klik tombol <strong class="text-mandiri-blue font-bold">+ Tambah Baris Debitur</strong> di atas untuk menambah data.
         </td>
       </tr>
     `;
@@ -3889,29 +3853,43 @@ function renderAdvisFormTable() {
     return;
   }
 
-  tbody.innerHTML = selectedItems.map((item, idx) => {
-    const nominal = currentAdvisNominalMap[item.id] !== undefined ? currentAdvisNominalMap[item.id] : (item.totalKewajiban > 0 ? item.totalKewajiban : (item.angsuran || 0));
+  tbody.innerHTML = advisDebiturList.map((item, idx) => {
     return `
       <tr class="hover:bg-slate-50 transition">
         <td class="p-3 text-center font-bold text-slate-500">${idx + 1}</td>
-        <td class="p-3">
-          <div class="font-bold text-slate-900">${escapeHtml(item.nama)}</div>
-          <div class="text-[11px] text-slate-500">${escapeHtml(item.produk || 'Kredit')} &bull; Kol ${escapeHtml(item.kol || '1')}</div>
+        <td class="p-2.5">
+          <input type="text"
+                 class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 focus:border-mandiri-blue focus:ring-1 focus:ring-blue-100 font-bold text-xs outline-none"
+                 value="${escapeHtml(item.nama || '')}"
+                 oninput="handleAdvisFieldInput('${escapeHtml(item.id)}', 'nama', this.value)"
+                 placeholder="Nama Debitur">
         </td>
-        <td class="p-3 font-mono font-semibold text-slate-700">${escapeHtml(item.rekAgf || '-')}</td>
-        <td class="p-3 font-mono font-semibold text-slate-700">${escapeHtml(item.rekening || '-')}</td>
-        <td class="p-3 text-right">
+        <td class="p-2.5">
+          <input type="text"
+                 class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 focus:border-mandiri-blue focus:ring-1 focus:ring-blue-100 font-mono text-xs outline-none"
+                 value="${escapeHtml(item.rekAgf || '')}"
+                 oninput="handleAdvisFieldInput('${escapeHtml(item.id)}', 'rekAgf', this.value)"
+                 placeholder="No. Rek Debit (AGF)">
+        </td>
+        <td class="p-2.5">
+          <input type="text"
+                 class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 focus:border-mandiri-blue focus:ring-1 focus:ring-blue-100 font-mono text-xs outline-none"
+                 value="${escapeHtml(item.rekening || '')}"
+                 oninput="handleAdvisFieldInput('${escapeHtml(item.id)}', 'rekening', this.value)"
+                 placeholder="No. Rek Kredit">
+        </td>
+        <td class="p-2.5 text-right">
           <div class="relative">
             <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">Rp</span>
             <input type="text"
                    class="w-full pl-8 pr-2.5 py-1.5 rounded-lg border border-slate-300 focus:border-mandiri-blue focus:ring-1 focus:ring-blue-100 font-bold text-right text-xs outline-none"
-                   value="${formatNumberInput(nominal)}"
-                   oninput="handleAdvisNominalInput('${escapeHtml(item.id)}', this.value)"
+                   value="${formatNumberInput(item.nominal || 0)}"
+                   oninput="handleAdvisFieldInput('${escapeHtml(item.id)}', 'nominal', this.value)"
                    placeholder="0">
           </div>
         </td>
-        <td class="p-3 text-center">
-          <button onclick="removeAdvisDebitur('${escapeHtml(item.id)}')" class="text-red-500 hover:text-red-700 p-1.5 rounded hover:bg-red-50 transition" title="Hapus debitur ini dari cetak Advis">
+        <td class="p-2.5 text-center">
+          <button type="button" onclick="removeAdvisDebitur('${escapeHtml(item.id)}')" class="text-red-500 hover:text-red-700 p-1.5 rounded hover:bg-red-50 transition" title="Hapus debitur ini">
             <i class="fa-solid fa-trash-can"></i>
           </button>
         </td>
@@ -3923,32 +3901,10 @@ function renderAdvisFormTable() {
 }
 window.renderAdvisFormTable = renderAdvisFormTable;
 
-function handleAdvisNominalInput(id, val) {
-  const num = parseNumberInput(val);
-  currentAdvisNominalMap[id] = num;
-  updateAdvisTotalNominal();
-  updateAdvisPreview();
-}
-window.handleAdvisNominalInput = handleAdvisNominalInput;
-
-function removeAdvisDebitur(id) {
-  selectedTagihanIds.delete(id);
-  delete currentAdvisNominalMap[id];
-  updateTagihanSelectionUI();
-  renderAdvisFormTable();
-  updateAdvisPreview();
-  if (selectedTagihanIds.size === 0) {
-    showToast('Semua nasabah telah dihapus dari cetak Advis', 'info');
-  }
-}
-window.removeAdvisDebitur = removeAdvisDebitur;
-
 function updateAdvisTotalNominal() {
-  const selectedItems = Array.from(selectedTagihanIds).map(id => dbTagihan.find(x => x.id === id)).filter(Boolean);
   let total = 0;
-  selectedItems.forEach(item => {
-    const val = currentAdvisNominalMap[item.id] !== undefined ? currentAdvisNominalMap[item.id] : (item.totalKewajiban > 0 ? item.totalKewajiban : (item.angsuran || 0));
-    total += val;
+  advisDebiturList.forEach(item => {
+    total += Number(item.nominal) || 0;
   });
 
   const totalEl = document.getElementById('advisFormTotalNominal');
@@ -3985,13 +3941,13 @@ function updateAdvisPreview() {
   const tbody = document.getElementById('previewAdvisTableBody');
   if (!tbody) return;
 
-  const selectedItems = Array.from(selectedTagihanIds).map(id => dbTagihan.find(x => x.id === id)).filter(Boolean);
+  const activeItems = advisDebiturList.filter(item => (item.nama && item.nama.trim()) || (item.nominal && item.nominal > 0));
 
-  if (selectedItems.length === 0) {
+  if (activeItems.length === 0) {
     tbody.innerHTML = `
       <tr>
         <td colspan="5" style="border: 1px solid #4F81BD; padding: 16px; text-align: center; color: #64748b; font-style: italic;">
-          Belum ada nasabah yang dipilih
+          Belum ada data debitur yang diisi
         </td>
       </tr>
     `;
@@ -4001,14 +3957,14 @@ function updateAdvisPreview() {
   }
 
   let total = 0;
-  tbody.innerHTML = selectedItems.map((item, idx) => {
-    const nominal = currentAdvisNominalMap[item.id] !== undefined ? currentAdvisNominalMap[item.id] : (item.totalKewajiban > 0 ? item.totalKewajiban : (item.angsuran || 0));
+  tbody.innerHTML = activeItems.map((item, idx) => {
+    const nominal = Number(item.nominal) || 0;
     total += nominal;
     const bg = idx % 2 === 0 ? '#DCE6F1' : '#FFFFFF';
     return `
       <tr style="background-color: ${bg};">
         <td style="border: 1px solid #4F81BD; padding: 4px; text-align: center; font-size: 10pt;">${idx + 1}</td>
-        <td style="border: 1px solid #4F81BD; padding: 4px 6px; font-size: 10pt;">${escapeHtml(item.nama)}</td>
+        <td style="border: 1px solid #4F81BD; padding: 4px 6px; font-size: 10pt;">${escapeHtml(item.nama || '-')}</td>
         <td style="border: 1px solid #4F81BD; padding: 4px 6px; text-align: center; font-family: monospace; font-size: 10pt;">${escapeHtml(item.rekAgf || '-')}</td>
         <td style="border: 1px solid #4F81BD; padding: 4px 6px; text-align: center; font-family: monospace; font-size: 10pt;">${escapeHtml(item.rekening || '-')}</td>
         <td style="border: 1px solid #4F81BD; padding: 4px 6px; text-align: right; font-family: monospace; font-size: 10pt;">${formatRupiah(nominal)}</td>
@@ -4038,9 +3994,9 @@ async function downloadAdvisDocx() {
   const tanggalInput = document.getElementById('advisInputTanggal');
   const tanggal = tanggalInput && tanggalInput.value.trim() ? tanggalInput.value.trim() : getIndonesianDateString();
 
-  const selectedItems = Array.from(selectedTagihanIds).map(id => dbTagihan.find(x => x.id === id)).filter(Boolean);
-  if (selectedItems.length === 0) {
-    showToast('Pilih minimal 1 nasabah untuk mencetak Advis LMAP!', 'warning');
+  const activeItems = advisDebiturList.filter(item => (item.nama && item.nama.trim()) || (item.nominal && item.nominal > 0));
+  if (activeItems.length === 0) {
+    showToast('Masukkan minimal 1 data debitur untuk mencetak Advis LMAP!', 'warning');
     return;
   }
 
@@ -4085,8 +4041,8 @@ async function downloadAdvisDocx() {
     const tblGrid = tblGridMatch ? tblGridMatch[0] : '';
     const headerRow = rows && rows.length > 0 ? rows[0] : '';
 
-    const dataRowsXml = selectedItems.map((item, idx) => {
-      const nominalVal = currentAdvisNominalMap[item.id] !== undefined ? currentAdvisNominalMap[item.id] : (item.totalKewajiban > 0 ? item.totalKewajiban : (item.angsuran || 0));
+    const dataRowsXml = activeItems.map((item, idx) => {
+      const nominalVal = Number(item.nominal) || 0;
       const nominalStr = formatRupiah(nominalVal);
       const rekDebit = item.rekAgf || '-';
       const rekKredit = item.rekening || '-';
@@ -4102,7 +4058,7 @@ async function downloadAdvisDocx() {
         <w:tc>
           <w:tcPr><w:tcW w:w="2520" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>
           <w:p><w:pPr><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/><w:color w:val="000000"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr>
-            <w:r><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/><w:color w:val="000000"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t>${escapeXml(item.nama)}</w:t></w:r>
+            <w:r><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/><w:color w:val="000000"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t>${escapeXml(item.nama || '-')}</w:t></w:r>
           </w:p>
         </w:tc>
         <w:tc>
@@ -4173,9 +4129,9 @@ async function downloadAdvisPdf() {
     return;
   }
 
-  const selectedItems = Array.from(selectedTagihanIds).map(id => dbTagihan.find(x => x.id === id)).filter(Boolean);
-  if (selectedItems.length === 0) {
-    showToast('Pilih minimal 1 nasabah untuk mencetak Advis LMAP!', 'warning');
+  const activeItems = advisDebiturList.filter(item => (item.nama && item.nama.trim()) || (item.nominal && item.nominal > 0));
+  if (activeItems.length === 0) {
+    showToast('Masukkan minimal 1 data debitur untuk mencetak Advis LMAP!', 'warning');
     return;
   }
 
@@ -4224,10 +4180,6 @@ async function downloadAdvisPdf() {
   const originalStyle = element.getAttribute('style') || '';
   const originalClasses = element.className;
 
-  // Berikan style khusus ekspor PDF:
-  // - Lebar pasti 794px (standar halaman Letter/A4 pada 96 DPI)
-  // - Hilangkan shadow dan border agar hasil PDF bersih seperti dokumen fisik asli
-  // - minHeight auto agar muat pas 1 halaman penuh tanpa terpotong
   element.style.width = '794px';
   element.style.minWidth = '794px';
   element.style.maxWidth = '794px';
@@ -4237,7 +4189,7 @@ async function downloadAdvisPdf() {
   element.classList.remove('shadow-xl', 'border', 'border-slate-300');
 
   const opt = {
-    margin: [4, 6, 4, 6], // mm (margin seimbang rapi)
+    margin: [4, 6, 4, 6], // mm
     filename: 'Advis LMAP.pdf',
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: {
@@ -4260,7 +4212,6 @@ async function downloadAdvisPdf() {
     showToast('Gagal membuat PDF otomatis, beralih ke dialog cetak browser...', 'warning');
     printAdvisDocument();
   } finally {
-    // Kembalikan style dan class preview seperti semula
     element.setAttribute('style', originalStyle);
     element.className = originalClasses;
     isDownloadingAdvisPdf = false;
@@ -4284,9 +4235,9 @@ function printAdvisDocument() {
     return;
   }
 
-  const selectedItems = Array.from(selectedTagihanIds).map(id => dbTagihan.find(x => x.id === id)).filter(Boolean);
-  if (selectedItems.length === 0) {
-    showToast('Pilih minimal 1 nasabah untuk mencetak Advis LMAP!', 'warning');
+  const activeItems = advisDebiturList.filter(item => (item.nama && item.nama.trim()) || (item.nominal && item.nominal > 0));
+  if (activeItems.length === 0) {
+    showToast('Masukkan minimal 1 data debitur untuk mencetak Advis LMAP!', 'warning');
     return;
   }
 
@@ -4311,6 +4262,7 @@ function printAdvisDocument() {
   }, 250);
 }
 window.printAdvisDocument = printAdvisDocument;
+
 
 
 
