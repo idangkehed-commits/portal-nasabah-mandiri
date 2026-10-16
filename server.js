@@ -20,12 +20,32 @@ const MIME_TYPES = {
   '.csv': 'text/csv; charset=utf-8'
 };
 
+// ============================================================
+// DAFTAR FILE SENSITIF YANG TIDAK BOLEH DIAKSES VIA HTTP
+// Data nasabah (PII) hanya boleh dimuat dari sisi klien yang sudah
+// terautentikasi — tidak boleh dapat di-fetch langsung dari URL.
+// ============================================================
+const BLOCKED_PATTERNS = [
+  /^\/cleaned_leads\.json$/i,
+  /^\/data_leads\.js$/i,
+  /^\/data_tagihan\.js$/i,
+  /^\/data_booking\.js$/i,
+  /^\/template_advis\.js$/i,
+  /^\/convert_tagihan\.js$/i,
+  /\.json$/i,          // blokir semua .json lainnya secara umum
+];
+
+function isBlockedPath(urlPath) {
+  return BLOCKED_PATTERNS.some((pattern) => pattern.test(urlPath));
+}
+
 const server = http.createServer((req, res) => {
   // CORS & Security headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
 
-  let sanitizedUrl = req.url.split('?')[0];
+  let sanitizedUrl = req.url.split('?')[0].split('#')[0];
 
   // Health check endpoint (Dipakai untuk Render & Uptime Ping 24 Jam)
   if (sanitizedUrl === '/health' || sanitizedUrl === '/ping') {
@@ -39,9 +59,32 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // ----------------------------------------------------------------
+  // BLOKIR AKSES LANGSUNG KE FILE DATA NASABAH (PII PROTECTION)
+  // ----------------------------------------------------------------
+  if (isBlockedPath(sanitizedUrl)) {
+    res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ error: 'Akses Ditolak', code: 403 }));
+    console.warn(`[SECURITY] Akses ditolak ke file sensitif: ${sanitizedUrl} dari ${req.headers['x-forwarded-for'] || req.socket.remoteAddress}`);
+    return;
+  }
+
   if (sanitizedUrl === '/') sanitizedUrl = '/index.html';
 
   const filePath = path.join(__dirname, sanitizedUrl);
+
+  // ----------------------------------------------------------------
+  // PATH TRAVERSAL GUARD
+  // Pastikan path yang di-resolve masih di dalam direktori proyek.
+  // Cegah serangan seperti: GET /../../../etc/passwd
+  // ----------------------------------------------------------------
+  if (!filePath.startsWith(__dirname + path.sep) && filePath !== __dirname) {
+    res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ error: 'Path Tidak Valid', code: 400 }));
+    console.warn(`[SECURITY] Path traversal attempt: ${sanitizedUrl} dari ${req.headers['x-forwarded-for'] || req.socket.remoteAddress}`);
+    return;
+  }
+
   const ext = path.extname(filePath).toLowerCase();
   const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
