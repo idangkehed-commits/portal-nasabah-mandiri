@@ -29,7 +29,7 @@ module.exports=function createAuthenticatorGate(env=process.env){
   function sameOrigin(req){try{return new URL(req.headers.origin||'').host===req.headers.host;}catch{return false;}}
   return function gate(req,res){
     if(!enabled)return false;
-    res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Frame-Options','DENY');
+    res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');res.setHeader('X-Frame-Options','DENY');
     const route=(req.url||'/').split('?')[0];
     if(['/health','/ping'].includes(route))return false;
     if(!secret)return reply(res,503,'Akses online belum diaktifkan. Pemilik harus memasangkan Google Authenticator.');
