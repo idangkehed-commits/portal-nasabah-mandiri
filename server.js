@@ -1,3 +1,5 @@
+const authenticatorGate = require('./authenticator-gate.cjs')();
+const securityGuard = require('./security-guard.cjs')(__dirname, 'public');
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
@@ -46,12 +48,14 @@ function isBlockedPath(urlPath, req) {
   if (!isCloudDeploy && isLocalhost) {
     return false;
   }
+  if (req?.securityTotpVerified && /^\/data_(?:leads|tagihan|booking)\.js$/i.test(urlPath)) return false;
   return BLOCKED_PATTERNS.some((pattern) => pattern.test(urlPath));
 }
 
 const server = http.createServer((req, res) => {
+  if (authenticatorGate(req, res)) return;
+  if (securityGuard(req, res)) return;
   // CORS & Security headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
 
@@ -115,15 +119,19 @@ const server = http.createServer((req, res) => {
           res.end('404 Not Found');
         } else {
           res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-          res.end(fallback, 'utf-8');
+          res.end(req.securityTotpVerified ? authorizePage(fallback) : fallback, 'utf-8');
         }
       });
     } else {
       res.writeHead(200, { 'Content-Type': contentType });
-      res.end(content, 'utf-8');
+      res.end(req.securityTotpVerified && ext === '.html' ? authorizePage(content) : content, 'utf-8');
     }
   });
 });
+
+function authorizePage(content) {
+  return content.toString('utf8').replace('<head>', '<head><script>window.__PORTAL_SERVER_AUTHENTICATED__=true;</script>').replace('</body>', '<form method="post" action="/__access/logout" style="position:fixed;bottom:12px;right:12px;z-index:45"><button style="border:1px solid #cbd5e1;border-radius:8px;padding:8px 12px;background:white;color:#12375b">Keluar akses online</button></form></body>');
+}
 
 function getLocalIPs() {
   const interfaces = os.networkInterfaces();

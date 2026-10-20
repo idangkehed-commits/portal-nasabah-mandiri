@@ -20,3 +20,21 @@ data_booking.js
 
 # Library lokal (jika perlu)
 # lib/
+
+# Local credentials and private runtime data
+.security/
+.env.*
+!.env.sample
+*.pfx
+*.pem
+*.key
+*.local.config
+*.local.json
+*.db
+*.sqlite
+*.sqlite3
+*.sdf
+sessions/
+auth_info*/
+uploads/
+.security-backup*/

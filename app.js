@@ -3849,32 +3849,11 @@ function closeModalCetakAdvis() {
 window.closeModalCetakAdvis = closeModalCetakAdvis;
 
 function switchAdvisModalTab(tab) {
+  // Both panels stay visible; kept for existing print/export and validation callers.
   currentAdvisActiveTab = tab;
-  const secForm = document.getElementById('advisSectionForm');
-  const secPreview = document.getElementById('advisSectionPreview');
-  const btnForm = document.getElementById('btnTabAdvisForm');
-  const btnPreview = document.getElementById('btnTabAdvisPreview');
-
-  if (tab === 'form') {
-    if (secForm) secForm.classList.remove('hidden');
-    if (secPreview) secPreview.classList.add('hidden');
-    if (btnForm) {
-      btnForm.className = 'px-3.5 py-1.5 rounded-xl font-bold text-xs bg-white text-mandiri-navy shadow-xs border border-slate-200 flex items-center space-x-1.5';
-    }
-    if (btnPreview) {
-      btnPreview.className = 'px-3.5 py-1.5 rounded-xl font-bold text-xs text-slate-600 hover:text-slate-900 hover:bg-white/60 transition flex items-center space-x-1.5';
-    }
-  } else {
-    updateAdvisPreview();
-    if (secForm) secForm.classList.add('hidden');
-    if (secPreview) secPreview.classList.remove('hidden');
-    if (btnForm) {
-      btnForm.className = 'px-3.5 py-1.5 rounded-xl font-bold text-xs text-slate-600 hover:text-slate-900 hover:bg-white/60 transition flex items-center space-x-1.5';
-    }
-    if (btnPreview) {
-      btnPreview.className = 'px-3.5 py-1.5 rounded-xl font-bold text-xs bg-white text-mandiri-navy shadow-xs border border-slate-200 flex items-center space-x-1.5';
-    }
-  }
+  document.getElementById('advisSectionForm')?.classList.remove('hidden');
+  document.getElementById('advisSectionPreview')?.classList.remove('hidden');
+  updateAdvisPreview();
 }
 window.switchAdvisModalTab = switchAdvisModalTab;
 
@@ -4230,21 +4209,32 @@ async function downloadAdvisPdf() {
   element.style.border = 'none';
   element.classList.remove('shadow-xl', 'border', 'border-slate-300');
 
+  // Export an independent sheet so the split pane cannot clip the PDF canvas.
+  const exportHost = document.createElement('div');
+  const exportSheet = element.cloneNode(true);
+  exportSheet.removeAttribute('id');
+  exportSheet.style.margin = '0';
+  exportSheet.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'));
+  exportHost.appendChild(exportSheet);
+  document.body.appendChild(exportHost);
+
   const opt = {
-    margin: [4, 6, 4, 6], // mm
+    margin: [0, 0, 0, 0], // A4 sheet already includes document padding
     filename: 'Advis LMAP.pdf',
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: {
       scale: 2,
       useCORS: true,
-      logging: false
+      logging: false,
+      scrollX: 0,
+      scrollY: 0
     },
-    jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 
   try {
     if (typeof html2pdf !== 'undefined') {
-      await html2pdf().set(opt).from(element).save();
+      await html2pdf().set(opt).from(exportSheet).save();
       showToast('Dokumen PDF "Advis LMAP" berhasil diunduh!', 'success');
     } else {
       printAdvisDocument();
@@ -4254,6 +4244,7 @@ async function downloadAdvisPdf() {
     showToast('Gagal membuat PDF otomatis, beralih ke dialog cetak browser...', 'warning');
     printAdvisDocument();
   } finally {
+    exportHost.remove();
     element.setAttribute('style', originalStyle);
     element.className = originalClasses;
     isDownloadingAdvisPdf = false;
@@ -4286,22 +4277,16 @@ function printAdvisDocument() {
   updateAdvisPreview();
 
   const element = document.getElementById('advisDocumentSheet');
-  const printArea = document.getElementById('advisPrintArea');
-  if (!element || !printArea) return;
-
-  printArea.innerHTML = element.innerHTML;
-  printArea.classList.remove('hidden');
-  const originalTitle = document.title;
-  document.title = 'Advis LMAP';
-
-  setTimeout(() => {
-    window.print();
-    setTimeout(() => {
-      document.title = originalTitle;
-      printArea.classList.add('hidden');
-      printArea.innerHTML = '';
-    }, 1000);
-  }, 250);
+  if (!element) return;
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    showToast('Izinkan pop-up untuk mencetak Advis.', 'warning');
+    return;
+  }
+  printWindow.document.write('<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Advis LMAP</title><style>body{margin:0}*{box-sizing:border-box}table{border-collapse:collapse}img{max-width:100%}#advisDocumentSheet{min-height:296mm!important;box-shadow:none!important;border:0!important;margin:0!important}@page{size:A4;margin:0}</style></head><body>' + element.outerHTML + '</body></html>');
+  printWindow.document.close();
+  Promise.all(Array.from(printWindow.document.images).map(img => img.decode().catch(() => {})))
+    .then(() => { if (!printWindow.closed) { printWindow.focus(); printWindow.print(); } });
 }
 window.printAdvisDocument = printAdvisDocument;
 

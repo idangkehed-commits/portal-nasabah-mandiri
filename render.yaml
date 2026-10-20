@@ -1,10 +1,15 @@
 services:
-  - type: static
-    name: portal-nasabah-mandiri
-    buildCommand: ""
-    staticPublishPath: .
-    pullRequestPreviewsEnabled: false
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+  - type: web
+    name: portal-nasabah-kredit
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install --omit=dev
+    startCommand: node server.js
+    healthCheckPath: /health
+    numInstances: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ACCESS_TOTP_SECRET
+        sync: false

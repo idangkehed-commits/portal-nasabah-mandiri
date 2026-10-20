@@ -11,7 +11,7 @@
       var h = window.location.hostname;
       var p = window.location.protocol;
       var isLocal = (p === 'file:') || (!h || h === 'localhost' || h === '127.0.0.1' || h.startsWith('192.168.') || h.startsWith('10.') || /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(h));
-      if (!isLocal) {
+      if (!isLocal && !window.__PORTAL_SERVER_AUTHENTICATED__) {
         document.documentElement.innerHTML = '<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>403 Forbidden</title></head><body style="margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f172a;font-family:system-ui,-apple-system,sans-serif;color:#f8fafc;padding:20px;box-sizing:border-box;"><div style="max-width:440px;width:100%;text-align:center;"><div style="font-size:56px;font-weight:800;color:#475569;margin-bottom:8px;letter-spacing:-1px;">403</div><h2 style="font-size:20px;font-weight:700;color:#e2e8f0;margin:0 0 10px;">Akses Ditolak</h2><p style="font-size:14px;color:#94a3b8;line-height:1.6;margin:0;">Layanan ini tidak tersedia untuk akses publik. Akses dibatasi.</p></div></body>';
         window.stop();
       }
@@ -71,7 +71,7 @@
   <script src="lib/xlsx.full.min.js"></script>
   <script>
     if (typeof XLSX === 'undefined') {
-      document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>');
+      document.write('<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"><\/script>');
     }
   </script>
 
@@ -134,6 +134,7 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="advis_workspace.css?v=20261020_v2">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased selection:bg-mandiri-blue selection:text-white">
 
@@ -192,6 +193,8 @@
           <span>2. Monitoring Tagihan Bulanan (Angsuran & AGF)</span>
           <span id="tabBadgeTagihanCount" class="px-2 py-0.5 rounded-full text-[10px] bg-amber-400 text-mandiri-dark font-black">170</span>
         </button>
+
+        <button id="btnManualLetters" type="button" onclick="openManualLetters()" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-amber-100 text-amber-900 shrink-0">Form Surat Manual</button>
 
         <!-- Tab 3: Database Nasabah Pencairan -->
         <button id="tabBtnBooking" onclick="switchMainTab('booking')" class="flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-blue-200 hover:text-white hover:bg-white/10 shrink-0">
@@ -861,6 +864,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-2.5">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
           
+          <button type="button" onclick="openSuratSP()" class="px-4 py-2 rounded-xl bg-amber-100 text-amber-900 font-bold text-sm border border-amber-300">Cetak SP 1 / 2 / 3</button>
           <!-- Search Input -->
           <div class="relative flex-1">
             <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs sm:text-sm"></i>
@@ -1965,31 +1969,16 @@
         </button>
       </div>
 
-      <!-- Tab Switcher (Form Input vs Pratinjau Surat) -->
-      <div class="bg-slate-100 border-b border-slate-200 px-6 py-2.5 flex items-center justify-between shrink-0">
-        <div class="flex items-center space-x-2">
-          <button id="btnTabAdvisForm" onclick="switchAdvisModalTab('form')" class="px-3.5 py-1.5 rounded-xl font-bold text-xs bg-white text-mandiri-navy shadow-xs border border-slate-200 flex items-center space-x-1.5">
-            <i class="fa-solid fa-pen-to-square"></i>
-            <span>1. Pengaturan & Nominal</span>
-          </button>
-          <button id="btnTabAdvisPreview" onclick="switchAdvisModalTab('preview')" class="px-3.5 py-1.5 rounded-xl font-bold text-xs text-slate-600 hover:text-slate-900 hover:bg-white/60 transition flex items-center space-x-1.5">
-            <i class="fa-solid fa-file-lines"></i>
-            <span>2. Pratinjau Surat (Advis LMAP)</span>
-          </button>
-        </div>
-        <div class="text-[11px] text-slate-500 hidden sm:block">
-          <span id="advisDebiturCountBadge" class="font-bold text-mandiri-navy">0 debitur dipilih</span>
-        </div>
-      </div>
+      <div class="advis-workspace-caption"><span>Pengaturan di kiri · Pratinjau langsung di kanan</span><span id="advisDebiturCountBadge">0 debitur dipilih</span></div>
 
       <!-- Modal Body (Scrollable) -->
-      <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5 bg-slate-50/50 text-slate-800">
+      <div class="advis-workspace p-6 overflow-y-auto custom-scrollbar flex-1 bg-slate-50/50 text-slate-800">
         
         <!-- SECTION 1: FORM INPUT & DAFTAR DEBITUR -->
         <div id="advisSectionForm" class="space-y-4">
           
           <!-- Metadata: Nomor Surat & Tanggal Cetak -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+          <div class="advis-metadata grid grid-cols-1 gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
             <div>
               <label class="block font-bold text-slate-700 text-xs mb-1">
                 Nomor Surat Advis * <span class="text-slate-400 font-normal">(Input Manual)</span>
@@ -2053,18 +2042,18 @@
         </div>
 
         <!-- SECTION 2: PRATINJAU SURAT (ADVIS LMAP LIVE PREVIEW) -->
-        <div id="advisSectionPreview" class="hidden overflow-x-auto pb-4">
-          <div class="max-w-[794px] mx-auto bg-white shadow-xl border border-slate-300 text-black text-[11pt] leading-normal" id="advisDocumentSheet" style="font-family: 'Calibri', 'Arial', sans-serif; width: 100%; min-width: 680px; max-width: 794px; min-height: 980px; padding: 45px 55px; box-sizing: border-box; background: #ffffff; color: #000000;">
+        <div id="advisSectionPreview" class="overflow-x-auto pb-4">
+          <div class="max-w-[794px] mx-auto bg-white shadow-xl border border-slate-300 text-black text-[11pt] leading-normal" id="advisDocumentSheet" style="font-family: 'Calibri', 'Arial', sans-serif; width: 794px; min-width: 794px; max-width: 794px; min-height: 1122px; padding: 75px 83px; box-sizing: border-box; background: #ffffff; color: #000000;">
             
             <!-- Letterhead / Kop Surat (TOP: Left is Nomor/Tanggal/Lampiran, Right is Mandiri Logo & Branch) -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: -5px;">
               
               <!-- Top Left: Nomor, Tanggal, Lampiran -->
-              <div style="font-size: 11pt; line-height: 1.35; color: #000000;">
+              <div style="position: relative; top: 15px; min-width: 0; font-size: 11pt; line-height: 1.35; color: #000000;">
                 <table style="border-collapse: collapse; border: none; font-size: 11pt; line-height: 1.35;">
                   <tr>
-                    <td style="padding: 1px 0; width: 75px; vertical-align: top;">Nomor</td>
-                    <td style="padding: 1px 6px; width: 14px; vertical-align: top;">:</td>
+                    <td style="padding: 1px 0; width: 65px; vertical-align: top;">Nomor</td>
+                    <td style="padding: 1px 4px; width: 14px; vertical-align: top;">:</td>
                     <td style="padding: 1px 0; vertical-align: top;" id="previewAdvisNomorText">-</td>
                   </tr>
                   <tr>
@@ -2081,9 +2070,9 @@
               </div>
 
               <!-- Top Right: Logo Mandiri & Alamat Cabang -->
-              <div style="text-align: left; width: 185px;">
+              <div style="position: relative; left: 34px; top: -19px; flex-shrink: 0; text-align: left; width: 220px;">
                 <div style="margin-bottom: 4px;">
-                  <img id="previewAdvisLogoImg" src="" alt="Bank Mandiri" style="height: 38px; object-fit: contain;">
+                  <img id="previewAdvisLogoImg" src="" alt="Bank Mandiri" style="display: block; width: 220px; height: auto; object-fit: contain;">
                 </div>
                 <div style="font-size: 8.5pt; line-height: 1.25; color: #17365D;">
                   <div>PT Bank Mandiri (Persero) Tbk</div>
@@ -2109,7 +2098,7 @@
             <div style="margin-bottom: 14px; font-size: 11pt; line-height: 1.35; color: #000000;">
               <table style="border-collapse: collapse; border: none; font-size: 11pt;">
                 <tr>
-                  <td style="padding: 0; width: 75px; vertical-align: top;">Perihal</td>
+                  <td style="padding: 0; width: 65px; vertical-align: top;">Perihal</td>
                   <td style="padding: 0 6px; width: 14px; vertical-align: top;">:</td>
                   <td style="padding: 0; vertical-align: top;"><u><b>Permohonan Posting Pembayaran Angsuran</b></u></td>
                 </tr>
@@ -2235,6 +2224,7 @@
               <i class="fa-solid fa-phone"></i>
               <span>Telepon</span>
             </a>
+            <button type="button" onclick="openSuratSP(true)" class="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 font-bold text-xs border border-amber-300">Cetak SP</button>
             <button onclick="copyBookingDetails()" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs flex items-center space-x-1.5 shadow-2xs transition">
               <i class="fa-regular fa-copy"></i>
               <span>Salin Profil</span>
@@ -2490,6 +2480,8 @@
   <script src="data_leads.js?v=20261013_v3" onerror="console.info('Mode online: data leads offline tidak dimuat.')"></script>
   <script src="data_tagihan.js?v=20261013_v4" onerror="console.info('Mode online: data tagihan offline tidak dimuat.')"></script>
   <!-- App Logic JavaScript -->
-  <script src="app.js?v=20261016_v2"></script>
+  <script src="app.js?v=20261019_advis_v1"></script>
+  <script src="surat_sp.js?v=20261019_v6"></script>
+  <script src="form_manual.js?v=20261020_v4"></script>
 </body>
 </html>
