@@ -164,12 +164,13 @@
           </div>
         </div>
 
-        <!-- Header Action: Cetak Advis LMAP (Fokus Utama) -->
-        <div class="flex items-center space-x-2">
+        <!-- Header Action: Cetak Advis dan Form Surat Manual -->
+        <div class="flex flex-wrap justify-end items-center gap-2">
           <button id="btnOpenCetakAdvisModal" onclick="openModalCetakAdvis()" class="flex items-center space-x-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs sm:text-sm shadow-md transition-all duration-200" title="Buka Formulir & Cetak Surat Advis LMAP Mandiri">
             <i class="fa-solid fa-file-invoice text-base"></i>
             <span>Cetak Advis LMAP</span>
           </button>
+          <button id="btnManualLetters" type="button" onclick="openManualLetters()" class="flex items-center space-x-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white text-mandiri-navy hover:bg-blue-50 font-extrabold text-xs sm:text-sm shadow-md transition-all duration-200" title="Buka pilihan form surat manual"><i class="fa-solid fa-file-pen text-base"></i><span>Form Surat Manual</span></button>
         </div>
 
       </div>
@@ -193,8 +194,6 @@
           <span>2. Monitoring Tagihan Bulanan (Angsuran & AGF)</span>
           <span id="tabBadgeTagihanCount" class="px-2 py-0.5 rounded-full text-[10px] bg-amber-400 text-mandiri-dark font-black">170</span>
         </button>
-
-        <button id="btnManualLetters" type="button" onclick="openManualLetters()" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-amber-100 text-amber-900 shrink-0">Form Surat Manual</button>
 
         <!-- Tab 3: Database Nasabah Pencairan -->
         <button id="tabBtnBooking" onclick="switchMainTab('booking')" class="flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-blue-200 hover:text-white hover:bg-white/10 shrink-0">
