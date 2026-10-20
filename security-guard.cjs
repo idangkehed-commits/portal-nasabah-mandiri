@@ -102,7 +102,7 @@ module.exports = function createGuard(root, mode = 'public') {
 
     const parts = route.toLowerCase().split('/').filter(Boolean);
     const base = parts.at(-1) || '';
-    if (parts.some(x => x.startsWith('.') || ['node_modules','vendor','sessions','backups','backup','work','outputs'].includes(x)) || /^(server|security-guard|security-setup|authenticator-gate|convert_tagihan)\.(js|cjs|mjs)$/.test(base) || /^(package(?:-lock)?\.json|composer\.(json|lock)|render\.ya?ml|gemini\.md|agents\.md)$/.test(base) || /\.(env|config|settings|ini|pem|key|pfx|sql|sqlite3?|db|sdf|bak|log|map|py|php|vb|java|ps1|bat|cmd|zip|rar|7z|docx|xlsx?|csv)$/i.test(base)) return end(res,403,'Akses ditolak.');
+    if (parts.some(x => x.startsWith('.') || ['node_modules','vendor','sessions','backups','backup','work','outputs'].includes(x)) || /^(server|security-guard|security-setup|authenticator-gate|shared-database|convert_tagihan)\.(js|cjs|mjs)$/.test(base) || /^(package(?:-lock)?\.json|composer\.(json|lock)|render\.ya?ml|gemini\.md|agents\.md)$/.test(base) || /\.(env|config|settings|ini|pem|key|pfx|sql|sqlite3?|db|sdf|bak|log|map|py|php|vb|java|ps1|bat|cmd|zip|rar|7z|docx|xlsx?|csv)$/i.test(base)) return end(res,403,'Akses ditolak.');
     if (/\.json$/i.test(base) && base !== 'manifest.json') return end(res,403,'Akses ditolak.');
     const dataRoute = /^\/(data_(?:leads|tagihan|booking)\.js|cleaned_leads\.json)$/i.test(route);
     const protectedRoute = mode === 'private' ? !['/health','/ping'].includes(route) : mode === 'admin' ? /^\/(admin(?:[/.]|$)|api\/admin(?:\/|$))/i.test(route) : dataRoute;

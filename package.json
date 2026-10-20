@@ -18,5 +18,8 @@
     "kawan-lama"
   ],
   "author": "idangkehed-commits",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "pg": "^8.16.3"
+  }
 }
