@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Portal Cek Kelayakan Kredit Nasabah - KUR & KUM Mandiri</title>
 
   <!-- ONLINE KILL-SWITCH: Nonaktifkan akses jika dibuka dari domain publik / cloud (Render) -->
@@ -135,6 +135,7 @@
     }
   </style>
   <link rel="stylesheet" href="advis_workspace.css?v=20261020_v2">
+<link rel="stylesheet" href="mobile.css?v=20261021_1">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased selection:bg-mandiri-blue selection:text-white">
 
@@ -170,7 +171,6 @@
             <i class="fa-solid fa-file-invoice text-base"></i>
             <span>Cetak Advis LMAP</span>
           </button>
-          <button id="btnSppk" type="button" onclick="window.open('/sppk.html','_blank','noopener')" class="flex items-center px-4 py-2 rounded-xl bg-white text-mandiri-navy font-extrabold text-sm shadow-md" title="Buat Surat Penawaran Pemberian Kredit">Buat SPPK</button>
           <button id="btnManualLetters" type="button" onclick="openManualLetters()" class="flex items-center space-x-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white text-mandiri-navy hover:bg-blue-50 font-extrabold text-xs sm:text-sm shadow-md transition-all duration-200" title="Buka pilihan form surat manual"><i class="fa-solid fa-file-pen text-base"></i><span>Form Surat Manual</span></button>
           <button id="btnOpenDataImport" type="button" onclick="openDataImport()" class="px-3 py-2 rounded-xl bg-white text-mandiri-navy font-bold text-xs sm:text-sm">Impor Data</button>
         </div>
@@ -2483,8 +2483,9 @@
   <!-- App Logic JavaScript -->
   <script src="app.js?v=20261019_advis_v1"></script>
   <script src="surat_sp.js?v=20261019_v6"></script>
-  <script src="form_manual.js?v=20261020_v4"></script>
+  <script src="form_manual.js?v=20261021_mobile"></script>
   <script src="data_import.js?v=20261020_v1"></script>
   <script src="shared-client.js?v=20261020_v1"></script>
+<script src="mobile.js?v=20261021_1"></script>
 </body>
 </html>
