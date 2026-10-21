@@ -14,4 +14,4 @@ body.sppk-app{height:100dvh;display:flex;flex-direction:column;overflow:hidden}b
 
 @media screen and (max-width:767px){#tabBtnPipeline>span:first-of-type,#tabBtnTagihan>span:first-of-type,#tabBtnBooking>span:first-of-type{font-size:0}#tabBtnPipeline>span:first-of-type:after{content:'Pipeline';font-size:12px}#tabBtnTagihan>span:first-of-type:after{content:'Tagihan';font-size:12px}#tabBtnBooking>span:first-of-type:after{content:'Booking';font-size:12px}body>nav button{padding:10px!important}body>nav>div>div{gap:6px!important;margin:0!important}body>nav>div{padding:0 10px!important}#advisDocumentSheet{margin-left:auto!important;margin-right:auto!important}}
 @media print{#advisDocumentSheet{zoom:1!important}}
-@media screen and (max-width:767px){.mobile-preview article,.mobile-preview .sp-paper,.mobile-preview .mf-document,.mobile-preview #advisDocumentSheet{zoom:var(--mobile-scale,1)}}
+@media screen and (max-width:767px){.mobile-preview [data-mobile-paper="true"]{zoom:var(--mobile-scale,1)}}
