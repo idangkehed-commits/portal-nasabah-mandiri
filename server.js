@@ -58,7 +58,7 @@ const server = http.createServer((req, res) => {
   if (sharedApi(req, res)) return;
   if (req.securityTotpVerified && req.portalRole === 'viewer') {
     const route = (req.url || '/').split('?')[0];
-    if (!['/', '/index.html', '/viewer.html', '/viewer.js', '/icon.svg'].includes(route) || !['GET','HEAD'].includes(req.method)) {
+    if (!['/', '/index.html', '/viewer.html', '/viewer.js', '/icon.svg', '/ksm.html'].includes(route) || !['GET','HEAD'].includes(req.method)) {
       res.writeHead(403, {'Content-Type':'text/plain; charset=utf-8'});res.end('Akses hanya untuk melihat data.');return;
     }
     if (['/', '/index.html'].includes(route)) req.url = '/viewer.html';

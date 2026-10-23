@@ -3,7 +3,7 @@ const crypto=require('node:crypto');
 const fs=require('node:fs');
 const path=require('node:path');
 const build=crypto.createHash('sha256');
-for(const name of ['mobile.css','mobile.js','index.html','sppk.html','app.js','viewer.html','viewer.js','shared-client.js','data_import.js','form_manual.js','surat_sp.js']){try{build.update(fs.readFileSync(path.join(__dirname,name)));}catch{}}
+for(const name of ['ksm.html','ksm-api.cjs','mobile.css','mobile.js','index.html','sppk.html','app.js','viewer.html','viewer.js','shared-client.js','data_import.js','form_manual.js','surat_sp.js']){try{build.update(fs.readFileSync(path.join(__dirname,name)));}catch{}}
 const buildId=build.digest('hex').slice(0,16);
 function validate(data){
  if(!data||data.format!=='portal-nasabah-backup-v1')throw Error('Format database tidak valid.');
@@ -18,8 +18,10 @@ module.exports=function sharedDatabase(env=process.env,injectedPool){
   if(!ready)ready=pool.query('CREATE TABLE IF NOT EXISTS portal_snapshots (version BIGSERIAL PRIMARY KEY, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), payload JSONB NOT NULL)').catch(err=>{ready=null;throw err;});
   await ready;return pool;
  }
+ const ksmApi=require('./ksm-api.cjs')(db);
  function json(res,status,data){res.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));}
  return function api(req,res){
+  if(ksmApi(req,res))return true;
   const route=(req.url||'').split('?')[0];if(!route.startsWith('/api/portal/'))return false;
   if(!req.securityTotpVerified){json(res,401,{error:'Silakan login.'});return true;}
   const role=req.portalRole||'viewer';
