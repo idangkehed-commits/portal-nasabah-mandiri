@@ -4,10 +4,10 @@ function validate(input){
  const allowed=new Set(['jamsostek','rancaekek','cibeunying']);const seen=new Set();
  const leads=input.leads.map(r=>{if(!r||typeof r.nama!=='string'||!r.nama.trim()||r.nama.length>150||!allowed.has(r.branch)||typeof r.limit!=='number'||!Number.isFinite(r.limit)||r.limit<=0||r.limit>1e13||!Number.isSafeInteger(r.row)||r.row<2)throw Error('Data tidak valid.');const key=r.nama.trim().toUpperCase()+'|'+r.branch;if(seen.has(key))throw Error('Duplikat.');seen.add(key);return {nama:r.nama.trim(),branch:r.branch,limit:r.limit,row:r.row};});return {leads};
 }
-module.exports=function ksmApi(getPool){let ready;
+module.exports=function ksmApi(getPool){let ready;const signatures=require('./ksm-signatures.cjs')(getPool);
  async function db(){const p=await getPool();if(!ready)ready=p.query('CREATE TABLE IF NOT EXISTS portal_ksm_leads (id INTEGER PRIMARY KEY CHECK(id=1), version BIGINT NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT now(), payload JSONB NOT NULL)').catch(e=>{ready=null;throw e;});await ready;return p;}
  const json=(res,s,data)=>{res.writeHead(s,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
- return function(req,res){if((req.url||'').split('?')[0]!=='/api/portal/ksm-leads')return false;
+ return function(req,res){if(signatures(req,res))return true;if((req.url||'').split('?')[0]!=='/api/portal/ksm-leads')return false;
  if(!req.securityTotpVerified){json(res,401,{error:'Silakan login.'});return true;}
  if(req.method==='GET'){(async()=>{try{const r=await(await db()).query('SELECT version,updated_at,payload FROM portal_ksm_leads WHERE id=1');const row=r.rows[0];json(res,200,{version:String(row?.version||0),updatedAt:row?.updated_at||null,leads:row?.payload?.leads||[]});}catch{json(res,503,{error:'Leads KSM belum tersedia. Coba muat ulang.'});}})();return true;}
  if(req.method!=='PUT'||req.portalRole!=='admin'){json(res,403,{error:'Hanya admin dapat memperbarui Leads KSM.'});return true;}
