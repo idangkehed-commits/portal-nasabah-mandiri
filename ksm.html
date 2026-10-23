@@ -24,7 +24,7 @@
 <label for="attachment">Lampiran</label><input id="attachment" value="1 (satu) lembar" readonly>
 <div class="badge" id="branchInfo"></div>
 <details><summary>Kontak pada surat (opsional)</summary><label for="cp">Contact Person</label><input id="cp" maxlength="100"><label for="phone">Nomor HP Contact Person</label><input id="phone" type="tel" maxlength="35"><p class="hint">Contact Person mengikuti template Word dan dapat disesuaikan.</p></details>
-<p class="hint">Limit dari kolom Limit Indikatif pada Master. Estimasi angsuran = limit ÷ tenor bulan + limit × bunga flat bulanan (0,38% untuk 12 bulan; 0,37% untuk 24–60 bulan). Angsuran dibulatkan ke rupiah. Lampiran asli tetap utuh pada halaman kedua.</p><p id="printError" class="error" role="alert"></p>
+<p class="hint">Limit dari kolom Maks Pengajuan pada Leads Master. Estimasi angsuran = limit ÷ tenor bulan + limit × bunga flat bulanan (0,38% untuk 12 bulan; 0,37% untuk 24–60 bulan). Angsuran dibulatkan ke rupiah. Lampiran asli tetap utuh pada halaman kedua.</p><p id="printError" class="error" role="alert"></p>
 </form></aside><section class="preview" aria-label="Preview surat portrait"><article class="paper" id="paper"></article><article class="paper attachment-paper" id="attachmentPaper"></article></section></main>
 <script>
 'use strict';
@@ -45,7 +45,7 @@ function fit(){const pane=document.querySelector('.preview');if(!pane.clientWidt
 function render(){const b=branches[isManual()?$('branch').value:selected?.branch],name=$('name').value.trim(),date=$('date').value,limit=currentLimit();
 const formatted=date?new Date(date+'T12:00:00+07:00').toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta',day:'numeric',month:'long',year:'numeric'}):'................';
 $('branchInfo').innerHTML=b?esc(b.title)+'<br><strong>'+esc(b.manager)+'</strong><br>Branch Manager':'Pilih nama nasabah. Cabang, kepala cabang, kop, dan limit akan terisi otomatis.';
-$('limitSource').textContent=!isManual()&&selected?'Sumber: Master, kolom Limit Indikatif (W), baris '+selected.row+'.':'Isi nominal untuk surat manual.';
+$('limitSource').textContent=!isManual()&&selected?'Sumber: Leads Master, kolom Maks Pengajuan (K), baris '+selected.row+'.':'Isi nominal untuk surat manual.';
 const cp=$('cp').value.trim(),phone=$('phone').value.trim();
 let contact=b?'<strong>PT Bank Mandiri (Persero) Tbk.</strong><br>'+esc(b.title)+'<br>'+esc(b.lines.slice(0,2).join(', '))+'<br>'+esc(b.lines.slice(2,-1).join(' · '))+'<br>'+esc(b.lines.at(-1)):'................';
 if(b===branches.rancaekek)contact='<strong>PT Bank Mandiri (Persero),Tbk.</strong><br>Cabang Bandung Rancaekek<br>Jl. Raya Dangdeur No. 137, Rancaekek Sumedang, Jawa Barat, Indonesia.<br>Telp : (022) 7791010, 7791001. Fax: 7791001';
