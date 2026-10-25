@@ -3,7 +3,7 @@ const crypto=require('node:crypto');
 const fs=require('node:fs');
 const path=require('node:path');
 const build=crypto.createHash('sha256');
-for(const name of ['ksm.html','ksm-export.js','ksm-api.cjs','portal-theme.css','mobile.css','mobile.js','index.html','sppk.html','app.js','viewer.html','viewer.js','shared-client.js','data_import.js','form_manual.js','surat_sp.js']){try{build.update(fs.readFileSync(path.join(__dirname,name)));}catch{}}
+for(const name of ['ksm.html','ksm-export.js','ksm-api.cjs','portal-theme.css','mobile.css','mobile.js','index.html','sppk.html','app.js','tagihan-import.js','viewer.html','viewer.js','shared-client.js','data_import.js','form_manual.js','surat_sp.js']){try{build.update(fs.readFileSync(path.join(__dirname,name)));}catch{}}
 const buildId=build.digest('hex').slice(0,16);
 function validate(data){
  if(!data||data.format!=='portal-nasabah-backup-v1')throw Error('Format database tidak valid.');

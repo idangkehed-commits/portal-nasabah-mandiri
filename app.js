@@ -2785,6 +2785,11 @@ function openDetailTagihan(id) {
   const elTotalKewajiban = document.getElementById('modalDetailTagihanTotalKewajiban');
   if (elTotalKewajiban) elTotalKewajiban.textContent = formatRupiah(item.totalKewajiban);
 
+  for (const [suffix, key] of [['Pokok','tunggakanPokok'],['Bunga','tunggakanBunga'],['Denda','tunggakanDenda']]) {
+    const field = document.getElementById('modalDetailTagihan' + suffix);
+    if (field) field.textContent = item[key] == null ? 'Belum tersedia' : formatRupiah(item[key]);
+  }
+
   // AGF Tabungan Box
   const agfBox = document.getElementById('modalDetailTagihanAgfBox');
   const agfBadge = document.getElementById('modalDetailTagihanAgfStatusBadge');
@@ -3130,92 +3135,8 @@ function handleTagihanExcelUpload(file) {
     try {
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: 'array' });
-      const firstSheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[firstSheetName];
-      const rawRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
-
-      if (rawRows.length === 0) {
-        showToast('File tidak berisi data atau kosong', 'error');
-        return;
-      }
-
-      // Map rows into Tagihan object format
-      const parsedItems = [];
-      rawRows.forEach((r, idx) => {
-        // Normalize column keys
-        const keys = Object.keys(r);
-        const getVal = (colNames) => {
-          for (let name of colNames) {
-            const matchedKey = keys.find(k => k.trim().toUpperCase() === name.toUpperCase());
-            if (matchedKey && r[matchedKey] !== undefined && r[matchedKey] !== null) {
-              return r[matchedKey];
-            }
-          }
-          return '';
-        };
-
-        const cabang = String(getVal(['CABANG'])).trim();
-        let cif = String(getVal(['CIF'])).trim().replace(/\.0$/, '');
-        const petugas = String(getVal(['PETUGAS'])).trim();
-        const produk = String(getVal(['PROD', 'PRODUK'])).trim() || 'KUR';
-        let rekening = String(getVal(['REKENING'])).trim().replace(/\.0$/, '');
-        const nama = String(getVal(['NASABAH', 'NAMA NASABAH', 'NAMA'])).trim();
-
-        if (!nama && !rekening) return; // Skip empty row
-
-        let limitRaw = cleanNumber(getVal(['LIMIT']));
-        let limit = limitRaw < 1000 ? Math.round(limitRaw * 1000000) : Math.round(limitRaw);
-
-        let badeRaw = cleanNumber(getVal(['BADE', 'BAKI DEBET']));
-        let bakiDebet = badeRaw < 1000 ? Math.round(badeRaw * 1000000) : Math.round(badeRaw);
-
-        let kol = String(getVal(['KOL'])).trim().replace(/\.0$/, '') || '1';
-        let kolPrev = String(getVal(['KOL-1', 'KOL_1', 'KOL 1'])).trim().replace(/\.0$/, '') || kol;
-
-        let tglCairVal = getVal(['TGL CAIR', 'TGL_CAIR', 'TANGGAL CAIR']);
-        let tglCair = String(tglCairVal);
-        if (typeof tglCairVal === 'number' && tglCairVal > 20000) {
-          // Serial date
-          const dateObj = new Date(Math.round((tglCairVal - 25569) * 86400 * 1000));
-          tglCair = dateObj.toLocaleDateString('id-ID');
-        }
-
-        let jt = parseInt(cleanNumber(getVal(['JT']))) || 10;
-        let ht = parseInt(cleanNumber(getVal(['HT']))) || 0;
-        let angsuran = Math.round(cleanNumber(getVal(['ANGSURAN'])));
-        let tunggakan = Math.round(cleanNumber(getVal(['TUNGGAKAN'])));
-        let totalKewajiban = tunggakan; // Nilai total kewajiban disamakan dengan nilai tunggakan
-
-        let rekAgf = String(getVal(['REK AGF', 'REK_AGF', 'REKENING AGF'])).trim().replace(/\.0$/, '');
-        let saldoAgf = Math.round(cleanNumber(getVal(['SALDO AGF', 'SALDO_AGF'])));
-
-        let saldoCukup = saldoAgf >= totalKewajiban;
-        let kurangSaldo = saldoCukup ? 0 : (totalKewajiban - saldoAgf);
-
-        parsedItems.push({
-          id: `tagihan-${rekening || Date.now() + '-' + idx}`,
-          cabang,
-          cif,
-          petugas,
-          produk,
-          rekening,
-          nama,
-          limit,
-          bakiDebet,
-          kol,
-          kolPrev,
-          tglCair,
-          jt,
-          ht,
-          angsuran,
-          tunggakan,
-          totalKewajiban,
-          rekAgf,
-          saldoAgf,
-          saldoCukup,
-          kurangSaldo
-        });
-      });
+      const importResult = PortalTagihanImport.parse(workbook, XLSX);
+      const parsedItems = importResult.items;
 
       if (parsedItems.length === 0) {
         showToast('Tidak ada data valid yang dapat dikenali dalam file', 'error');
@@ -3231,7 +3152,7 @@ function handleTagihanExcelUpload(file) {
       const btnProcess = document.getElementById('btnProcessImportTagihan');
 
       if (previewBox) previewBox.classList.remove('hidden');
-      if (countEl) countEl.textContent = `${parsedItems.length} baris terdeteksi`;
+      if (countEl) countEl.textContent = `${parsedItems.length} rekening · ${importResult.branches} kode cabang · ${importResult.sheet}, header baris ${importResult.headerRow}`;
 
       if (tbody) {
         const previewRows = parsedItems.slice(0, 5);
@@ -3316,6 +3237,10 @@ function exportTagihanExcel() {
       'HT': item.ht,
       'ANGSURAN': item.angsuran,
       'TUNGGAKAN': item.tunggakan,
+      'TUNGGAKAN POKOK': item.tunggakanPokok ?? '',
+      'TUNGGAKAN BUNGA': item.tunggakanBunga ?? '',
+      'TUNGGAKAN DENDA': item.tunggakanDenda ?? '',
+      'TUNGGAKAN LAIN': item.tunggakanLain ?? '',
       'TOTAL KEWAJIBAN': item.totalKewajiban,
       'REK AGF': item.rekAgf,
       'SALDO AGF': item.saldoAgf,

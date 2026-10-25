@@ -1,0 +1,32 @@
+'use strict';
+const assert = require('node:assert/strict');
+const XLSX = require('../lib/xlsx.full.min.js');
+const parser = require('../tagihan-import.js');
+const headers = ['acctno','nama','limit','bade','kol_Is','produk','tgl_jt_angs','hr_tgg','angsuran','tggpokok','tggbunga','tggdenda','total_tgg','AGF1','Saldo_AGF1','nama_mks','CIF','kocab'];
+const values = [1310100000001,'Data uji',50,12.5,'2A','KUR',17,10,2000000,1000000,100000,5000,1105000,1310000000001,500000,'Petugas uji',1234567890,'A'];
+function workbook(rows) {
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['Ringkasan']]), 'Rekap');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['Laporan'],[],headers,...rows]), 'Detail1');
+  return wb;
+}
+const result = parser.parse(workbook([values]), XLSX);
+assert.equal(result.headerRow,3);
+assert.equal(result.sheet,'Detail1');
+assert.equal(result.items[0].rekening,'1310100000001');
+assert.equal(result.items[0].rekAgf,'1310000000001');
+assert.equal(result.items[0].saldoAgf,500000);
+assert.equal(result.items[0].limit,50000000);
+assert.equal(result.items[0].bakiDebet,12500000);
+assert.equal(result.items[0].kol,'2A');
+assert.equal(result.items[0].totalKewajiban,1105000);
+assert.equal(result.items[0].kurangSaldo,605000);
+assert.equal(result.items[0].tunggakanPokok,1000000);
+assert.equal(result.items[0].tunggakanBunga,100000);
+assert.equal(result.items[0].tunggakanDenda,5000);
+assert.throws(()=>parser.parse(workbook([values,values]),XLSX),/ganda/);
+assert.equal(parser.identifier('1.310100000001E+12'),'1310100000001');
+assert.equal(parser.identifier('0012345678901'),'0012345678901');
+assert.equal(parser.number('1.234.567,89'),1234567.89);
+assert.throws(()=>parser.identifier(Number.MAX_SAFE_INTEGER+1),/ketelitian/);
+console.log('Tagihan import checks passed.');

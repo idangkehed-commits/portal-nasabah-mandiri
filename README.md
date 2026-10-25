@@ -61,3 +61,14 @@ Aplikasi ini sudah diatur dalam format **Static Site di Render.com**, yang memil
 Jika sedang offline tanpa internet:
 - **Cara Langsung**: Klik dua kali file [**`buka_portal.bat`**](file:///c:/Users/ACER%20NITRO/Documents/antigravity/jolly-goodall/portal-nasabah/buka_portal.bat) (atau buka file `index.html` di browser).
 - **Via Local Server**: Klik dua kali file [**`jalankan_server.bat`**](file:///c:/Users/ACER%20NITRO/Documents/antigravity/jolly-goodall/portal-nasabah/jalankan_server.bat) untuk akses lewat HP dalam satu jaringan WiFi.
+
+
+## Impor laporan tagihan mentah
+
+Unggah laporan .xls/.xlsx lewat Impor Data > Excel Tagihan. Pembaca mencari baris header secara otomatis pada seluruh sheet dan menerima laporan Detail1 (header baris 3), tanpa perlu memfilter cabang atau mengganti nama kolom. Semua cabang dalam sheet tersebut diproses. Rekap Top Up bukan data detail.
+
+Pemetaan laporan: acctno -> rekening; nama -> nama; limit -> plafon; bade -> baki debet; kol_Is -> kolektibilitas; produk -> produk; tgl_jt_angs -> hari jatuh tempo; hr_tgg -> hari tunggakan; angsuran -> angsuran; tggpokok/tggbunga/tggdenda -> rincian tunggakan; total_tgg -> total kewajiban (tidak ditambah angsuran lagi); AGF1 -> nomor rekening AGF; Saldo_AGF1 -> saldo AGF; nama_mks -> petugas aktif; CIF -> CIF. kocab/mbu disimpan sebagai kode cabang/nama unit.
+
+Limit dan bade pada laporan mentah bersatuan juta dan dikalikan 1.000.000. Nominal lain bersatuan rupiah, dibulatkan seperti portal sebelumnya, dan ditampilkan memakai pemisah Indonesia. Rekening dan CIF disimpan sebagai teks digit penuh, termasuk nilai numerik Excel yang tampil E+12; ketelitian yang telah hilang dari sumber tidak dapat dipulihkan. Nomor duplikat atau baris rekening tidak lengkap membatalkan impor.
+
+Impor memperbarui berdasarkan nomor rekening, menambah rekening baru, dan mempertahankan rekening lama yang tidak ada pada file. Catatan penagihan tetap memakai kunci rekening. Setelah memeriksa pratinjau dan menyimpan, administrator perlu menerbitkan data ke database bersama. Jangan commit laporan mentah atau data nasabah ke GitHub.
