@@ -1894,6 +1894,10 @@ let currentTagihanFilterKol = 'all';
 let currentTagihanFilterJT = 'all';
 let currentTagihanFilterSaldo = 'all';
 let currentTagihanFilterPetugas = 'all';
+let currentTagihanFilterCabang = 'all';
+function tagihanCabangLabel(item) {
+  return [item.unit, item.cabang].filter(Boolean).join(' · ') || 'Cabang belum tersedia';
+}
 let currentTagihanFilterProduk = 'all';
 let currentTagihanFilterFollowup = 'all';
 let currentTagihanFilterTunggakanOnly = false;
@@ -2093,6 +2097,24 @@ window.switchMainTab = switchMainTab;
 
 // ================= DROPDOWN POPULATOR =================
 function populateTagihanPetugasDropdown() {
+  const cabangSelect = document.getElementById('filterTagihanCabang');
+  if (cabangSelect) {
+    const groups = new Map();
+    dbTagihan.forEach(item => {
+      const code = String(item.cabang || '').trim();
+      if (!code) return;
+      if (!groups.has(code)) groups.set(code, { names: new Set(), count: 0 });
+      const group = groups.get(code); group.count++;
+      if (item.unit) group.names.add(item.unit);
+    });
+    cabangSelect.replaceChildren(new Option('Semua cabang', 'all'));
+    [...groups].sort(([a],[b]) => a.localeCompare(b)).forEach(([code, group]) => {
+      const names = [...group.names].sort().join(' / ');
+      cabangSelect.add(new Option((names ? names + ' · ' : '') + code + ' (' + group.count + ')', code));
+    });
+    if (!groups.has(currentTagihanFilterCabang)) currentTagihanFilterCabang = 'all';
+    cabangSelect.value = currentTagihanFilterCabang;
+  }
   const select = document.getElementById('filterTagihanPetugas');
   if (!select) return;
   const currentVal = select.value;
@@ -2121,7 +2143,8 @@ function updateTagihanUI() {
   updateTagihanTabBadge();
 
   // 1. Calculate Global Overview Stats
-  const totalRek = dbTagihan.length;
+  const branchRows = dbTagihan.filter(item => currentTagihanFilterCabang === 'all' || String(item.cabang || '').trim() === currentTagihanFilterCabang);
+  const totalRek = branchRows.length;
   let totalBade = 0;
   let totalAngsuran = 0;
   let totalTunggakan = 0;
@@ -2132,7 +2155,7 @@ function updateTagihanUI() {
   let kol3Count = 0;
   let kol5Count = 0;
 
-  dbTagihan.forEach(item => {
+  branchRows.forEach(item => {
     totalBade += Number(item.bakiDebet) || 0;
     totalAngsuran += Number(item.angsuran) || 0;
     totalTunggakan += Number(item.tunggakan) || 0;
@@ -2186,6 +2209,7 @@ function updateTagihanUI() {
   const todayDate = new Date().getDate();
 
   const filtered = dbTagihan.filter(item => {
+    if (currentTagihanFilterCabang !== 'all' && String(item.cabang || '').trim() !== currentTagihanFilterCabang) return false;
     // Search
     if (q) {
       const matchName = String(item.nama || '').toLowerCase().includes(q);
@@ -2539,7 +2563,7 @@ function renderTagihanCards(items) {
           <!-- Petugas Mantri -->
           <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
             <span class="truncate max-w-[170px]"><i class="fa-solid fa-user-tie text-mandiri-blue mr-1"></i>${escapeHtml(item.petugas || '-')}</span>
-            <span class="font-mono text-slate-400">Cab: ${escapeHtml(item.cabang || '-')}</span>
+            <span class="font-mono text-slate-400">${escapeHtml(tagihanCabangLabel(item))}</span>
           </div>
 
         </div>
@@ -2622,6 +2646,7 @@ function renderTagihanTable(items, start) {
         <td class="p-3 text-slate-400 font-mono text-[11px]">${start + idx + 1}</td>
         <td class="p-3">
           <div class="font-bold text-slate-800 leading-tight">${escapeHtml(item.nama)}</div>
+          <div class="text-[11px] text-slate-500 mt-1">${escapeHtml(tagihanCabangLabel(item))}</div>
           <div class="text-[11px] text-slate-500 font-mono flex items-center space-x-1 mt-0.5">
             <span>Rek: ${escapeHtml(item.rekening)}</span>
             <button onclick="copyToClipboard('${escapeHtml(item.rekening)}', 'Nomor Rekening')" class="text-slate-400 hover:text-mandiri-blue">
@@ -2833,7 +2858,7 @@ function openDetailTagihan(id) {
   const elPetugas = document.getElementById('modalDetailTagihanPetugas');
   if (elPetugas) elPetugas.textContent = item.petugas || '-';
   const elCabang = document.getElementById('modalDetailTagihanCabang');
-  if (elCabang) elCabang.textContent = item.cabang || '-';
+  if (elCabang) elCabang.textContent = tagihanCabangLabel(item);
 
   // Follow-up Info
   const elFuStatus = document.getElementById('modalDetailTagihanFollowupStatus');
@@ -3223,6 +3248,7 @@ function exportTagihanExcel() {
     return {
       'NO': idx + 1,
       'CABANG': item.cabang,
+      'UNIT': item.unit || '',
       'CIF': item.cif,
       'PETUGAS': item.petugas,
       'PRODUK': item.produk,
@@ -3335,6 +3361,13 @@ function setupTagihanEventListeners() {
   const fSaldo = document.getElementById('filterTagihanSaldo');
   if (fSaldo) fSaldo.addEventListener('change', (e) => {
     currentTagihanFilterSaldo = e.target.value;
+    currentTagihanPage = 1;
+    updateTagihanUI();
+  });
+
+  const fCabang = document.getElementById('filterTagihanCabang');
+  if (fCabang) fCabang.addEventListener('change', e => {
+    currentTagihanFilterCabang = e.target.value;
     currentTagihanPage = 1;
     updateTagihanUI();
   });
