@@ -2011,6 +2011,8 @@ function switchMainTab(tab) {
   const activeBtnClass = 'flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm bg-white text-mandiri-navy shrink-0';
   const inactiveBtnClass = 'flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-blue-200 hover:text-white hover:bg-white/10 shrink-0';
 
+  [['pipeline', tabBtnPipeline], ['tagihan', tabBtnTagihan], ['booking', tabBtnBooking]].forEach(([name, button]) => { if (button) button.setAttribute('aria-pressed', String(tab === name)); });
+
   if (tabBtnPipeline) tabBtnPipeline.className = tab === 'pipeline' ? activeBtnClass : inactiveBtnClass;
   if (tabBtnTagihan) tabBtnTagihan.className = tab === 'tagihan' ? activeBtnClass : inactiveBtnClass;
   if (tabBtnBooking) tabBtnBooking.className = tab === 'booking' ? activeBtnClass : inactiveBtnClass;

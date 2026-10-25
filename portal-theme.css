@@ -1,0 +1,51 @@
+/* Portal workspace theme. Screen-only to preserve official letter layouts. */
+@media screen {
+:root{--portal-ink:#18334d;--portal-line:#dce3e9;--portal-muted:#617182;--portal-paper:#f4f6f8}
+body{background:var(--portal-paper)!important;color:#263747;font-family:Inter,'Segoe UI',sans-serif}
+body>header{background:#173650!important;box-shadow:none!important;border-bottom:3px solid #dfb64b}
+body>header>div>div{height:88px}
+body>header h1{font-size:19px!important;font-weight:600!important;letter-spacing:-.35px}
+body>header p{font-size:12px!important;color:#c4d1db!important;margin-top:5px}
+body>header h1>span{font-size:10px!important;font-weight:500!important;letter-spacing:.02em!important;border-radius:4px!important;box-shadow:none!important}
+body>header>div>div>div:first-child>div:first-child{background:transparent!important;border:1px solid #7b92a3!important;border-radius:8px!important;box-shadow:none!important;backdrop-filter:none!important}
+body>header button{border-radius:6px!important;box-shadow:none!important;font-weight:600!important;font-size:12px!important;padding:10px 13px!important}
+#btnOpenCetakAdvisModal{background:#e8c777!important;color:#23384a!important}
+body>nav{background:white!important;border-bottom:1px solid var(--portal-line)!important;box-shadow:none!important;top:88px!important}
+body>nav>div>div{gap:24px!important;padding-top:0!important;padding-bottom:0!important}
+body>nav button{background:transparent!important;color:var(--portal-muted)!important;border-radius:0!important;border-bottom:3px solid transparent;box-shadow:none!important;padding:18px 0 15px!important;font-weight:500!important}
+body>nav button.bg-white{border-bottom-color:#173650;color:#173650!important;font-weight:600!important}
+body>nav button i{color:inherit!important;font-size:13px}
+body>nav button>span:last-child{background:#edf1f4!important;color:#4c6072!important;border-radius:4px!important;font-weight:600!important}
+:is(#viewPipelineTab,#viewTagihanTab,#viewBookingTab) .font-extrabold,:is(#viewPipelineTab,#viewTagihanTab,#viewBookingTab) .font-black{font-weight:600!important}
+:is(#viewPipelineTab,#viewTagihanTab,#viewBookingTab) [class*='bg-gradient']{background-image:none!important;background-color:#fff!important}
+:is(#viewPipelineTab,#viewTagihanTab,#viewBookingTab) [class*='shadow']{box-shadow:none!important}
+:is(#viewPipelineTab,#viewTagihanTab,#viewBookingTab) .rounded-2xl{border-radius:8px!important}
+:is(#viewPipelineTab,#viewTagihanTab,#viewBookingTab) .rounded-xl{border-radius:6px!important}
+#viewPipelineTab>section:first-child{padding:24px 0 0;background:transparent!important;border:0!important}
+#viewPipelineTab>section:first-child .grid{gap:0!important;background:white;border:1px solid var(--portal-line);border-radius:8px;overflow:hidden}
+#viewPipelineTab>section:first-child .grid>div{background:white!important;border:0!important;border-right:1px solid var(--portal-line)!important;border-radius:0!important;padding:18px 14px!important}
+#viewPipelineTab>section:first-child .grid>div:last-child{border-right:0!important}
+#viewPipelineTab>section:first-child .grid>div>div:first-child{background:#edf2f6!important;color:#526b80!important;border-radius:6px!important;width:30px;height:30px}
+#viewPipelineTab>section:first-child p:first-child{color:#657586!important;font-size:11px!important;font-weight:500!important}
+#viewPipelineTab>section:first-child p[id]{color:#18334d!important;font-size:25px!important;font-weight:600!important;line-height:1.4;font-variant-numeric:tabular-nums}
+#viewPipelineTab>section:nth-child(2)>div{padding:24px!important;background:white!important;border-color:var(--portal-line)!important}
+#viewPipelineTab>section:nth-child(2) .max-w-3xl{max-width:none!important;text-align:left!important}
+#viewPipelineTab h2{font-size:20px!important;font-weight:600!important;letter-spacing:-.4px}
+#searchInput{border-width:1px!important;border-color:#cbd5df!important;border-radius:6px!important;background:#fafbfc!important;box-shadow:none!important;font-size:14px!important;padding-top:14px!important;padding-bottom:14px!important}
+#searchInput:focus{border-color:#3e6c90!important;outline:3px solid #e3edf5!important;background:white!important}
+.filter-chip{background:white!important;border-color:var(--portal-line)!important;color:#536576!important;border-radius:5px!important;font-weight:500!important;padding:7px 10px!important}
+.filter-chip.active{background:#eaf0f5!important;border-color:#9eb4c6!important;color:#173650!important}
+.filter-chip i{color:inherit!important}
+:is(#cardsViewContainer,#tagihanCardsContainer,#bookingCardsContainer)>div{border-color:var(--portal-line)!important;border-radius:8px!important;box-shadow:none!important}
+:is(#cardsViewContainer,#tagihanCardsContainer,#bookingCardsContainer)>div:hover{border-color:#94acbe!important}
+.kawan-lama-badge{background:#fbf6e9!important;border-color:#e6d7af!important;box-shadow:none!important}
+.both-badge{background:#eef3f7!important;border-color:#d0dce6!important}
+:is(#viewPipelineTab,#viewTagihanTab,#viewBookingTab) thead{background:#edf2f6!important;color:#51677b!important}
+:is(#viewPipelineTab,#viewTagihanTab,#viewBookingTab) th{font-weight:600!important;font-size:11px;letter-spacing:.025em}
+:is(#viewPipelineTab,#viewTagihanTab,#viewBookingTab) td{padding-top:14px!important;padding-bottom:14px!important}
+button,input,select,a{touch-action:manipulation}
+button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid #77a2c5!important;outline-offset:3px}
+@media(max-width:1023px){body>header>div>div{height:auto;min-height:88px;gap:12px;padding-top:12px;padding-bottom:12px}body>nav{position:relative!important;top:auto!important}#viewPipelineTab>section:first-child .grid>div{border-bottom:1px solid var(--portal-line)!important}}
+@media(max-width:767px){body>nav>div>div{gap:20px!important}body>nav button{min-height:48px;padding:14px 0 11px!important}#viewPipelineTab>section:first-child{padding-top:16px}#viewPipelineTab>section:first-child .grid>div{padding:14px 12px!important}#viewPipelineTab>section:nth-child(2)>div{padding:18px!important}#viewPipelineTab h2{font-size:18px!important}#viewPipelineTab>section:first-child p[id]{font-size:22px!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+}
