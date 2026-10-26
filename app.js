@@ -4098,7 +4098,7 @@ window.downloadAdvisDocx = downloadAdvisDocx;
 
 // ================= DOWNLOAD DOKUMEN PDF (ADVIS LMAP.PDF) =================
 let isDownloadingAdvisPdf = false;
-async function downloadAdvisPdf() {
+async function downloadAdvisPdf(pdfReceiver) {
   if (isDownloadingAdvisPdf) return;
 
   const nomorInput = document.getElementById('advisInputNomor');
@@ -4194,12 +4194,19 @@ async function downloadAdvisPdf() {
 
   try {
     if (typeof html2pdf !== 'undefined') {
-      await html2pdf().set(opt).from(exportSheet).save();
-      showToast('Dokumen PDF "Advis LMAP" berhasil diunduh!', 'success');
+      const worker = html2pdf().set(opt).from(exportSheet);
+      if (typeof pdfReceiver === 'function') {
+        await pdfReceiver(await worker.outputPdf('blob'));
+      } else {
+        await worker.save();
+        showToast('Dokumen PDF "Advis LMAP" berhasil diunduh!', 'success');
+      }
     } else {
+      if (typeof pdfReceiver === 'function') throw Error('Pustaka PDF belum tersedia. Muat ulang portal.');
       printAdvisDocument();
     }
   } catch (err) {
+    if (typeof pdfReceiver === 'function') throw err;
     console.error('Error generating PDF:', err);
     showToast('Gagal membuat PDF otomatis, beralih ke dialog cetak browser...', 'warning');
     printAdvisDocument();
