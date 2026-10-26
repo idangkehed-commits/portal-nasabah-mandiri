@@ -2,7 +2,11 @@
 
 Fitur ini menggunakan Gmail API dari browser admin. Server Render gratis memblokir port SMTP; tidak perlu mengganti paket Render untuk integrasi HTTPS ini.
 
-## Pengaturan sekali
+## Konfigurasi portal saat ini
+
+Proyek Google `Portal Nasabah Advis` (`soy-channel-512805-f4`) sudah dibuat, Gmail API diaktifkan, origin portal dibatasi, dan akun pengirim ditambahkan sebagai test user. Public Client ID sudah tersedia sebagai nilai bawaan portal; Client Secret tidak dipakai. Aplikasi masih dalam status Testing. Pemilik perlu menghubungkan Gmail sendiri di dialog email.
+
+## Pengaturan ulang bila diperlukan
 
 1. Masuk ke Google Cloud Console dengan akun Gmail pengirim, lalu pilih atau buat proyek khusus portal.
 2. Aktifkan Gmail API untuk proyek tersebut.
