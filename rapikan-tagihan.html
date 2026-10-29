@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const file=files[0];if(!/\.xlsx?$/i.test(file.name)){error('Gunakan file Excel .xls atau .xlsx.');return;}
     currentFile=file.name;lock(true);status.textContent='Membaca '+file.name+'…';
     try{
-      const data=await file.arrayBuffer();if(version!==generation)return;worker=new Worker('tagihan-cleaner-worker.js?v=20261029_auto');const current=worker;
+      const data=await file.arrayBuffer();if(version!==generation)return;worker=new Worker('tagihan-cleaner-worker.js?v=20261029_classicstyle');const current=worker;
       worker.onerror=()=>{if(worker===current){worker.terminate();worker=null;loaded=null;selection.hidden=true;error('Pembaca Excel tidak dapat dimuat. Muat ulang halaman dan coba lagi.');}};
       worker.onmessage=event=>{if(worker!==current)return;const m=event.data;
         if(m.type==='loaded'){

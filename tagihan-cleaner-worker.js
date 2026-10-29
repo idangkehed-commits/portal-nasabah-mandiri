@@ -1,5 +1,5 @@
 'use strict';
-importScripts('lib/xlsx.full.min.js','lib/jszip.min.js','tagihan-pivot.js?v=20261029_branches','tagihan-cleaner.js?v=20261029_auto');
+importScripts('lib/xlsx.full.min.js','lib/jszip.min.js','tagihan-pivot.js?v=20261029_branches','tagihan-cleaner.js?v=20261029_classicstyle');
 let prepared=null;
 const safeName=value=>String(value).replace(/[<>:"/\\|?*\x00-\x1f]/g,' ').replace(/\s+/g,' ').trim();
 self.onmessage=async event=>{
