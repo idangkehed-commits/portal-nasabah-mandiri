@@ -50,7 +50,19 @@ async function checkTable(){
   assert.equal(xml.includes('<autoFilter'),false);
   assert.ok((await zip.file('xl/styles.xml').async('string')).includes('<sz val="11"/>'));
   const restored=XLSX.read(data,{type:'array'});
+  assert.equal(JSON.stringify(restored.SheetNames),JSON.stringify(['ALL','Pivot']));
+  const pivot=await zip.file('xl/pivotTables/pivotTable1.xml').async('string');
+  assert.ok(pivot.includes('gridDropZones="1"'));
+  assert.ok(pivot.includes('showDropZones="1"'));
+  assert.ok(pivot.includes('compact="0"'));
+  assert.equal((pivot.match(/<pivotField /g)||[]).length,17);
+  const cache=await zip.file('xl/pivotCache/pivotCacheDefinition1.xml').async('string');
+  assert.ok(cache.includes('recordCount="5"'));
+  assert.ok(cache.includes('<worksheetSource name="Table1" sheet="ALL"/>'));
+  assert.equal((cache.match(/<cacheField /g)||[]).length,17);
+  const records=await zip.file('xl/pivotCache/pivotCacheRecords1.xml').async('string');
+  assert.equal((records.match(/<r>/g)||[]).length,5);
   assert.equal(JSON.stringify(XLSX.utils.sheet_to_json(restored.Sheets.ALL,{header:1,defval:null})),JSON.stringify(values));
-  console.log('Tagihan cleaner: all values, sorting, blank/zero handling, visible LIMIT, header validation and native blue table export passed.');
+  console.log('Tagihan cleaner: raw values, sorting, hidden columns, native blue table and classic Pivot/cache export passed.');
 }
 checkTable().catch(error=>{console.error(error);process.exitCode=1;});
