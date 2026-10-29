@@ -104,8 +104,37 @@
     result['!autofilter']={ref:'A3:'+end+(rows.length+3)};
     const output=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(output,result,'ALL');
-    XLSX.utils.book_append_sheet(output,XLSX.utils.aoa_to_sheet([]),'Pivot');
-    return {workbook:output,count:rows.length,sheetName:data.sheetName,headers};
+    const pivotSummary=buildPivot(result,rows.length,XLSX);
+    XLSX.utils.book_append_sheet(output,pivotSummary.sheet,'Pivot');
+    return {workbook:output,count:rows.length,sheetName:data.sheetName,headers,pivotSummary};
+  }
+  function buildPivot(source,count,XLSX){
+    const key=value=>JSON.stringify([typeof value,value]);
+    const kol=[1,'2A','2B','2C',3,4,5],known=new Set(kol.map(key)),groups=new Map();
+    const bucket=()=>({limit:0,bade:0,count:0,records:0});
+    const total={buckets:new Map(),total:bucket()};
+    function add(target,k,limit,bade){if(!target.buckets.has(k))target.buckets.set(k,bucket());for(const item of [target.buckets.get(k),target.total]){item.records++;if(typeof limit==='number')item.limit+=limit;if(typeof bade==='number')item.bade+=bade;if(bade!=null&&bade!=='')item.count++;}}
+    for(let r=3;r<count+3;r++){
+      const value=c=>source[XLSX.utils.encode_cell({r,c})]?.v??null;
+      const staff=value(2),k=value(8),staffKey=key(staff),kolKey=key(k);
+      if(!known.has(kolKey)){known.add(kolKey);kol.push(k);}
+      if(!groups.has(staffKey))groups.set(staffKey,{value:staff,buckets:new Map(),total:bucket()});
+      add(groups.get(staffKey),kolKey,value(6),value(7));add(total,kolKey,value(6),value(7));
+    }
+    kol.sort(compare);const staff=[...groups.values()].sort((a,b)=>compare(a.value,b.value));
+    const names=['.limit','.bade','.jumlahrek','.%kol'];
+    const matrix=[['CAB','(All)'],['PROD','(All)'],[],[null,null,'KOL'],['PETUGAS','Data',...kol.map(v=>String(v??'(blank)')),'Grand Total']];
+    function values(group,measure){return [...kol.map(k=>group.buckets.get(key(k))),group.total].map(b=>{
+      if(measure===3)return group.total.bade===0?{t:'e',v:7}:((b?.bade||0)/group.total.bade);
+      if(!b?.records)return null;
+      return measure===0?b.limit:measure===1?b.bade:b.count;
+    });}
+    for(const group of staff)for(let i=0;i<4;i++)matrix.push([i===0?(group.value??'(blank)'):null,names[i],...values(group,i)]);
+    for(let i=0;i<4;i++)matrix.push(['Total '+names[i],null,...values(total,i)]);
+    const sheet=XLSX.utils.aoa_to_sheet(matrix);
+    for(let r=5;r<matrix.length;r++){const measure=(r-5)%4;for(let c=2;c<kol.length+3;c++){const cell=sheet[XLSX.utils.encode_cell({r,c})];if(cell)cell.z=measure===1?'#,##0.00':measure===2?'0':measure===3?'0.00%':'General';}}
+    sheet['!cols']=[{wch:25},{wch:14},...Array.from({length:kol.length+1},()=>({wch:14}))];
+    return {sheet,staff,kol,total,lastRow:matrix.length,lastColumn:kol.length+2};
   }
   function convert(workbook,XLSX){return convertPrepared(prepare(workbook,XLSX),XLSX);}
   // SheetJS CE writes cell values but does not export native Excel tables.
@@ -139,6 +168,10 @@
     const prolog='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
     const xmlText=value=>escape(String(value).replace(/_x[0-9a-f]{4}_/gi,s=>'_x005F_'+s.slice(1)).replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g,c=>'_x'+c.charCodeAt(0).toString(16).padStart(4,'0')+'_')).replace(/\n/g,'&#10;').replace(/\r/g,'&#13;').replace(/\t/g,'&#9;');
     const dictionaries=headers.map(()=>({keys:new Map(),items:[],types:new Set()}));
+    const addItem=(c,type,value)=>{const d=dictionaries[c],key=JSON.stringify([type,value]);if(!d.keys.has(key)){d.keys.set(key,d.items.length);d.items.push(type==='m'?'<m/>':'<'+type+' v="'+xmlText(value)+'"/>');d.types.add(type);}return d.keys.get(key);};
+    const typed=value=>value==null?['m','']:typeof value==='number'?['n',value]:typeof value==='boolean'?['b',value?1:0]:['s',String(value)];
+    const summary=result.pivotSummary;
+    for(const value of summary.kol)addItem(8,...typed(value));
     const sheet=result.workbook.Sheets.ALL,records=[];
     for(let r=3;r<result.count+3;r++){
       const indices=[];
@@ -153,9 +186,7 @@
             else{type='n';value=cell.v;}
           }else{type='s';value=String(cell.v);}
         }
-        const dict=dictionaries[c],key=JSON.stringify([type,value]);
-        if(!dict.keys.has(key)){dict.keys.set(key,dict.items.length);dict.items.push(type==='m'?'<m/>':'<'+type+' v="'+xmlText(value)+'"/>');dict.types.add(type);}
-        indices.push('<x v="'+dict.keys.get(key)+'"/>');
+        indices.push('<x v="'+addItem(c,type,value)+'"/>');
       }
       records.push('<r>'+indices.join('')+'</r>');
     }
@@ -169,9 +200,23 @@
     const relationship=(id,type,target)=>'<Relationship Id="'+id+'" Type="'+rel+'/'+type+'" Target="'+target+'"/>';
     const relationships=body=>prolog+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+body+'</Relationships>';
     zip.file('xl/pivotCache/_rels/pivotCacheDefinition1.xml.rels',relationships(relationship('rIdRecords','pivotCacheRecords','pivotCacheRecords1.xml')));
-    zip.file('xl/pivotTables/pivotTable1.xml',prolog+'<pivotTableDefinition xmlns="'+ns+'" name="PivotTable1" cacheId="0" dataCaption="Values" gridDropZones="1" showDropZones="1" compact="0" compactData="0" outline="0" outlineData="0" showHeaders="1" disableFieldList="0" enableDrill="1" createdVersion="6" updatedVersion="6" minRefreshableVersion="3"><location ref="A3:G16" firstHeaderRow="0" firstDataRow="2" firstDataCol="1"/><pivotFields count="'+headers.length+'">'+headers.map(()=>'<pivotField showAll="0" compact="0" outline="0"/>').join('')+'</pivotFields><pivotTableStyleInfo name="PivotStyleLight16" showRowHeaders="1" showColHeaders="1" showRowStripes="0" showColStripes="0" showLastColumn="1"/></pivotTableDefinition>');
+    const indexFor=(c,v)=>dictionaries[c].keys.get(JSON.stringify(typed(v)));
+    const itemXml=indices=>'<items count="'+indices.length+'">'+indices.map(x=>'<item x="'+x+'"/>').join('')+'</items>';
+    const pivotFields=headers.map((_,c)=>{
+      if(c===2)return '<pivotField axis="axisRow" showAll="0" defaultSubtotal="0" compact="0" outline="0">'+itemXml(summary.staff.map(g=>indexFor(c,g.value)))+'</pivotField>';
+      if(c===8)return '<pivotField axis="axisCol" showAll="1" defaultSubtotal="0" compact="0" outline="0">'+itemXml(summary.kol.map(v=>indexFor(c,v)))+'</pivotField>';
+      if(c===0||c===4)return '<pivotField axis="axisPage" showAll="0" defaultSubtotal="0" compact="0" outline="0">'+itemXml(Array.from({length:dictionaries[c].items.length},(_,i)=>i))+'</pivotField>';
+      return '<pivotField showAll="0" compact="0" outline="0"'+([6,7].includes(c)?' dataField="1"':'')+'/>';
+    }).join('');
+    const rowItems=[];
+    summary.staff.forEach((_,staff)=>{for(let i=0;i<4;i++)rowItems.push('<i i="'+i+'"><x v="'+staff+'"/><x v="'+i+'"/></i>');});
+    for(let i=0;i<4;i++)rowItems.push('<i t="grand" i="'+i+'"><x/><x v="'+i+'"/></i>');
+    const colItems=summary.kol.map((_,i)=>'<i><x v="'+i+'"/></i>').join('')+'<i t="grand"><x/></i>';
+    const pivotXml=prolog+'<pivotTableDefinition xmlns="'+ns+'" name="PivotTable1" cacheId="0" dataCaption="Data" dataOnRows="1" dataPosition="1" pageWrap="0" pageOverThenDown="0" gridDropZones="1" showDropZones="1" compact="0" compactData="0" outline="0" outlineData="0" showHeaders="1" showMultipleLabel="0" rowGrandTotals="1" colGrandTotals="1" disableFieldList="0" enableDrill="1" createdVersion="6" updatedVersion="6" minRefreshableVersion="3"><location ref="A4:'+XLSX.utils.encode_col(summary.lastColumn)+(summary.lastRow)+'" firstHeaderRow="1" firstDataRow="2" firstDataCol="2" rowPageCount="2" colPageCount="1"/><pivotFields count="'+headers.length+'">'+pivotFields+'</pivotFields><rowFields count="2"><field x="2"/><field x="-2"/></rowFields><rowItems count="'+rowItems.length+'">'+rowItems.join('')+'</rowItems><colFields count="1"><field x="8"/></colFields><colItems count="'+(summary.kol.length+1)+'">'+colItems+'</colItems><pageFields count="2"><pageField fld="0"/><pageField fld="4"/></pageFields><dataFields count="4"><dataField name=".limit" fld="6" subtotal="sum" numFmtId="0"/><dataField name=".bade" fld="7" subtotal="sum" numFmtId="4"/><dataField name=".jumlahrek" fld="7" subtotal="count" numFmtId="1"/><dataField name=".%kol" fld="7" subtotal="sum" showDataAs="percentOfRow" numFmtId="10"/></dataFields><pivotTableStyleInfo name="PivotStyleLight16" showRowHeaders="1" showColHeaders="1" showRowStripes="0" showColStripes="0" showLastColumn="1"/></pivotTableDefinition>';
+    zip.file('xl/pivotTables/pivotTable1.xml',pivotXml);
     zip.file('xl/pivotTables/_rels/pivotTable1.xml.rels',relationships(relationship('rIdCache','pivotCacheDefinition','../pivotCache/pivotCacheDefinition1.xml')));
-    zip.file('xl/worksheets/sheet2.xml',prolog+'<worksheet xmlns="'+ns+'" xmlns:r="'+rel+'"><dimension ref="A1:G16"/><sheetViews><sheetView workbookViewId="0" tabSelected="1"><selection activeCell="A3" sqref="A3"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/><sheetData/></worksheet>');
+    const pivotSheet=await zip.file('xl/worksheets/sheet2.xml').async('string');
+    zip.file('xl/worksheets/sheet2.xml',pivotSheet.replace(/<sheetView workbookViewId="0"\/>/,'<sheetView workbookViewId="0" tabSelected="1"><selection activeCell="A5" sqref="A5"/></sheetView>'));
     zip.file('xl/worksheets/_rels/sheet2.xml.rels',relationships(relationship('rIdPivotTable','pivotTable','../pivotTables/pivotTable1.xml')));
     let book=await zip.file('xl/workbook.xml').async('string');
     book=book.replace('<workbookPr ','<workbookPr hidePivotFieldList="0" ').replace('<sheets>','<bookViews><workbookView activeTab="1"/></bookViews><sheets>').replace('</workbook>','<pivotCaches><pivotCache cacheId="0" r:id="rIdPivotCache"/></pivotCaches></workbook>');

@@ -36,6 +36,15 @@ const hiddenResult=cleaner.convertPrepared(prepared,XLSX,['13112A']);
 assert.equal(hiddenResult.headers.length,20);
 assert.equal(hiddenResult.workbook.Sheets.ALL['!cols'][17].hidden,true);
 assert.equal(hiddenResult.workbook.Sheets.ALL.T4.v,0);
+const metrics=[row(201,1,5),row(202,1,5),row(203,'2A',5),row(204,'2A',5)];
+metrics[0][8]=1;metrics[0][7]=10;metrics[1][7]=0;metrics[2][7]=null;metrics[3][7]='teks';
+const measured=cleaner.convert(workbook(metrics),XLSX);
+assert.equal(measured.pivotSummary.total.total.bade,10);
+assert.equal(measured.pivotSummary.total.total.count,3);
+assert.equal(measured.workbook.Sheets.Pivot.C9.v,1);
+assert.equal(measured.workbook.Sheets.Pivot.D9.v,0);
+const zero=row(205,1,5);zero[7]=0;
+assert.equal(cleaner.convert(workbook([zero]),XLSX).workbook.Sheets.Pivot.C9.t,'e');
 async function checkTable(){
   const JSZip=require('../lib/jszip.min.js');
   const data=await cleaner.write(result,XLSX,JSZip);
@@ -55,6 +64,12 @@ async function checkTable(){
   assert.ok(pivot.includes('gridDropZones="1"'));
   assert.ok(pivot.includes('showDropZones="1"'));
   assert.ok(pivot.includes('compact="0"'));
+  assert.ok(pivot.includes('dataOnRows="1"'));
+  assert.ok(pivot.includes('<rowFields count="2"><field x="2"/><field x="-2"/></rowFields>'));
+  assert.ok(pivot.includes('<pageFields count="2"><pageField fld="0"/><pageField fld="4"/></pageFields>'));
+  assert.ok(pivot.includes('<colFields count="1"><field x="8"/></colFields>'));
+  assert.ok(pivot.includes('name=".jumlahrek" fld="7" subtotal="count"'));
+  assert.ok(pivot.includes('name=".%kol" fld="7" subtotal="sum" showDataAs="percentOfRow"'));
   assert.equal((pivot.match(/<pivotField /g)||[]).length,17);
   const cache=await zip.file('xl/pivotCache/pivotCacheDefinition1.xml').async('string');
   assert.ok(cache.includes('recordCount="5"'));
