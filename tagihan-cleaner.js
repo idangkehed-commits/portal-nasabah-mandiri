@@ -60,18 +60,41 @@
       const copy = {t:cell.t || (typeof cell.v==='number'?'n':'s'),v:cell.v};
       if (cell.z) copy.z=cell.z;
       if ([1,3,15].includes(c) && copy.t==='n') copy.z='0';
-      if ([7,13,14,16].includes(c) && copy.t==='n') copy.z='#,##0.00';
-      if (c===10 && copy.t==='n') copy.z='dd/mm/yyyy';
+      if ([7,13,14,16].includes(c) && copy.t==='n') copy.z='_(* #,##0.00_);_(* \\(#,##0.00\\);_(* "-"??_);_(@_)';
+      if (c===10 && copy.t==='n') copy.z='m/d/yy';
       result[XLSX.utils.encode_cell({r:i+3,c})]=copy;
     }));
     result['!ref']='A1:Q'+(rows.length+3);
-    result['!cols']=[9,14,25,17,9,34,12,15,8,9,14,7,7,18,18,17,18].map(wch=>({wch,hidden:false}));
+    result['!cols']=[7.28515625,12,21.7109375,14.140625,6,32.42578125,12,9.5703125,4.42578125,8.140625,15.5703125,3,4,14.28515625,15.28515625,14.140625,15.28515625].map(width=>({width,hidden:false}));
     result['!autofilter']={ref:'A3:Q'+(rows.length+3)};
     const output=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(output,result,'ALL');
     return {workbook:output,count:rows.length,sheetName:selected.name};
   }
-  const api={convert,columns,compare};
+  // SheetJS CE writes cell values but does not export native Excel tables.
+  // Add the standard OOXML table part to this freshly generated single-sheet file.
+  async function write(result,XLSX,JSZip) {
+    const zip=await JSZip.loadAsync(XLSX.write(result.workbook,{bookType:'xlsx',type:'array'}));
+    const last=result.count+3,ref='A3:Q'+last;
+    const escape=value=>String(value).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const table='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+      '<table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="1" name="Table1" displayName="Table1" ref="'+ref+'" totalsRowShown="0">'+
+      '<autoFilter ref="'+ref+'"/><tableColumns count="17">'+
+      columns.map(([name],i)=>'<tableColumn id="'+(i+1)+'" name="'+escape(name)+'"/>').join('')+
+      '</tableColumns><tableStyleInfo name="TableStyleMedium9" showFirstColumn="0" showLastColumn="0" showRowStripes="1" showColumnStripes="0"/></table>';
+    let sheet=await zip.file('xl/worksheets/sheet1.xml').async('string');
+    sheet=sheet.replace(/<autoFilter\b[^>]*\/>|<autoFilter\b[^>]*>[\s\S]*?<\/autoFilter>/g,'');
+    sheet=sheet.replace('</worksheet>','<tableParts count="1"><tablePart r:id="rIdTable1"/></tableParts></worksheet>');
+    zip.file('xl/worksheets/sheet1.xml',sheet);
+    zip.file('xl/tables/table1.xml',table);
+    zip.file('xl/worksheets/_rels/sheet1.xml.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdTable1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/table" Target="../tables/table1.xml"/></Relationships>');
+    const types=await zip.file('[Content_Types].xml').async('string');
+    zip.file('[Content_Types].xml',types.replace('</Types>','<Override PartName="/xl/tables/table1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml"/></Types>'));
+    const styles=await zip.file('xl/styles.xml').async('string');
+    zip.file('xl/styles.xml',styles.replace(/<fonts\b[\s\S]*?<\/fonts>/,fonts=>fonts.replace(/<sz val="[^"]+"\/>/g,'<sz val="11"/>')));
+    return zip.generateAsync({type:'uint8array',compression:'DEFLATE'});
+  }
+  const api={convert,columns,compare,write};
   if (typeof module!=='undefined' && module.exports) module.exports=api;
   global.TagihanCleaner=api;
 })(typeof window==='undefined'?globalThis:window);

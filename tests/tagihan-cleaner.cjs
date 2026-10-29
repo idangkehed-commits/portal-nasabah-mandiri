@@ -27,4 +27,21 @@ const formulaSource=workbook(source);formulaSource.Sheets.Detail1.O4.f='9999999-
 const formulaResult=cleaner.convert(formulaSource,XLSX);
 assert.equal(Object.values(formulaResult.workbook.Sheets.ALL).some(c=>c?.f),false);
 assert.equal(cleaner.compare('2C',3)<0,true);
-console.log('Tagihan cleaner: sorting, stable ties, all raw values, blank/zero handling, visible LIMIT, reordered/missing/duplicate headers and formula exclusion passed.');
+async function checkTable(){
+  const JSZip=require('../lib/jszip.min.js');
+  const data=await cleaner.write(result,XLSX,JSZip);
+  const zip=await JSZip.loadAsync(data);
+  const table=await zip.file('xl/tables/table1.xml').async('string');
+  assert.ok(table.includes('name="TableStyleMedium9"'));
+  assert.ok(table.includes('showRowStripes="1"'));
+  assert.ok(table.includes('ref="A3:Q8"'));
+  assert.equal((table.match(/<tableColumn /g)||[]).length,17);
+  const xml=await zip.file('xl/worksheets/sheet1.xml').async('string');
+  assert.ok(xml.includes('<tablePart r:id="rIdTable1"/>'));
+  assert.equal(xml.includes('<autoFilter'),false);
+  assert.ok((await zip.file('xl/styles.xml').async('string')).includes('<sz val="11"/>'));
+  const restored=XLSX.read(data,{type:'array'});
+  assert.equal(JSON.stringify(XLSX.utils.sheet_to_json(restored.Sheets.ALL,{header:1,defval:null})),JSON.stringify(values));
+  console.log('Tagihan cleaner: all values, sorting, blank/zero handling, visible LIMIT, header validation and native blue table export passed.');
+}
+checkTable().catch(error=>{console.error(error);process.exitCode=1;});
