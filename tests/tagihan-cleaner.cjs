@@ -27,6 +27,15 @@ const formulaSource=workbook(source);formulaSource.Sheets.Detail1.O4.f='9999999-
 const formulaResult=cleaner.convert(formulaSource,XLSX);
 assert.equal(Object.values(formulaResult.workbook.Sheets.ALL).some(c=>c?.f),false);
 assert.equal(cleaner.compare('2C',3)<0,true);
+const expanded=workbook(source.map((r,i)=>[...r,i?'Bandung Rancaekek 2':'Bandung Rancaekek 1',46321,0]),[...headers,'mbu','posisi','kolom tambahan']);
+const prepared=cleaner.prepare(expanded,XLSX);
+assert.equal(prepared.branches.length,1);
+assert.equal(prepared.branches[0].count,source.length);
+assert.equal(prepared.reportDate,'2026-10-26');
+const hiddenResult=cleaner.convertPrepared(prepared,XLSX,['13112A']);
+assert.equal(hiddenResult.headers.length,20);
+assert.equal(hiddenResult.workbook.Sheets.ALL['!cols'][17].hidden,true);
+assert.equal(hiddenResult.workbook.Sheets.ALL.T4.v,0);
 async function checkTable(){
   const JSZip=require('../lib/jszip.min.js');
   const data=await cleaner.write(result,XLSX,JSZip);

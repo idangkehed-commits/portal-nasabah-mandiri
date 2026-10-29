@@ -6,40 +6,50 @@
 <link rel="icon" href="icon.svg">
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f2f5f8;color:#18334d;font:15px/1.6 Arial,sans-serif}header{background:#12375b;color:white;padding:20px 24px}header>div{max-width:840px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:16px}header a{color:white;text-decoration:none;border:1px solid #ffffff60;border-radius:8px;padding:8px 12px;font-size:13px}main{max-width:720px;margin:48px auto;padding:0 20px}h1{font-size:28px;line-height:1.25;margin:12px 0}h2{font-size:18px;margin:0 0 8px}.eyebrow{color:#65758a;font-size:12px;font-weight:bold;letter-spacing:1px}p{margin:12px 0;color:#56667b}.card{margin-top:26px;background:white;padding:28px;border:1px solid #dbe3ec;border-radius:16px;box-shadow:0 8px 28px #12375b08}.drop{display:block;text-align:center;padding:42px 20px;border:2px dashed #a6bacd;border-radius:12px;background:#f8fafc;cursor:pointer}.drop:hover,.drop.over{background:#eaf2fa;border-color:#235c8a}.drop strong{display:block;font-size:18px}.drop span{display:block;color:#687a8e;font-size:13px;margin-top:8px}.file-input{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.drop:focus-within{outline:3px solid #5285b5;outline-offset:3px}.choose{display:inline-block!important;color:#12375b!important;background:#e3edf7;padding:8px 18px;border-radius:7px;font-weight:bold}button{min-height:46px;border:0;border-radius:9px;background:#12375b;color:white;font: bold 14px Arial;padding:12px 20px;cursor:pointer;width:100%;margin-top:16px}button:disabled{background:#cbd5df;color:#66788b;cursor:default}button:focus-visible,a:focus-visible{outline:3px solid #e4b33c;outline-offset:3px}#status{white-space:pre-line;font-size:14px;overflow-wrap:anywhere}#status.error{color:#ae2630}#status.success{color:#216748}.footnote{font-size:13px;margin-top:20px}ul{padding-left:20px;color:#56667b;font-size:14px}@media(max-width:600px){main{margin:28px auto}h1{font-size:24px}.card{padding:20px}.drop{padding:32px 14px}header{padding:16px}header b{font-size:14px}}
+.field-label{display:block;font-size:14px;font-weight:bold;margin:22px 0 8px}input[type=date]{font:16px Arial;padding:10px;border:1px solid #a6bacd;border-radius:8px;max-width:100%}.branch-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:24px}.branch-heading h2{margin:0}.branch-heading label{font-size:13px}.branches{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.branch{border:1px solid #dbe3ec;border-radius:8px;padding:12px;display:flex;align-items:center;gap:9px;cursor:pointer}.branch:has(input:checked){background:#eaf2fa;border-color:#7c9fbe}.branch small{display:block;color:#65758a}.branch input,.branch-heading input{width:17px;height:17px;accent-color:#12375b}.branch:focus-within{outline:2px solid #5285b5}#selectedCount{font-size:13px}@media(max-width:600px){.branches{grid-template-columns:1fr}.branch-heading{align-items:flex-start;flex-direction:column}}
 </style>
-<script src="lib/xlsx.full.min.js" defer></script><script src="lib/jszip.min.js" defer></script><script src="tagihan-cleaner.js?v=20261029_table" defer></script>
+
 </head>
 <body><header><div><b>Portal Nasabah · Tools</b><a href="/">Kembali ke portal</a></div></header>
 <main><div class="eyebrow">EXCEL TAGIHAN</div><h1>Rapikan laporan harian</h1><p>Unggah file raw dari kantor pusat. Nama dan urutan kolom akan mengikuti template Anda.</p>
-<div class="card"><label class="drop" id="drop"><input class="file-input" id="file" type="file" accept=".xls,.xlsx" aria-label="Pilih Excel raw tagihan"><strong>Tarik dan lepaskan Excel di sini</strong><span>Format .xls atau .xlsx</span><span class="choose">Pilih file</span></label><p id="status" role="status" aria-live="polite">Belum ada file dipilih.</p><button id="download" type="button" disabled>Unduh Excel yang sudah dirapikan</button></div>
-<div class="card"><h2>Hasil sesuai template</h2><ul><li>Tabel Excel biru dengan baris selang-seling dan tombol filter, seperti template.</li><li>17 kolom dengan nama dan posisi yang sudah disepakati. Kolom LIMIT ditampilkan.</li><li>Nominal dan KOL mengikuti raw. Nilai kosong tetap kosong.</li><li>Urutan KOL A–Z, lalu JT kecil ke besar pada KOL yang sama.</li></ul><p class="footnote">File diproses di browser Anda. Data tidak diunggah dan tidak mengubah database portal.</p></div></main>
+<div class="card"><label class="drop" id="drop"><input class="file-input" id="file" type="file" accept=".xls,.xlsx" aria-label="Pilih Excel raw tagihan"><strong>Tarik dan lepaskan Excel di sini</strong><span>Format .xls atau .xlsx</span><span class="choose">Pilih file</span></label><p id="status" role="status" aria-live="polite">Belum ada file dipilih.</p><div id="selection" hidden><label for="reportDate" class="field-label">Tanggal laporan</label><input id="reportDate" type="date"><div class="branch-heading"><h2>Pilih cabang</h2><label><input id="selectAll" type="checkbox"> Semua cabang</label></div><div id="branches" class="branches"></div><p id="selectedCount"></p></div><button id="download" type="button" disabled>Unduh hasil</button></div>
+<div class="card"><h2>Hasil sesuai template</h2><ul><li>Tabel Excel biru dengan baris selang-seling dan tombol filter, seperti template.</li><li>17 kolom utama ditampilkan, termasuk LIMIT. Kolom raw lainnya disimpan di sebelah kanan dan di-hide.</li><li>Satu cabang menjadi Excel. Beberapa atau semua cabang menjadi ZIP berisi satu Excel per kode cabang.</li><li>Nominal dan KOL mengikuti raw. Nilai kosong tetap kosong.</li><li>Urutan KOL A–Z, lalu JT kecil ke besar pada KOL yang sama.</li></ul><p class="footnote">File diproses di browser Anda. Data tidak diunggah dan tidak mengubah database portal.</p></div></main>
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
-  const input=document.getElementById('file'),drop=document.getElementById('drop'),status=document.getElementById('status'),download=document.getElementById('download');
-  let result=null,filename='',busy=false;
+  const input=document.getElementById('file'),drop=document.getElementById('drop'),status=document.getElementById('status'),download=document.getElementById('download'),selection=document.getElementById('selection'),list=document.getElementById('branches'),all=document.getElementById('selectAll'),date=document.getElementById('reportDate'),count=document.getElementById('selectedCount');
+  let worker=null,loaded=null,busy=false,currentFile='',generation=0;
+  function choices(){return Array.from(list.querySelectorAll('input:checked'),i=>i.value);}
+  function update(){const selected=choices(),total=loaded?.branches.length||0;all.checked=total>0&&selected.length===total;all.indeterminate=selected.length>0&&selected.length<total;const rows=loaded?.branches.filter(b=>selected.includes(b.code)).reduce((n,b)=>n+b.count,0)||0;count.textContent=selected.length+' cabang dipilih · '+rows.toLocaleString('id-ID')+' rekening';download.textContent=selected.length>1?'Unduh ZIP ('+selected.length+' cabang)':'Unduh Excel';download.disabled=busy||!selected.length||!date.value;}
+  function lock(value){busy=value;list.querySelectorAll('input').forEach(i=>i.disabled=value);all.disabled=value;date.disabled=value;drop.setAttribute('aria-busy',String(value));update();}
+  function error(message){status.className='error';status.textContent=message;lock(false);}
   async function process(files){
-    if(busy)return;
-    result=null;download.disabled=true;status.className='';
-    if(files.length!==1){status.className='error';status.textContent='Pilih satu file Excel raw.';return;}
-    const file=files[0];
-    if(!/\.xlsx?$/i.test(file.name)){status.className='error';status.textContent='Gunakan file Excel .xls atau .xlsx.';return;}
-    busy=true;input.disabled=true;drop.setAttribute('aria-busy','true');status.textContent='Sedang merapikan '+file.name+'…';
+    const version=++generation;
+    worker?.terminate();worker=null;loaded=null;list.replaceChildren();selection.hidden=true;download.disabled=true;status.className='';
+    if(files.length!==1){error('Pilih satu file Excel raw.');return;}
+    const file=files[0];if(!/\.xlsx?$/i.test(file.name)){error('Gunakan file Excel .xls atau .xlsx.');return;}
+    currentFile=file.name;lock(true);status.textContent='Membaca '+file.name+'…';
     try{
-      if(!window.XLSX||!window.JSZip||!window.TagihanCleaner)throw new Error('Pembaca Excel belum dimuat. Muat ulang halaman lalu coba lagi.');
-      const data=await file.arrayBuffer();
-      await new Promise(resolve=>setTimeout(resolve,30));
-      const converted=TagihanCleaner.convert(XLSX.read(data,{type:'array',cellNF:true,cellDates:false}),XLSX);
-      result=await TagihanCleaner.write(converted,XLSX,JSZip);
-      filename=file.name.replace(/\.xlsx?$/i,'')+' - Rapi.xlsx';
-      status.className='success';status.textContent=file.name+'\nSelesai: '+converted.count.toLocaleString('id-ID')+' baris · 17 kolom. Siap diunduh.';download.disabled=false;
-    }catch(error){status.className='error';status.textContent=error.message||'File tidak dapat dibaca. Periksa kembali file Excel raw.';result=null;}
-    finally{busy=false;input.disabled=false;input.value='';drop.removeAttribute('aria-busy');}
+      const data=await file.arrayBuffer();if(version!==generation)return;worker=new Worker('tagihan-cleaner-worker.js?v=20261029_branches');const current=worker;
+      worker.onerror=()=>{if(worker===current){worker.terminate();worker=null;loaded=null;selection.hidden=true;error('Pembaca Excel tidak dapat dimuat. Muat ulang halaman dan coba lagi.');}};
+      worker.onmessage=event=>{if(worker!==current)return;const m=event.data;
+        if(m.type==='loaded'){
+          loaded=m;date.value=m.reportDate||'';if(!date.value){const match=currentFile.match(/(\d{2})(\d{2})(\d{4})/);if(match)date.value=match[3]+'-'+match[2]+'-'+match[1];}
+          for(const b of m.branches){const label=document.createElement('label');label.className='branch';const box=document.createElement('input');box.type='checkbox';box.value=b.code;box.checked=m.branches.length===1;box.setAttribute('aria-label',b.name);const text=document.createElement('span'),name=document.createElement('span'),detail=document.createElement('small');name.textContent=b.name;detail.textContent=b.code+' · '+b.count.toLocaleString('id-ID')+' rekening';text.append(name,detail);label.append(box,text);list.append(label);}
+          selection.hidden=false;status.className='success';status.textContent=currentFile+'\n'+m.count.toLocaleString('id-ID')+' rekening · '+m.branches.length+' cabang. '+Math.max(0,m.columns-17)+' kolom tambahan di-hide.';lock(false);
+        }else if(m.type==='progress'){status.className='';status.textContent='Menyiapkan '+m.name+' ('+(m.completed+1)+'/'+m.total+')…';}
+        else if(m.type==='ready'){const url=URL.createObjectURL(new Blob([m.data],{type:m.mime}));const a=document.createElement('a');a.href=url;a.download=m.filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);status.className='success';status.textContent='Selesai: '+m.files+' file Excel'+(m.files>1?' dalam ZIP':'')+'. Silakan periksa unduhan Anda.';lock(false);}
+        else if(m.type==='error'){if(!loaded){worker.terminate();worker=null;selection.hidden=true;}error(m.message);}
+      };
+      worker.postMessage({type:'load',data},[data]);
+    }catch(e){if(version===generation)error(e.message||'File tidak dapat dibaca.');}
+    finally{if(version===generation)input.value='';}
   }
   input.addEventListener('change',()=>process(Array.from(input.files)));
   for(const event of ['dragenter','dragover'])drop.addEventListener(event,e=>{e.preventDefault();drop.classList.add('over');});
   for(const event of ['dragleave','drop'])drop.addEventListener(event,e=>{e.preventDefault();drop.classList.remove('over');});
   drop.addEventListener('drop',e=>process(Array.from(e.dataTransfer.files)));
   window.addEventListener('dragover',e=>e.preventDefault());window.addEventListener('drop',e=>e.preventDefault());
-  download.addEventListener('click',()=>{if(!result)return;const url=URL.createObjectURL(new Blob([result],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));const link=document.createElement('a');link.href=url;link.download=filename;link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);});
+  list.addEventListener('change',update);date.addEventListener('change',update);all.addEventListener('change',()=>{list.querySelectorAll('input').forEach(i=>i.checked=all.checked);update();});
+  download.addEventListener('click',()=>{if(!worker||busy||!loaded)return;const codes=choices();if(!codes.length||!date.value)return;lock(true);worker.postMessage({type:'export',codes,date:date.value});});
 });
 </script></body></html>
