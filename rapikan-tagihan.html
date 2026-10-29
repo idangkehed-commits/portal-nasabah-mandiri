@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rapikan Excel Tagihan · Portal Nasabah</title>
+<link rel="icon" href="icon.svg">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f2f5f8;color:#18334d;font:15px/1.6 Arial,sans-serif}header{background:#12375b;color:white;padding:20px 24px}header>div{max-width:840px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:16px}header a{color:white;text-decoration:none;border:1px solid #ffffff60;border-radius:8px;padding:8px 12px;font-size:13px}main{max-width:720px;margin:48px auto;padding:0 20px}h1{font-size:28px;line-height:1.25;margin:12px 0}h2{font-size:18px;margin:0 0 8px}.eyebrow{color:#65758a;font-size:12px;font-weight:bold;letter-spacing:1px}p{margin:12px 0;color:#56667b}.card{margin-top:26px;background:white;padding:28px;border:1px solid #dbe3ec;border-radius:16px;box-shadow:0 8px 28px #12375b08}.drop{display:block;text-align:center;padding:42px 20px;border:2px dashed #a6bacd;border-radius:12px;background:#f8fafc;cursor:pointer}.drop:hover,.drop.over{background:#eaf2fa;border-color:#235c8a}.drop strong{display:block;font-size:18px}.drop span{display:block;color:#687a8e;font-size:13px;margin-top:8px}.file-input{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.drop:focus-within{outline:3px solid #5285b5;outline-offset:3px}.choose{display:inline-block!important;color:#12375b!important;background:#e3edf7;padding:8px 18px;border-radius:7px;font-weight:bold}button{min-height:46px;border:0;border-radius:9px;background:#12375b;color:white;font: bold 14px Arial;padding:12px 20px;cursor:pointer;width:100%;margin-top:16px}button:disabled{background:#cbd5df;color:#66788b;cursor:default}button:focus-visible,a:focus-visible{outline:3px solid #e4b33c;outline-offset:3px}#status{white-space:pre-line;font-size:14px;overflow-wrap:anywhere}#status.error{color:#ae2630}#status.success{color:#216748}.footnote{font-size:13px;margin-top:20px}ul{padding-left:20px;color:#56667b;font-size:14px}@media(max-width:600px){main{margin:28px auto}h1{font-size:24px}.card{padding:20px}.drop{padding:32px 14px}header{padding:16px}header b{font-size:14px}}
+</style>
+<script src="lib/xlsx.full.min.js" defer></script><script src="tagihan-cleaner.js?v=20261029" defer></script>
+</head>
+<body><header><div><b>Portal Nasabah · Tools</b><a href="/">Kembali ke portal</a></div></header>
+<main><div class="eyebrow">EXCEL TAGIHAN</div><h1>Rapikan laporan harian</h1><p>Unggah file raw dari kantor pusat. Nama dan urutan kolom akan mengikuti template Anda.</p>
+<div class="card"><label class="drop" id="drop"><input class="file-input" id="file" type="file" accept=".xls,.xlsx" aria-label="Pilih Excel raw tagihan"><strong>Tarik dan lepaskan Excel di sini</strong><span>Format .xls atau .xlsx</span><span class="choose">Pilih file</span></label><p id="status" role="status" aria-live="polite">Belum ada file dipilih.</p><button id="download" type="button" disabled>Unduh Excel yang sudah dirapikan</button></div>
+<div class="card"><h2>Hasil sesuai template</h2><ul><li>17 kolom dengan nama dan posisi yang sudah disepakati. Kolom LIMIT ditampilkan.</li><li>Nominal dan KOL mengikuti raw. Nilai kosong tetap kosong.</li><li>Urutan KOL A–Z, lalu JT kecil ke besar pada KOL yang sama.</li></ul><p class="footnote">File diproses di browser Anda. Data tidak diunggah dan tidak mengubah database portal.</p></div></main>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  const input=document.getElementById('file'),drop=document.getElementById('drop'),status=document.getElementById('status'),download=document.getElementById('download');
+  let result=null,filename='',busy=false;
+  async function process(files){
+    if(busy)return;
+    result=null;download.disabled=true;status.className='';
+    if(files.length!==1){status.className='error';status.textContent='Pilih satu file Excel raw.';return;}
+    const file=files[0];
+    if(!/\.xlsx?$/i.test(file.name)){status.className='error';status.textContent='Gunakan file Excel .xls atau .xlsx.';return;}
+    busy=true;input.disabled=true;drop.setAttribute('aria-busy','true');status.textContent='Sedang merapikan '+file.name+'…';
+    try{
+      if(!window.XLSX||!window.TagihanCleaner)throw new Error('Pembaca Excel belum dimuat. Muat ulang halaman lalu coba lagi.');
+      const data=await file.arrayBuffer();
+      await new Promise(resolve=>setTimeout(resolve,30));
+      const converted=TagihanCleaner.convert(XLSX.read(data,{type:'array',cellNF:true,cellDates:false}),XLSX);
+      result=XLSX.write(converted.workbook,{bookType:'xlsx',type:'array'});
+      filename=file.name.replace(/\.xlsx?$/i,'')+' - Rapi.xlsx';
+      status.className='success';status.textContent=file.name+'\nSelesai: '+converted.count.toLocaleString('id-ID')+' baris · 17 kolom. Siap diunduh.';download.disabled=false;
+    }catch(error){status.className='error';status.textContent=error.message||'File tidak dapat dibaca. Periksa kembali file Excel raw.';result=null;}
+    finally{busy=false;input.disabled=false;input.value='';drop.removeAttribute('aria-busy');}
+  }
+  input.addEventListener('change',()=>process(Array.from(input.files)));
+  for(const event of ['dragenter','dragover'])drop.addEventListener(event,e=>{e.preventDefault();drop.classList.add('over');});
+  for(const event of ['dragleave','drop'])drop.addEventListener(event,e=>{e.preventDefault();drop.classList.remove('over');});
+  drop.addEventListener('drop',e=>process(Array.from(e.dataTransfer.files)));
+  window.addEventListener('dragover',e=>e.preventDefault());window.addEventListener('drop',e=>e.preventDefault());
+  download.addEventListener('click',()=>{if(!result)return;const url=URL.createObjectURL(new Blob([result],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));const link=document.createElement('a');link.href=url;link.download=filename;link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);});
+});
+</script></body></html>

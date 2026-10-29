@@ -1,0 +1,30 @@
+const assert=require('node:assert/strict');
+const XLSX=require('../lib/xlsx.full.min.js');
+const cleaner=require('../tagihan-cleaner.js');
+const headers=cleaner.columns.map(([,source])=>source);
+function workbook(rows,head=headers){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([[],[],head,...rows]),'Detail1');return wb;}
+function row(account,kol,jt){return ['13112A',123,'Petugas',account,'KUR','Contoh',100,98.1234,kol,1,46000,jt,null,1200000,735980.49,234,0];}
+const source=[row(111,'2A',10),row(112,1,10),row(113,1,2),row(114,'2A',2),row(115,1,2)];
+const result=cleaner.convert(workbook(source),XLSX);
+const saved=XLSX.read(XLSX.write(result.workbook,{type:'buffer',bookType:'xlsx'}),{type:'buffer'});
+const values=XLSX.utils.sheet_to_json(saved.Sheets.ALL,{header:1,defval:null});
+assert.equal(result.count,5);
+assert.equal(JSON.stringify(values[2]),JSON.stringify(cleaner.columns.map(([name])=>name)));
+assert.equal(JSON.stringify(values.slice(3).map(r=>r[3])),JSON.stringify([113,115,112,114,111]));
+const byAccount=new Map(source.map(r=>[r[3],r]));
+for(const actual of values.slice(3))assert.equal(JSON.stringify(actual),JSON.stringify(byAccount.get(actual[3])));
+assert.equal(result.workbook.Sheets.ALL['!cols'][6].hidden,false);
+assert.equal(result.workbook.Sheets.ALL.G4.v,100);
+assert.equal(result.workbook.Sheets.ALL.Q4.v,0);
+assert.equal(result.workbook.Sheets.ALL.M4,undefined);
+assert.throws(()=>cleaner.convert(workbook(source,headers.slice(1)),XLSX),/Header/);
+assert.throws(()=>cleaner.convert(workbook(source,[...headers,'acctno']),XLSX),/duplikat/);
+assert.throws(()=>cleaner.convert(workbook([row(null,1,2)]),XLSX),/rekening kosong/);
+const shuffled=headers.map((h,i)=>[h,i]).reverse();
+const reordered=cleaner.convert(workbook(source.map(r=>shuffled.map(([,i])=>r[i])),shuffled.map(([h])=>h)),XLSX);
+assert.equal(JSON.stringify(XLSX.utils.sheet_to_json(reordered.workbook.Sheets.ALL,{header:1})),JSON.stringify(XLSX.utils.sheet_to_json(result.workbook.Sheets.ALL,{header:1})));
+const formulaSource=workbook(source);formulaSource.Sheets.Detail1.O4.f='9999999-1';
+const formulaResult=cleaner.convert(formulaSource,XLSX);
+assert.equal(Object.values(formulaResult.workbook.Sheets.ALL).some(c=>c?.f),false);
+assert.equal(cleaner.compare('2C',3)<0,true);
+console.log('Tagihan cleaner: sorting, stable ties, all raw values, blank/zero handling, visible LIMIT, reordered/missing/duplicate headers and formula exclusion passed.');
