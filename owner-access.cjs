@@ -79,6 +79,14 @@ module.exports=function ownerAccess(env=process.env,injectedPool,dependencies={}
     if(Date.now()<nextTest)return json(res,429,{error:'Tunggu satu menit sebelum menguji lagi.'});nextTest=Date.now()+60000;
     return json(res,200,await notify('Uji dari server Portal Nasabah. Notifikasi ini dikirim khusus ke perangkat Anda.',endpoint));
    }
+   if(route==='/__access/push/status'&&req.method==='POST'){
+    if(!sameOrigin(req))return json(res,403,{error:'Permintaan ditolak.'});
+    let body='',size=0;for await(const chunk of req){size+=chunk.length;if(size>4096)return json(res,413,{error:'Permintaan terlalu besar.'});body+=chunk;}
+    let endpoint;try{endpoint=JSON.parse(body).endpoint;}catch{return json(res,400,{error:'Data tidak valid.'});}
+    if(!validEndpoint(endpoint))return json(res,400,{error:'Perangkat belum terdaftar.'});
+    const result=await(await db()).query('SELECT endpoint FROM portal_owner_push WHERE endpoint=$1',[endpoint]);
+    return json(res,200,{registered:result.rows.length>0});
+   }
    if(route==='/__access/push/key'&&req.method==='GET')return json(res,200,{publicKey:(await vapid()).publicKey});
    if(route==='/__access/push/subscribe'&&req.method==='POST'){
     if(!sameOrigin(req)||!(req.headers['content-type']||'').startsWith('application/json'))return json(res,403,{error:'Permintaan ditolak.'});

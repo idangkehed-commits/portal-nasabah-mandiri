@@ -30,15 +30,18 @@
   const button=document.getElementById('pushEnable');button.disabled=true;
   try{
    if(!('serviceWorker'in navigator)||!('PushManager'in window)||!('Notification'in window))throw Error('HP ini belum mendukung notifikasi web. Di iPhone, tambahkan portal ke layar utama dan buka dari ikon portal.');
-   const permission=await Notification.requestPermission();if(permission!=='granted')throw Error('Izin notifikasi belum diberikan. Periksa izin situs pada pengaturan browser.');
+   pushStatus.textContent='Memeriksa izin notifikasi situs...';
+   const permission=Notification.permission==='granted'?'granted':await Notification.requestPermission();if(permission!=='granted')throw Error(permission==='denied'?'Izin notifikasi situs ini diblokir Chrome. Buka ikon pengaturan di samping alamat portal > Izin > Notifikasi > Izinkan. Izin aplikasi Chrome di Android saja belum cukup.':'Izin notifikasi situs belum diberikan. Tekan Aktifkan notifikasi HP dan pilih Izinkan saat diminta Chrome.');
+   pushStatus.textContent='Izin situs aktif. Menghubungkan HP ke layanan notifikasi...';
    const key=await api('/__access/push/key','GET');
    const registration=await navigator.serviceWorker.register('/__access/owner-sw.js',{scope:'/__access/'});
    if(!registration.active)await new Promise((resolve,reject)=>{const worker=registration.installing||registration.waiting;if(!worker)return reject(Error('Notifikasi belum siap. Coba lagi.'));const timeout=setTimeout(()=>reject(Error('Notifikasi belum siap. Coba lagi.')),15000);worker.addEventListener('statechange',()=>{if(worker.state==='activated'){clearTimeout(timeout);resolve();}});});
    const bytes=Uint8Array.from(atob(key.publicKey.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
    const subscription=await registration.pushManager.getSubscription()||await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:bytes});
+   pushStatus.textContent='HP terdaftar di browser. Menyimpan perangkat ke portal...';
    const response=await fetch('/__access/push/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(subscription)});const data=await response.json();if(!response.ok)throw Error(data.error||'Notifikasi belum tersimpan.');
    pushStatus.textContent='Notifikasi HP aktif. Halaman ini boleh ditutup. Pengiriman tetap bergantung pada koneksi dan pengaturan notifikasi HP.';
-  }catch(e){pushStatus.textContent=e.message;}finally{button.disabled=false;}
+  }catch(e){pushStatus.textContent=(e.name&&e.name!=='Error'?e.name+': ':'')+e.message;}finally{button.disabled=false;}
  };
  if(document.getElementById('pushDisable'))document.getElementById('pushDisable').onclick=async()=>{try{await api('/__access/push/unsubscribe');const registration=await navigator.serviceWorker.getRegistration('/__access/');const subscription=await registration?.pushManager.getSubscription();await subscription?.unsubscribe();pushStatus.textContent='Notifikasi semua perangkat pemilik sudah dimatikan.';}catch(e){pushStatus.textContent=e.message;}};
  if(document.getElementById('ownerLogout'))document.getElementById('ownerLogout').onclick=async()=>{try{await api('/__access/owner/logout');location.replace('/__access/approvals');}catch(e){pushStatus.textContent=e.message;}};
@@ -56,5 +59,17 @@
   const d=await response.json();if(!response.ok)throw Error(d.error||'Uji gagal.');
   pushStatus.textContent=d.sent?'Layanan push menerima kiriman khusus untuk HP ini. Ini belum memastikan tampil di Android. Jika belum muncul, coba Uji tampilan di HP ini.':'Kiriman ke HP ini belum berhasil. Tekan Aktifkan notifikasi HP untuk mendaftarkan ulang perangkat, lalu coba lagi.';
  }catch(e){pushStatus.textContent=e.message;}finally{b.disabled=false;}};
- poll();setInterval(poll,4000);
+ async function showPhoneStatus(){
+  if(!document.getElementById('pushEnable'))return;
+  try{
+   if(!('Notification'in window)||!('serviceWorker'in navigator)){pushStatus.textContent='Browser ini tidak mendukung notifikasi web.';return;}
+   if(Notification.permission==='denied'){pushStatus.textContent='Notifikasi situs ini diblokir Chrome. Buka ikon pengaturan di samping alamat portal > Izin > Notifikasi > Izinkan. Izin aplikasi di Android saja belum cukup.';return;}
+   if(Notification.permission!=='granted'){pushStatus.textContent='Notifikasi situs belum diizinkan. Tekan Aktifkan notifikasi HP.';return;}
+   const r=await navigator.serviceWorker.getRegistration('/__access/'),sub=await r?.pushManager.getSubscription();
+   if(!sub){pushStatus.textContent='Izin situs sudah aktif, tetapi HP belum didaftarkan. Tekan Aktifkan notifikasi HP.';return;}
+   const response=await fetch('/__access/push/status',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({endpoint:sub.endpoint})});const data=await response.json();if(!response.ok)throw Error(data.error||'Status belum dapat diperiksa.');
+   pushStatus.textContent=data.registered?'Notifikasi HP ini terdaftar di portal. Gunakan Uji tampilan di HP ini untuk memeriksa tampilan Android.':'HP terdaftar di browser tetapi belum tersimpan di portal. Tekan Aktifkan notifikasi HP untuk menyambungkan kembali.';
+  }catch(e){pushStatus.textContent=e.message;}
+ }
+ showPhoneStatus();poll();setInterval(poll,4000);
 })();
