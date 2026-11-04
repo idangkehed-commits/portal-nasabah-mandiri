@@ -1,0 +1,29 @@
+'use strict';
+(()=>{
+ const status=document.getElementById('status'),admin=!!document.getElementById('requests');
+ const seen=new Set();let running=false;
+ async function api(url,method='POST'){const r=await fetch(url,{method,credentials:'same-origin',cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'Permintaan gagal.');return d;}
+ async function poll(){
+  if(running)return;running=true;
+  try{
+   if(admin){
+    const d=await api('/__access/requests','GET'),root=document.getElementById('requests');root.replaceChildren();
+    for(const item of d.requests){
+     if(!seen.has(item.id)){seen.add(item.id);if('Notification'in window&&Notification.permission==='granted')try{new Notification('Permintaan akses Portal Nasabah',{body:'Kode '+item.code,tag:item.id});}catch{}}
+     const card=document.createElement('article'),code=document.createElement('strong'),time=document.createElement('p');code.textContent=item.code;time.textContent='Berlaku sampai '+new Date(item.until).toLocaleTimeString('id-ID');card.append(code,time);
+     for(const[action,label]of [['approve','Setujui'],['deny','Tolak']]){const b=document.createElement('button');b.textContent=label;b.onclick=async()=>{b.disabled=true;try{await api('/__access/requests/'+item.id+'/'+action);await poll();card.remove();}catch(e){status.textContent=e.message;b.disabled=false;}};card.append(b);}root.append(card);
+    }status.textContent=d.requests.length?'':'Belum ada permintaan akses.';
+   }else{
+    const d=await api('/__access/requests/status');
+    if(d.state==='approved'){location.replace('/');return;}
+    const pending=d.state==='pending';document.getElementById('request').disabled=pending;
+    document.getElementById('code').textContent=pending?d.code:'';
+    document.getElementById('expiry').textContent=pending?'Berlaku sampai '+new Date(d.until).toLocaleTimeString('id-ID'):'';
+    status.textContent=pending?'Menunggu persetujuan pemilik…':d.state==='denied'?'Permintaan ditolak. Anda dapat meminta akses kembali.':'Klik Minta akses untuk membuat permintaan baru.';
+   }
+  }catch(e){status.textContent=e.message;}finally{running=false;}
+ }
+ if(admin)document.getElementById('notify').onclick=async()=>{if(!('Notification'in window)){status.textContent='Notifikasi tidak didukung. Permintaan tetap tampil di halaman ini.';return;}try{const p=await Notification.requestPermission();status.textContent=p==='granted'?'Notifikasi aktif selama halaman ini berjalan.':'Permintaan tetap dapat dilihat di halaman ini.';}catch{status.textContent='Gunakan daftar permintaan di halaman ini.';}};
+ else document.getElementById('request').onclick=async()=>{try{await api('/__access/requests/start');await poll();}catch(e){status.textContent=e.message;}};
+ poll();setInterval(poll,4000);
+})();
