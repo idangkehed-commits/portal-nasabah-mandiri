@@ -36,8 +36,8 @@ module.exports=function ownerAccess(env=process.env,injectedPool,dependencies={}
  async function vapid(){const d=await db();const existing=await d.query("SELECT value FROM portal_owner_settings WHERE key='vapid'");if(existing.rows[0])return existing.rows[0].value;
   const value=push().generateVAPIDKeys();await d.query("INSERT INTO portal_owner_settings(key,value) VALUES('vapid',$1::jsonb) ON CONFLICT DO NOTHING",[JSON.stringify(value)]);return (await d.query("SELECT value FROM portal_owner_settings WHERE key='vapid'")).rows[0].value;
  }
- async function notify(body='Ada permintaan akses. Ketuk untuk memeriksa dan menyetujui.'){if(!pushEnabled)return {sent:0};let sent=0;try{const d=await db(),v=await vapid(),sender=push();const rows=(await d.query('SELECT endpoint,subscription FROM portal_owner_push ORDER BY created_at DESC LIMIT 10')).rows;
-  await Promise.allSettled(rows.map(async row=>{if(!validEndpoint(row.endpoint))return;try{await sender.sendNotification(row.subscription,JSON.stringify({title:'Portal Nasabah',body,url:'/__access/approvals'}),{vapidDetails:{subject:'mailto:wilmuhammad02@outlook.co.id',publicKey:v.publicKey,privateKey:v.privateKey},TTL:300,timeout:10000});sent++;}catch(e){if(e.statusCode===404||e.statusCode===410)await d.query('DELETE FROM portal_owner_push WHERE endpoint=$1',[row.endpoint]);}}));
+ async function notify(body='Ada permintaan akses. Ketuk untuk memeriksa dan menyetujui.',endpoint=null){if(!pushEnabled)return {sent:0};let sent=0;try{const d=await db(),v=await vapid(),sender=push();const rows=(await d.query('SELECT endpoint,subscription FROM portal_owner_push ORDER BY created_at DESC LIMIT 10')).rows;
+  await Promise.allSettled(rows.map(async row=>{if(!validEndpoint(row.endpoint)||(endpoint&&row.endpoint!==endpoint))return;try{await sender.sendNotification(row.subscription,JSON.stringify({title:'Portal Nasabah',body,url:'/__access/approvals'}),{vapidDetails:{subject:'mailto:wilmuhammad02@outlook.co.id',publicKey:v.publicKey,privateKey:v.privateKey},TTL:300,timeout:10000});sent++;}catch(e){if(e.statusCode===404||e.statusCode===410)await d.query('DELETE FROM portal_owner_push WHERE endpoint=$1',[row.endpoint]);}}));
  return {sent};}catch{console.error('Notifikasi pemilik belum dapat dikirim.');return {sent:0};}}
  async function keys(){if(!keysCache||keysCache.until<Date.now()){const r=await fetch('https://login.microsoftonline.com/consumers/discovery/v2.0/keys',{signal:AbortSignal.timeout(10000)});if(!r.ok)throw Error('Keys unavailable');keysCache={keys:(await r.json()).keys,until:Date.now()+3600000};}return keysCache.keys;}
  function handle(req,res,admin){
@@ -71,7 +71,14 @@ module.exports=function ownerAccess(env=process.env,injectedPool,dependencies={}
    }
    if(route==='/__access/owner/logout'&&req.method==='POST'){if(!sameOrigin(req))return json(res,403,{error:'Permintaan ditolak.'});sessions.delete(hash(getCookie(req,'portal_owner')));res.setHeader('Set-Cookie',cookie('portal_owner','',0));return json(res,200,{ok:true});}
    if(!pushEnabled||!(enabled?owner(req):admin))return json(res,403,{error:enabled?'Login Microsoft pemilik diperlukan.':'Login admin diperlukan.'});
-   if(route==='/__access/push/test'&&req.method==='POST'){if(!sameOrigin(req))return json(res,403,{error:'Permintaan ditolak.'});if(Date.now()<nextTest)return json(res,429,{error:'Tunggu satu menit sebelum menguji lagi.'});nextTest=Date.now()+60000;return json(res,200,await notify('Notifikasi uji berhasil diterima. Ketuk untuk membuka persetujuan akses.'));}
+   if(route==='/__access/push/test'&&req.method==='POST'){
+    if(!sameOrigin(req))return json(res,403,{error:'Permintaan ditolak.'});
+    let body='',size=0;for await(const chunk of req){size+=chunk.length;if(size>4096)return json(res,413,{error:'Permintaan terlalu besar.'});body+=chunk;}
+    let endpoint;try{endpoint=JSON.parse(body).endpoint;}catch{return json(res,400,{error:'Aktifkan notifikasi HP ini dahulu.'});}
+    if(!validEndpoint(endpoint))return json(res,400,{error:'Perangkat belum terdaftar. Aktifkan notifikasi HP ini dahulu.'});
+    if(Date.now()<nextTest)return json(res,429,{error:'Tunggu satu menit sebelum menguji lagi.'});nextTest=Date.now()+60000;
+    return json(res,200,await notify('Uji dari server Portal Nasabah. Notifikasi ini dikirim khusus ke perangkat Anda.',endpoint));
+   }
    if(route==='/__access/push/key'&&req.method==='GET')return json(res,200,{publicKey:(await vapid()).publicKey});
    if(route==='/__access/push/subscribe'&&req.method==='POST'){
     if(!sameOrigin(req)||!(req.headers['content-type']||'').startsWith('application/json'))return json(res,403,{error:'Permintaan ditolak.'});

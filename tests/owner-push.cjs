@@ -25,8 +25,8 @@ const server=http.createServer((req,res)=>{if(!access.handle(req,res,req.headers
  assert.equal((await call('/__access/push/subscribe',{method:'POST',origin:'https://evil.test',data:sub})).status,403);
  assert.equal((await call('/__access/push/subscribe',{method:'POST',data:{...sub,endpoint:'https://localhost/admin'}})).status,400);
  assert.equal((await call('/__access/push/subscribe',{method:'POST',data:sub})).status,200);assert.equal(subscriptions.size,1);
- assert.equal((await (await call('/__access/push/test',{method:'POST'})).json()).sent,1);assert.match(sent[0].body.body,/uji/);
- assert.equal((await call('/__access/push/test',{method:'POST'})).status,429);
+ assert.equal((await (await call('/__access/push/test',{method:'POST',data:{endpoint:sub.endpoint}})).json()).sent,1);assert.match(sent[0].body.body,/Uji/);
+ assert.equal((await call('/__access/push/test',{method:'POST',data:{endpoint:sub.endpoint}})).status,429);
  await access.notify();assert.equal(sent.length,2);assert(!sent[1].body.body.includes('uji'));
  const afterRestart=create({PORTAL_PUBLIC_URL:'https://portal.example'},pool,{webPush:push});await afterRestart.notify();assert.equal(sent.length,3);
  assert.equal((await call('/__access/push/unsubscribe',{method:'POST',origin:'https://evil.test'})).status,403);

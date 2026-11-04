@@ -42,6 +42,19 @@
  };
  if(document.getElementById('pushDisable'))document.getElementById('pushDisable').onclick=async()=>{try{await api('/__access/push/unsubscribe');const registration=await navigator.serviceWorker.getRegistration('/__access/');const subscription=await registration?.pushManager.getSubscription();await subscription?.unsubscribe();pushStatus.textContent='Notifikasi semua perangkat pemilik sudah dimatikan.';}catch(e){pushStatus.textContent=e.message;}};
  if(document.getElementById('ownerLogout'))document.getElementById('ownerLogout').onclick=async()=>{try{await api('/__access/owner/logout');location.replace('/__access/approvals');}catch(e){pushStatus.textContent=e.message;}};
- if(document.getElementById('pushTest'))document.getElementById('pushTest').onclick=async()=>{const b=document.getElementById('pushTest');b.disabled=true;try{const d=await api('/__access/push/test');pushStatus.textContent=d.sent?'Notifikasi uji sudah dikirim. Periksa notifikasi HP.':'Belum terkirim. Aktifkan notifikasi HP terlebih dahulu, lalu coba lagi.';}catch(e){pushStatus.textContent=e.message;}finally{b.disabled=false;}};
+ async function phoneRegistration(){
+  if(!('serviceWorker'in navigator)||!('Notification'in window)||Notification.permission!=='granted')throw Error('Izin notifikasi belum aktif. Tekan Aktifkan notifikasi HP dan periksa izin Chrome pada pengaturan Android.');
+  const registration=await navigator.serviceWorker.getRegistration('/__access/');
+  if(!registration?.active)throw Error('Notifikasi belum siap. Tekan Aktifkan notifikasi HP lagi.');
+  return registration;
+ }
+ if(document.getElementById('pushLocal'))document.getElementById('pushLocal').onclick=async()=>{try{const r=await phoneRegistration();await r.showNotification('Uji tampilan Portal Nasabah',{body:'Ini uji langsung dari HP, bukan kiriman server.',tag:'portal-local-test',data:{url:'/__access/approvals'}});pushStatus.textContent='Uji tampilan dijalankan. Tarik panel notifikasi Android. Jika tidak ada, periksa Pengaturan Android > Aplikasi > Chrome > Notifikasi, serta izin notifikasi situs ini di Chrome.';}catch(e){pushStatus.textContent=e.message;}};
+ if(document.getElementById('pushTest'))document.getElementById('pushTest').onclick=async()=>{const b=document.getElementById('pushTest');b.disabled=true;try{
+  const registration=await phoneRegistration(),subscription=await registration.pushManager.getSubscription();
+  if(!subscription)throw Error('HP ini belum terdaftar. Tekan Aktifkan notifikasi HP terlebih dahulu.');
+  const response=await fetch('/__access/push/test',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({endpoint:subscription.endpoint})});
+  const d=await response.json();if(!response.ok)throw Error(d.error||'Uji gagal.');
+  pushStatus.textContent=d.sent?'Layanan push menerima kiriman khusus untuk HP ini. Ini belum memastikan tampil di Android. Jika belum muncul, coba Uji tampilan di HP ini.':'Kiriman ke HP ini belum berhasil. Tekan Aktifkan notifikasi HP untuk mendaftarkan ulang perangkat, lalu coba lagi.';
+ }catch(e){pushStatus.textContent=e.message;}finally{b.disabled=false;}};
  poll();setInterval(poll,4000);
 })();
