@@ -1,6 +1,23 @@
 # Microsoft owner login and background notifications
 
-Status: prepared locally; activation requires Microsoft application registration.
+Status: background Web Push can run with the existing portal admin login, without
+Azure. Microsoft login remains optional and inactive unless explicitly configured.
+
+## Trial without Azure
+
+The portal's existing `DATABASE_URL` and `RENDER_EXTERNAL_URL` are sufficient.
+Log in as admin on the phone, open `/__access/approvals`, select
+**Aktifkan notifikasi HP**, and grant notification permission. Use
+**Kirim notifikasi uji** to verify receipt. On iPhone, add the approval page to
+Home Screen and open it from its icon before enrolling. After enrollment the
+page can be closed; phone/browser permissions and connectivity still apply.
+Only authenticated admin sessions can enroll or disable subscriptions. Viewer
+sessions cannot use any push-management API. The trial is protected by the
+portal admin credentials, not by a Microsoft account restriction.
+
+When Microsoft registration is completed later, all three Microsoft owner
+variables switch enrollment and approvals to the pinned Microsoft owner.
+The tests simulate delivery; final phone delivery still requires enrollment.
 
 The existing admin/password and viewer request flow remains active until all three
 Microsoft owner environment variables are configured. With them configured,
@@ -56,6 +73,9 @@ approval always requires opening the authenticated page and matching the code.
 PKCE/state and unauthenticated push API rejection plus endpoint restrictions.
 `node tests/access-approval.cjs` verifies existing approval security, browser binding,
 single redemption, denial, expiry and 30-minute viewer sessions.
+
+`node tests/owner-push.cjs` covers the admin-based trial, CSRF, key reuse,
+persisted subscriptions after restart, delivery calls, rate limiting and unsubscribe.
 
 Real Microsoft login, phone subscription and background delivery cannot be verified
 until application registration and owner phone enrollment are completed.

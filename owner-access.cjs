@@ -13,10 +13,13 @@ function validateToken(token,{keys,clientId,nonce,now=Date.now()}){
  return claims;
 }
 function validEndpoint(value){try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password&&!u.port&&(u.hostname==='fcm.googleapis.com'||u.hostname==='updates.push.services.mozilla.com'||u.hostname==='web.push.apple.com'||u.hostname.endsWith('.notify.windows.com'));}catch{return false;}}
-module.exports=function ownerAccess(env=process.env,injectedPool){
+module.exports=function ownerAccess(env=process.env,injectedPool,dependencies={}){
  const enabled=Boolean(env.MS_OWNER_CLIENT_ID&&env.MS_OWNER_CLIENT_SECRET&&env.MS_OWNER_SUBJECT);
  const configured=Boolean(env.MS_OWNER_CLIENT_ID&&env.MS_OWNER_CLIENT_SECRET);
  const origin=env.PORTAL_PUBLIC_URL||env.RENDER_EXTERNAL_URL||'';
+ const pushEnabled=Boolean((env.DATABASE_URL||injectedPool)&&origin);
+ const push=()=>dependencies.webPush||require('web-push');
+ let nextTest=0;
  const redirect=origin+'/__access/microsoft/callback';
  const cloud=env.RENDER==='true'||env.NODE_ENV==='production';
  let pool=injectedPool,ready,keysCache;
@@ -31,11 +34,11 @@ module.exports=function ownerAccess(env=process.env,injectedPool){
  const sameOrigin=req=>{try{return new URL(req.headers.origin).origin===origin;}catch{return false;}};
  function owner(req){const key=hash(getCookie(req,'portal_owner'));const item=sessions.get(key);if(item?.until>Date.now())return item;sessions.delete(key);return null;}
  async function vapid(){const d=await db();const existing=await d.query("SELECT value FROM portal_owner_settings WHERE key='vapid'");if(existing.rows[0])return existing.rows[0].value;
-  const value=require('web-push').generateVAPIDKeys();await d.query("INSERT INTO portal_owner_settings(key,value) VALUES('vapid',$1::jsonb) ON CONFLICT DO NOTHING",[JSON.stringify(value)]);return (await d.query("SELECT value FROM portal_owner_settings WHERE key='vapid'")).rows[0].value;
+  const value=push().generateVAPIDKeys();await d.query("INSERT INTO portal_owner_settings(key,value) VALUES('vapid',$1::jsonb) ON CONFLICT DO NOTHING",[JSON.stringify(value)]);return (await d.query("SELECT value FROM portal_owner_settings WHERE key='vapid'")).rows[0].value;
  }
- async function notify(){if(!enabled)return;try{const d=await db(),v=await vapid(),push=require('web-push');const rows=(await d.query('SELECT endpoint,subscription FROM portal_owner_push ORDER BY created_at DESC LIMIT 10')).rows;
-  await Promise.allSettled(rows.map(async row=>{if(!validEndpoint(row.endpoint))return;try{await push.sendNotification(row.subscription,JSON.stringify({title:'Portal Nasabah',body:'Ada permintaan akses. Ketuk untuk memeriksa dan menyetujui.',url:'/__access/approvals'}),{vapidDetails:{subject:'mailto:wilmuhammad02@outlook.co.id',publicKey:v.publicKey,privateKey:v.privateKey},TTL:300,timeout:10000});}catch(e){if(e.statusCode===404||e.statusCode===410)await d.query('DELETE FROM portal_owner_push WHERE endpoint=$1',[row.endpoint]);}}));
- }catch{console.error('Notifikasi pemilik belum dapat dikirim.');}}
+ async function notify(body='Ada permintaan akses. Ketuk untuk memeriksa dan menyetujui.'){if(!pushEnabled)return {sent:0};let sent=0;try{const d=await db(),v=await vapid(),sender=push();const rows=(await d.query('SELECT endpoint,subscription FROM portal_owner_push ORDER BY created_at DESC LIMIT 10')).rows;
+  await Promise.allSettled(rows.map(async row=>{if(!validEndpoint(row.endpoint))return;try{await sender.sendNotification(row.subscription,JSON.stringify({title:'Portal Nasabah',body,url:'/__access/approvals'}),{vapidDetails:{subject:'mailto:wilmuhammad02@outlook.co.id',publicKey:v.publicKey,privateKey:v.privateKey},TTL:300,timeout:10000});sent++;}catch(e){if(e.statusCode===404||e.statusCode===410)await d.query('DELETE FROM portal_owner_push WHERE endpoint=$1',[row.endpoint]);}}));
+ return {sent};}catch{console.error('Notifikasi pemilik belum dapat dikirim.');return {sent:0};}}
  async function keys(){if(!keysCache||keysCache.until<Date.now()){const r=await fetch('https://login.microsoftonline.com/consumers/discovery/v2.0/keys',{signal:AbortSignal.timeout(10000)});if(!r.ok)throw Error('Keys unavailable');keysCache={keys:(await r.json()).keys,until:Date.now()+3600000};}return keysCache.keys;}
  function handle(req,res,admin){
   const url=new URL(req.url,'http://localhost'),route=url.pathname;
@@ -67,7 +70,8 @@ module.exports=function ownerAccess(env=process.env,injectedPool){
     res.writeHead(303,{Location:'/__access/approvals','Set-Cookie':[cookie('portal_owner',token,30*86400),cookie('portal_owner_oauth','',0,'Lax')]});res.end();return;
    }
    if(route==='/__access/owner/logout'&&req.method==='POST'){if(!sameOrigin(req))return json(res,403,{error:'Permintaan ditolak.'});sessions.delete(hash(getCookie(req,'portal_owner')));res.setHeader('Set-Cookie',cookie('portal_owner','',0));return json(res,200,{ok:true});}
-   if(!enabled||!owner(req))return json(res,403,{error:'Login Microsoft pemilik diperlukan.'});
+   if(!pushEnabled||!(enabled?owner(req):admin))return json(res,403,{error:enabled?'Login Microsoft pemilik diperlukan.':'Login admin diperlukan.'});
+   if(route==='/__access/push/test'&&req.method==='POST'){if(!sameOrigin(req))return json(res,403,{error:'Permintaan ditolak.'});if(Date.now()<nextTest)return json(res,429,{error:'Tunggu satu menit sebelum menguji lagi.'});nextTest=Date.now()+60000;return json(res,200,await notify('Notifikasi uji berhasil diterima. Ketuk untuk membuka persetujuan akses.'));}
    if(route==='/__access/push/key'&&req.method==='GET')return json(res,200,{publicKey:(await vapid()).publicKey});
    if(route==='/__access/push/subscribe'&&req.method==='POST'){
     if(!sameOrigin(req)||!(req.headers['content-type']||'').startsWith('application/json'))return json(res,403,{error:'Permintaan ditolak.'});
@@ -82,7 +86,7 @@ module.exports=function ownerAccess(env=process.env,injectedPool){
    return json(res,404,{error:'Tidak ditemukan.'});
   })().catch(()=>{if(!res.headersSent)json(res,503,{error:'Layanan pemilik belum tersedia. Coba lagi nanti.'});else res.end();});return true;
  }
- return {enabled,configured,owner,handle,notify};
+ return {enabled,pushEnabled,configured,owner,handle,notify};
 };
 module.exports.validateToken=validateToken;
 module.exports.validEndpoint=validEndpoint;

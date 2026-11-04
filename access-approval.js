@@ -1,6 +1,7 @@
 'use strict';
 (()=>{
  const status=document.getElementById('status'),admin=!!document.getElementById('requests');
+ const pushStatus=document.getElementById('pushStatus')||status;
  const seen=new Set();let running=false;
  async function api(url,method='POST'){const r=await fetch(url,{method,credentials:'same-origin',cache:'no-store'});const d=await r.json();if(!r.ok)throw Error(d.error||'Permintaan gagal.');return d;}
  async function poll(){
@@ -9,7 +10,7 @@
    if(admin){
     const d=await api('/__access/requests','GET'),root=document.getElementById('requests');root.replaceChildren();
     for(const item of d.requests){
-     if(!seen.has(item.id)){seen.add(item.id);if('Notification'in window&&Notification.permission==='granted')try{new Notification('Permintaan akses Portal Nasabah',{body:'Kode '+item.code,tag:item.id});}catch{}}
+     if(!seen.has(item.id)){seen.add(item.id);if(document.getElementById('notify')&&'Notification'in window&&Notification.permission==='granted')try{new Notification('Permintaan akses Portal Nasabah',{body:'Kode '+item.code,tag:item.id});}catch{}}
      const card=document.createElement('article'),code=document.createElement('strong'),time=document.createElement('p');code.textContent=item.code;time.textContent='Berlaku sampai '+new Date(item.until).toLocaleTimeString('id-ID');card.append(code,time);
      for(const[action,label]of [['approve','Setujui'],['deny','Tolak']]){const b=document.createElement('button');b.textContent=label;b.onclick=async()=>{b.disabled=true;try{await api('/__access/requests/'+item.id+'/'+action);await poll();card.remove();}catch(e){status.textContent=e.message;b.disabled=false;}};card.append(b);}root.append(card);
     }status.textContent=d.requests.length?'':'Belum ada permintaan akses.';
@@ -36,10 +37,11 @@
    const bytes=Uint8Array.from(atob(key.publicKey.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
    const subscription=await registration.pushManager.getSubscription()||await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:bytes});
    const response=await fetch('/__access/push/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(subscription)});const data=await response.json();if(!response.ok)throw Error(data.error||'Notifikasi belum tersimpan.');
-   status.textContent='Notifikasi HP aktif. Halaman ini boleh ditutup. Pengiriman tetap bergantung pada koneksi dan pengaturan notifikasi HP.';
-  }catch(e){status.textContent=e.message;}finally{button.disabled=false;}
+   pushStatus.textContent='Notifikasi HP aktif. Halaman ini boleh ditutup. Pengiriman tetap bergantung pada koneksi dan pengaturan notifikasi HP.';
+  }catch(e){pushStatus.textContent=e.message;}finally{button.disabled=false;}
  };
- if(document.getElementById('pushDisable'))document.getElementById('pushDisable').onclick=async()=>{try{await api('/__access/push/unsubscribe');const registration=await navigator.serviceWorker.getRegistration('/__access/');const subscription=await registration?.pushManager.getSubscription();await subscription?.unsubscribe();status.textContent='Notifikasi semua perangkat pemilik sudah dimatikan.';}catch(e){status.textContent=e.message;}};
- if(document.getElementById('ownerLogout'))document.getElementById('ownerLogout').onclick=async()=>{try{await api('/__access/owner/logout');location.replace('/__access/approvals');}catch(e){status.textContent=e.message;}};
+ if(document.getElementById('pushDisable'))document.getElementById('pushDisable').onclick=async()=>{try{await api('/__access/push/unsubscribe');const registration=await navigator.serviceWorker.getRegistration('/__access/');const subscription=await registration?.pushManager.getSubscription();await subscription?.unsubscribe();pushStatus.textContent='Notifikasi semua perangkat pemilik sudah dimatikan.';}catch(e){pushStatus.textContent=e.message;}};
+ if(document.getElementById('ownerLogout'))document.getElementById('ownerLogout').onclick=async()=>{try{await api('/__access/owner/logout');location.replace('/__access/approvals');}catch(e){pushStatus.textContent=e.message;}};
+ if(document.getElementById('pushTest'))document.getElementById('pushTest').onclick=async()=>{const b=document.getElementById('pushTest');b.disabled=true;try{const d=await api('/__access/push/test');pushStatus.textContent=d.sent?'Notifikasi uji sudah dikirim. Periksa notifikasi HP.':'Belum terkirim. Aktifkan notifikasi HP terlebih dahulu, lalu coba lagi.';}catch(e){pushStatus.textContent=e.message;}finally{b.disabled=false;}};
  poll();setInterval(poll,4000);
 })();
