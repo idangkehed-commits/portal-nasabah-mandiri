@@ -27,7 +27,8 @@ module.exports=function createAuthenticatorGate(env=process.env){
   }
   const cookie=(req,value,age)=>`${cookieName}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${age}${cloud||req.socket.encrypted?'; Secure':''}`;
   function sameOrigin(req){try{return new URL(req.headers.origin||'').host===req.headers.host;}catch{return false;}}
-  const approval=require('./access-approval.cjs')({cloud,sameOrigin,createViewer(req,res){
+  const ownerAccess=require('./owner-access.cjs')(env);
+  const approval=require('./access-approval.cjs')({cloud,sameOrigin,ownerAccess,createViewer(req,res){
     if(sessions.size>=1000)return false;
     const token=crypto.randomBytes(32).toString('hex');sessions.set(digest(token),{until:Date.now()+viewerTtl,role:'viewer'});
     res.setHeader('Set-Cookie',cookie(req,token,viewerTtl/1000));return true;
@@ -41,7 +42,8 @@ module.exports=function createAuthenticatorGate(env=process.env){
     const now=Date.now();for(const[k,v]of sessions)if(v.until<=now)sessions.delete(k);for(const[k,v]of attempts)if(v.until<=now)attempts.delete(k);
     const token=(req.headers.cookie||'').split(';').map(x=>x.trim()).find(x=>x.startsWith(cookieName+'='))?.slice(cookieName.length+1)||'';
     const sessionKey=/^[a-f0-9]{64}$/.test(token)?digest(token):'';
-    if(approval(req,res,sessions.get(sessionKey)))return true;
+    if(ownerAccess.handle(req,res,sessions.get(sessionKey)?.role==='admin'))return true;
+    if(approval(req,res,ownerAccess.enabled?ownerAccess.owner(req):sessions.get(sessionKey)))return true;
     if(route==='/__access/logout'){
       if(req.method!=='POST'||!sameOrigin(req))return reply(res,403,'Permintaan ditolak.');
       sessions.delete(sessionKey);res.writeHead(303,{'Location':'/','Set-Cookie':cookie(req,'',0)});res.end();return true;

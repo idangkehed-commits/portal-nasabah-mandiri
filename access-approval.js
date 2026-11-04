@@ -23,7 +23,23 @@
    }
   }catch(e){status.textContent=e.message;}finally{running=false;}
  }
- if(admin)document.getElementById('notify').onclick=async()=>{if(!('Notification'in window)){status.textContent='Notifikasi tidak didukung. Permintaan tetap tampil di halaman ini.';return;}try{const p=await Notification.requestPermission();status.textContent=p==='granted'?'Notifikasi aktif selama halaman ini berjalan.':'Permintaan tetap dapat dilihat di halaman ini.';}catch{status.textContent='Gunakan daftar permintaan di halaman ini.';}};
- else document.getElementById('request').onclick=async()=>{try{await api('/__access/requests/start');await poll();}catch(e){status.textContent=e.message;}};
+ if(admin&&document.getElementById('notify'))document.getElementById('notify').onclick=async()=>{if(!('Notification'in window)){status.textContent='Notifikasi tidak didukung. Permintaan tetap tampil di halaman ini.';return;}try{const p=await Notification.requestPermission();status.textContent=p==='granted'?'Notifikasi aktif selama halaman ini berjalan.':'Permintaan tetap dapat dilihat di halaman ini.';}catch{status.textContent='Gunakan daftar permintaan di halaman ini.';}};
+ if(!admin)document.getElementById('request').onclick=async()=>{try{await api('/__access/requests/start');await poll();}catch(e){status.textContent=e.message;}};
+ if(document.getElementById('pushEnable'))document.getElementById('pushEnable').onclick=async()=>{
+  const button=document.getElementById('pushEnable');button.disabled=true;
+  try{
+   if(!('serviceWorker'in navigator)||!('PushManager'in window)||!('Notification'in window))throw Error('HP ini belum mendukung notifikasi web. Di iPhone, tambahkan portal ke layar utama dan buka dari ikon portal.');
+   const permission=await Notification.requestPermission();if(permission!=='granted')throw Error('Izin notifikasi belum diberikan. Periksa izin situs pada pengaturan browser.');
+   const key=await api('/__access/push/key','GET');
+   const registration=await navigator.serviceWorker.register('/__access/owner-sw.js',{scope:'/__access/'});
+   if(!registration.active)await new Promise((resolve,reject)=>{const worker=registration.installing||registration.waiting;if(!worker)return reject(Error('Notifikasi belum siap. Coba lagi.'));const timeout=setTimeout(()=>reject(Error('Notifikasi belum siap. Coba lagi.')),15000);worker.addEventListener('statechange',()=>{if(worker.state==='activated'){clearTimeout(timeout);resolve();}});});
+   const bytes=Uint8Array.from(atob(key.publicKey.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0));
+   const subscription=await registration.pushManager.getSubscription()||await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:bytes});
+   const response=await fetch('/__access/push/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(subscription)});const data=await response.json();if(!response.ok)throw Error(data.error||'Notifikasi belum tersimpan.');
+   status.textContent='Notifikasi HP aktif. Halaman ini boleh ditutup. Pengiriman tetap bergantung pada koneksi dan pengaturan notifikasi HP.';
+  }catch(e){status.textContent=e.message;}finally{button.disabled=false;}
+ };
+ if(document.getElementById('pushDisable'))document.getElementById('pushDisable').onclick=async()=>{try{await api('/__access/push/unsubscribe');const registration=await navigator.serviceWorker.getRegistration('/__access/');const subscription=await registration?.pushManager.getSubscription();await subscription?.unsubscribe();status.textContent='Notifikasi semua perangkat pemilik sudah dimatikan.';}catch(e){status.textContent=e.message;}};
+ if(document.getElementById('ownerLogout'))document.getElementById('ownerLogout').onclick=async()=>{try{await api('/__access/owner/logout');location.replace('/__access/approvals');}catch(e){status.textContent=e.message;}};
  poll();setInterval(poll,4000);
 })();

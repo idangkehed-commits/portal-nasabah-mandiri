@@ -1,0 +1,25 @@
+'use strict';
+const assert=require('node:assert/strict'),crypto=require('node:crypto'),http=require('node:http');
+const create=require('../owner-access.cjs');
+const pair=crypto.generateKeyPairSync('rsa',{modulusLength:2048});
+const publicKey={...pair.publicKey.export({format:'jwk'}),kid:'test',use:'sig'};
+const claims={iss:'https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0',tid:'9188040d-6c67-4c5b-b112-36a304b66dad',aud:'test-client',nonce:'test-nonce',sub:'owner-immutable-subject',exp:Math.floor(Date.now()/1000)+300,nbf:Math.floor(Date.now()/1000)-60};
+function sign(c,header={alg:'RS256',kid:'test'}){const input=[header,c].map(x=>Buffer.from(JSON.stringify(x)).toString('base64url')).join('.');return input+'.'+crypto.sign('RSA-SHA256',Buffer.from(input),pair.privateKey).toString('base64url');}
+const options={keys:[publicKey],clientId:'test-client',nonce:'test-nonce'};
+assert.equal(create.validateToken(sign(claims),options).sub,claims.sub);
+for(const change of [{aud:'evil'},{nonce:'evil'},{iss:'https://evil.test'},{tid:'evil'},{exp:0},{nbf:Math.floor(Date.now()/1000)+1000},{sub:''}])assert.throws(()=>create.validateToken(sign({...claims,...change}),options));
+assert.throws(()=>create.validateToken(sign(claims,{alg:'none',kid:'test'}),options));
+assert.throws(()=>create.validateToken(sign(claims).slice(0,-8)+'TAMPERED',options));
+for(const url of ['http://127.0.0.1','https://localhost','https://fcm.googleapis.com.evil.test/x','https://user:pass@fcm.googleapis.com','https://fcm.googleapis.com:444/x'])assert.equal(create.validEndpoint(url),false);
+assert.equal(create.validEndpoint('https://fcm.googleapis.com/fcm/send/opaque'),true);
+const access=create({MS_OWNER_CLIENT_ID:'test-client',MS_OWNER_CLIENT_SECRET:'test-secret',MS_OWNER_SUBJECT:claims.sub,PORTAL_PUBLIC_URL:'https://portal.example'});
+assert.equal(access.enabled,true);
+const server=http.createServer((req,res)=>{if(!access.handle(req,res,false)){res.statusCode=404;res.end();}});
+(async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
+ const r=await fetch(base+'/__access/microsoft/login',{redirect:'manual'});assert.equal(r.status,303);const auth=new URL(r.headers.get('location'));assert.equal(auth.hostname,'login.microsoftonline.com');assert.equal(auth.searchParams.get('code_challenge_method'),'S256');assert.equal(auth.searchParams.get('redirect_uri'),'https://portal.example/__access/microsoft/callback');
+ assert.match(r.headers.get('set-cookie'),/HttpOnly; SameSite=Lax/);
+ assert.equal((await fetch(base+'/__access/microsoft/callback?state=forged&code=forged')).status,403);
+ assert.equal((await fetch(base+'/__access/push/key')).status,403);
+ assert.equal((await fetch(base+'/__access/push/subscribe',{method:'POST'})).status,403);
+ console.log('PASS: Microsoft signatures, issuer/audience/nonce/expiry, PKCE/state, unauthenticated push rejection and push endpoint restrictions');
+})().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>server.close());
