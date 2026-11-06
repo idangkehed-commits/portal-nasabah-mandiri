@@ -61,12 +61,13 @@ function render(type,values){
  if(type==='kyc'){
   const advisLogo=window.ADVIS_MANDIRI_LOGO_BASE64||logo;
   const identity=info([['Nama',v('nama')],['Nama Perusahaan',v('perusahaan')],['Jabatan',v('posisi')]]);
-  const checks=[
+  const manualPoint=text=>esc(text||'................').replace(/\n/g,'<br>');
+  const checks=values.kycPointMode==='manual'?Array.from({length:3},(_,i)=>manualPoint(values.kycManualPoints?.[i])):[
    'Kami meyakini bahwa calon debitur benar menjabat sebagai '+v('posisi')+' di '+v('perusahaan')+' sejak '+dt('mulaiPosisi')+'.',
    'Gaji calon debitur dibayarkan melalui '+v('bankGaji')+' setiap tanggal '+v('tanggalGaji')+' sebesar Rp '+v('nominalGaji')+'.',
    'Berdasarkan hasil konfirmasi, calon debitur memperoleh promosi ke jabatan '+v('posisiPromosi')+' terhitung sejak '+dt('tanggalPromosi')+'.'
   ];
-  for(const point of values.kycExtraPoints||[])checks.push(esc(point||'................').replace(/\n/g,'<br>'));
+  for(const point of values.kycExtraPoints||[])checks.push(manualPoint(point));
   return '<div class="mf-document"><article class="mf-page mf-property mf-property-kyc">'+
    '<div class="mf-property-head"><div class="mf-property-meta">'+letterMeta+'<div class="mf-property-to">Kepada Yth.,<br><b>'+v('tujuan')+'</b><br>Di '+v('kotaTujuan')+'</div></div>'+
    '<div class="mf-property-brand"><img src="'+esc(advisLogo)+'" alt="Bank Mandiri"><b>'+v('bank')+'</b><br>'+v('cabang')+'<br>'+v('alamatKop')+'</div></div>'+
@@ -118,23 +119,37 @@ function setup(type,values={},preview=()=>{}){
    finally{fileInput.value='';fileInput.disabled=false;}
   };
   if(select.value==='yanuar')void loadSignature();
+  const modePanel=document.createElement('section');
+  modePanel.innerHTML='<label for="kycPointMode">Cara mengisi poin 1–3</label><select id="kycPointMode"><option value="standard">Format standar KYC</option><option value="manual">Tulis poin 1–3 secara manual</option></select>';
+  const standardFields=['mulaiPosisi','bankGaji','tanggalGaji','nominalGaji','posisiPromosi','tanggalPromosi'].map(key=>document.getElementById('mf_'+key));
+  standardFields[0].previousElementSibling.before(modePanel);
+  const mode=modePanel.querySelector('select');mode.value=values.kycPointMode||'standard';
   const pointPanel=document.createElement('section');
-  pointPanel.innerHTML='<h3>Poin KYC tambahan</h3><div></div><button type="button" class="mf-button">Tambah poin manual</button>';
-  document.getElementById('mf_tanggalPromosi').after(pointPanel);
+  pointPanel.innerHTML='<div></div><button type="button" class="mf-button">Tambah poin manual</button>';
+  standardFields.at(-1).after(pointPanel);
   const pointList=pointPanel.querySelector('div'),addPoint=pointPanel.querySelector('button');
   const extraPoints=values.kycExtraPoints||(values.kycExtraPoints=[]);
+  const manualPoints=values.kycManualPoints||(values.kycManualPoints=['','','']);
   function drawPoints(){
+   const manual=mode.value==='manual';
+   for(const field of standardFields){field.previousElementSibling.hidden=manual;field.hidden=manual;field.disabled=manual;}
    pointList.replaceChildren();
-   extraPoints.forEach((text,index)=>{
-    const label=document.createElement('label'),field=document.createElement('textarea'),remove=document.createElement('button');
-    label.htmlFor=field.id='kycExtraPoint'+index;label.textContent='Poin '+(index+4)+' *';
-    field.value=text;field.required=true;
-    field.oninput=()=>{extraPoints[index]=field.value;preview();};
-    remove.type='button';remove.className='mf-button';remove.textContent='Hapus poin '+(index+4);
-    remove.onclick=()=>{extraPoints.splice(index,1);drawPoints();preview();addPoint.focus();};
-    pointList.append(label,field,remove);
-   });
+   if(manual)manualPoints.forEach((text,index)=>addPointField(manualPoints,index,1));
+   extraPoints.forEach((text,index)=>addPointField(extraPoints,index,4));
   }
+  function addPointField(points,index,firstNumber){
+   const number=index+firstNumber,label=document.createElement('label'),field=document.createElement('textarea');
+   label.htmlFor=field.id='kycPoint'+number;label.textContent='Poin '+number+' *';
+   field.value=points[index];field.required=true;
+   field.oninput=()=>{points[index]=field.value;preview();};
+   pointList.append(label,field);
+   if(firstNumber===4){
+    const remove=document.createElement('button');remove.type='button';remove.className='mf-button';remove.textContent='Hapus poin '+number;
+    remove.onclick=()=>{points.splice(index,1);drawPoints();preview();addPoint.focus();};
+    pointList.append(remove);
+   }
+  }
+  mode.onchange=()=>{values.kycPointMode=mode.value;drawPoints();preview();};
   addPoint.onclick=()=>{extraPoints.push('');drawPoints();preview();pointList.querySelector('textarea:last-of-type').focus();};
   drawPoints();
  }
