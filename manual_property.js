@@ -31,7 +31,7 @@ function defaults(type){return {
  lampiran:type==='roya'?'2 (Dua) sertifikat':type==='angsuran'?'1 (satu) set':'-',
  ...(type==='htel'?{tujuan:'Kepala Kantor\nPertanahan Kabupaten Bandung',kotaTujuan:'Kabupaten Bandung',peringkat:'I (Pertama)',jenisSertifikat:'Hak Milik'}:{}),
  ...(type==='roya'?{tujuan:'Kepala Kantor\nBadan Pertanahan Nasional Kabupaten Bandung',kotaTujuan:'Kabupaten Bandung',peringkat:'I (Kesatu)',jenisSertifikat:'Hak Milik'}:{}),
- ...(type==='kyc'?{tujuan:'Retail Credit Center Jakarta\nPT Bank Mandiri (Persero) Tbk',kotaTujuan:'tempat',bank:'PT Bank Mandiri (Persero) Tbk',alamatKop:'Jl P.H. Hasan Mustapa No 39\nBandung\nTel. 022-7217861\nwww.bankmandiri.co.id',jabatan:'Penyelia Unit'}:{}),
+ ...(type==='kyc'?{tujuan:'Retail Credit Center Jakarta\nPT Bank Mandiri (Persero) Tbk',kotaTujuan:'tempat',penandaTanganKyc:'deki',bank:'PT Bank Mandiri (Persero) Tbk',alamatKop:'Jl P.H. Hasan Mustapa No 39\nBandung\nTel. 022-7217861\nwww.bankmandiri.co.id',jabatan:'Penyelia Unit'}:{}),
  ...(type==='mitra'?{bankTtd:'PT. Bank Mandiri (Persero) Tbk',unitTtd:'KCP Bandung Jamsostek',jabatan:'Penyelia Unit',lampiran:'-'}:{}),
  ...(type==='bds'?{tujuan:'PT. Bank Mandiri (Persero) Tbk\nArea Bandung Surapati\nUP: HC & GA\nJl. Surapati No. 2\nKota Bandung',cabang:'KCP Bandung Jamsostek',unitTtd:'KCP Bandung Jamsostek',existingNama:'M Arief Fadhillah',existingId:'2083739540',baruNama:'Deki Elanda Pradikta',baruId:'2088734785',lampiran:'-',tandaTanganBds:'otomatis'}:{}),
  ...(type==='angsuran'?{tujuan:'PT. Bank Mandiri (Persero), Tbk.\nLoan Appraisal Maintenance and Posting Department',kotaTujuan:'Tempat',bankTtd2:'PT. Bank Mandiri (persero) Tbk',unitTtd2:'MBC Bandung Surapati',pejabat2:'Atika Fadillah',jabatan2:'Micro Banking Cluster Manager'}:{})
@@ -46,7 +46,7 @@ function render(type,values){
  const dt=k=>values[k]?esc(new Date(values[k]+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})):'................';
  const letterMeta='<table><tbody><tr><td>Nomor</td><td>:</td><td>'+v('nomor')+'</td></tr><tr><td>Tanggal</td><td>:</td><td>'+dt('tanggal')+'</td></tr><tr><td>Lampiran</td><td>:</td><td>'+v('lampiran')+'</td></tr></tbody></table>';
  const info=rows=>'<table class="mf-property-data"><tbody>'+rows.map(([label,value])=>'<tr><td>'+esc(label)+'</td><td>:</td><td>'+value+'</td></tr>').join('')+'</tbody></table>';
- const sign=(second=false)=>{const s=second?'2':'';const image=!second&&values.pejabat==='Deki Elanda Pradikta'&&(type!=='bds'||values.tandaTanganBds!=='manual')&&window.ADVIS_SIGNATURE_BASE64;return '<div class="mf-property-ttd"><div>'+v('bankTtd'+s)+'<br>'+v('unitTtd'+s)+'</div><div class="mf-property-ink">'+(image?'<img alt="Tanda tangan sesuai template" src="'+esc(image)+'">':'')+'</div><u><b>'+v('pejabat'+s)+'</b></u><br>'+v('jabatan'+s)+'</div>';};
+ const sign=(second=false)=>{const s=second?'2':'';const image=type==='kyc'&&values.penandaTanganKyc==='yanuar'&&values.pejabat==='Yanuar Ishak Salahudin'?values.kycYanuarSignature:!second&&(type!=='kyc'||values.penandaTanganKyc==='deki')&&values.pejabat==='Deki Elanda Pradikta'&&(type!=='bds'||values.tandaTanganBds!=='manual')&&window.ADVIS_SIGNATURE_BASE64;return '<div class="mf-property-ttd"><div>'+v('bankTtd'+s)+'<br>'+v('unitTtd'+s)+'</div><div class="mf-property-ink">'+(image?'<img alt="Tanda tangan sesuai template" src="'+esc(image)+'">':'')+'</div><u><b>'+v('pejabat'+s)+'</b></u><br>'+v('jabatan'+s)+'</div>';};
  if(type==='mitra'){
   return '<div class="mf-document"><article class="mf-page mf-mitra"><div class="mf-mitra-heading"><b>PETUNJUK TEKNIS OPERASIONAL<br>KREDIT SERBAGUNA MANDIRI (KSM)<br>LAMPIRAN 2 – FORMAT DOKUMEN RELATIONSHIP</b><img src="'+logos.branch+'" alt="Bank Mandiri"></div><div class="mf-mitra-title"><b>LAMPIRAN 2.2　: Format Surat Perubahan Data Mitra ID</b></div><table class="mf-mitra-meta">'+[['Nomor',v('nomor')],['Tanggal',dt('tanggal')],['Lampiran',v('lampiran')]].map(([k,t])=>'<tr><td>'+k+'</td><td>:</td><td>'+t+'</td></tr>').join('')+'</table><p>Kepada Yth,<br><b>PT Bank Mandiri (Persero) Tbk</b><br>Consumer Credit Risk &amp; Analytics Group<br>Di tempat</p><p>Perihal　 : <b><u>Permohonan Perubahan Data Mitra ID</u></b></p><p>Berikut kami sampaikan permohonan perubahan data Mitra ID sebagai berikut :</p><table class="mf-mitra-table"><colgroup><col style="width:35%"><col style="width:3%"><col style="width:31%"><col style="width:31%"></colgroup><tbody>'+[['Mitra ID','mitraId'],['Nama Mitra','namaMitra'],['Unit Pengelola Mitra ID','unitMitra']].map(([k,t])=>'<tr><th>'+k+'</th><td>:</td><td colspan="2">'+v(t)+'</td></tr>').join('')+'<tr><th>Perubahan Data Mitra ID<br><i>(Contoh: Perubahan Nama Instansi/PIC Konfirmasi Perusahaan, dll)</i></th><td></td><th class="center">Sebelum</th><th class="center">Menjadi</th></tr>'+Array.from({length:3},(_,i)=>'<tr><td>'+v('data'+i)+'</td><td>:</td><td>'+v('sebelum'+i)+'</td><td>'+v('menjadi'+i)+'</td></tr>').join('')+'</tbody></table><p class="mf-mitra-closing">Demikian disampaikan, mohon bantuannya untuk dapat melakukan penyesuaian/<i>setting</i> pada sistem LOS.</p><p>Hormat kami,</p>'+sign()+'</article></div>';
  }
@@ -66,6 +66,7 @@ function render(type,values){
    'Gaji calon debitur dibayarkan melalui '+v('bankGaji')+' setiap tanggal '+v('tanggalGaji')+' sebesar Rp '+v('nominalGaji')+'.',
    'Berdasarkan hasil konfirmasi, calon debitur memperoleh promosi ke jabatan '+v('posisiPromosi')+' terhitung sejak '+dt('tanggalPromosi')+'.'
   ];
+  for(const point of values.kycExtraPoints||[])checks.push(esc(point||'................').replace(/\n/g,'<br>'));
   return '<div class="mf-document"><article class="mf-page mf-property mf-property-kyc">'+
    '<div class="mf-property-head"><div class="mf-property-meta">'+letterMeta+'<div class="mf-property-to">Kepada Yth.,<br><b>'+v('tujuan')+'</b><br>Di '+v('kotaTujuan')+'</div></div>'+
    '<div class="mf-property-brand"><img src="'+esc(advisLogo)+'" alt="Bank Mandiri"><b>'+v('bank')+'</b><br>'+v('cabang')+'<br>'+v('alamatKop')+'</div></div>'+
@@ -79,6 +80,65 @@ function render(type,values){
  return '<div class="mf-document"><article class="mf-page mf-property mf-property-'+type+'"><div class="mf-property-head"><div class="mf-property-meta">'+letterMeta+'</div><div class="mf-property-brand"><img src="'+logo+'" alt="Bank Mandiri"><b>'+v('bank')+'</b><br>'+v('cabang')+'<br>'+v('alamatKop')+'</div></div>'+to+content+'</article></div>';
 }
 function setup(type,values={},preview=()=>{}){
+ if(type==='kyc'){
+  const endpoint='/api/portal/ksm-signatures/kyc-yanuar';
+  const panel=document.createElement('section');
+  panel.innerHTML='<label for="kycSigner">Pilihan penanda tangan</label><select id="kycSigner"><option value="deki">Deki Elanda Pradikta — Penyelia Unit</option><option value="yanuar">Yanuar Ishak Salahudin — Branch Manager</option><option value="manual">Isi manual / tanda tangan basah</option></select><div id="kycSignatureUpload" hidden><label for="kycSignatureFile">Unggah atau ganti gambar tanda tangan Yanuar</label><input id="kycSignatureFile" type="file" accept="image/jpeg,image/png"><p id="kycSignatureStatus" class="mf-property-help" role="status"></p></div>';
+  document.getElementById('mfFields').prepend(panel);
+  const select=panel.querySelector('select'),upload=panel.querySelector('#kycSignatureUpload');
+  const fileInput=panel.querySelector('input'),status=panel.querySelector('[role=status]');
+  let generation=0;
+  async function loadSignature(){
+   const current=++generation;
+   try{
+    const response=await fetch(endpoint,{cache:'no-store'});
+    if(!response.ok)throw Error(response.status===404?'Gambar tanda tangan belum diunggah.':'Gambar tanda tangan belum dapat dimuat.');
+    const blob=await response.blob();
+    const image=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(blob);});
+    if(current!==generation||!panel.isConnected||select.value!=='yanuar')return;
+    values.kycYanuarSignature=image;status.textContent='Gambar tanda tangan Yanuar siap digunakan.';preview();
+   }catch(error){if(current===generation&&panel.isConnected){delete values.kycYanuarSignature;status.textContent=error.message;preview();}}
+  }
+  select.value=values.penandaTanganKyc||'deki';upload.hidden=select.value!=='yanuar';
+  select.onchange=()=>{
+   generation++;values.penandaTanganKyc=select.value;upload.hidden=select.value!=='yanuar';
+   const presets={deki:['Deki Elanda Pradikta','Penyelia Unit'],yanuar:['Yanuar Ishak Salahudin','Branch Manager'],manual:['','']};
+   [values.pejabat,values.jabatan]=presets[select.value];
+   for(const key of ['pejabat','jabatan'])document.getElementById('mf_'+key).value=values[key];
+   preview();if(select.value==='yanuar')void loadSignature();
+  };
+  fileInput.onchange=async()=>{
+   const file=fileInput.files[0];if(!file)return;
+   fileInput.disabled=true;status.textContent='Menyimpan gambar tanda tangan...';
+   try{
+    const response=await fetch(endpoint,{method:'PUT',headers:{'Content-Type':file.type},body:file});
+    if(!response.ok){const error=await response.json();throw Error(error.message||'Tanda tangan belum dapat disimpan.');}
+    await loadSignature();
+   }catch(error){status.textContent=error.message;}
+   finally{fileInput.value='';fileInput.disabled=false;}
+  };
+  if(select.value==='yanuar')void loadSignature();
+  const pointPanel=document.createElement('section');
+  pointPanel.innerHTML='<h3>Poin KYC tambahan</h3><div></div><button type="button" class="mf-button">Tambah poin manual</button>';
+  document.getElementById('mf_tanggalPromosi').after(pointPanel);
+  const pointList=pointPanel.querySelector('div'),addPoint=pointPanel.querySelector('button');
+  const extraPoints=values.kycExtraPoints||(values.kycExtraPoints=[]);
+  function drawPoints(){
+   pointList.replaceChildren();
+   extraPoints.forEach((text,index)=>{
+    const label=document.createElement('label'),field=document.createElement('textarea'),remove=document.createElement('button');
+    label.htmlFor=field.id='kycExtraPoint'+index;label.textContent='Poin '+(index+4)+' *';
+    field.value=text;field.required=true;
+    field.oninput=()=>{extraPoints[index]=field.value;preview();};
+    remove.type='button';remove.className='mf-button';remove.textContent='Hapus poin '+(index+4);
+    remove.onclick=()=>{extraPoints.splice(index,1);drawPoints();preview();addPoint.focus();};
+    pointList.append(label,field,remove);
+   });
+  }
+  addPoint.onclick=()=>{extraPoints.push('');drawPoints();preview();pointList.querySelector('textarea:last-of-type').focus();};
+  drawPoints();
+ }
+
  if(type==='bds'){const panel=document.createElement('section');panel.innerHTML='<label for="bdsSignature">Tanda tangan</label><select id="bdsSignature" data-key="tandaTanganBds"><option value="otomatis">Otomatis (Deki Elanda Pradikta)</option><option value="manual">Manual / tanda tangan basah</option></select>';document.getElementById('mfFields').append(panel);panel.querySelector('select').value=values.tandaTanganBds||'otomatis';panel.querySelector('select').onchange=e=>{values.tandaTanganBds=e.target.value;preview();};}
  if(type==='angsuran'){
   const root=document.getElementById('mfFields'),keys=['periode','pokok','bunga','tbyd','bydt','jumlah'];
