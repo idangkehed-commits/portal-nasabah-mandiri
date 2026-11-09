@@ -6,7 +6,14 @@ const meta=[['nomor','Nomor surat'],['tanggal','Tanggal surat','date'],['lampira
 const destination=[['tujuan','Kepada / instansi tujuan','textarea'],['kotaTujuan','Kota / wilayah tujuan']];
 const settings=[['bank','Nama bank pada kop'],['cabang','Cabang pada kop'],['alamatKop','Alamat dan kontak pada kop','textarea'],['bankTtd','Nama bank pada tanda tangan'],['unitTtd','Unit / cabang penanda tangan'],['pejabat','Nama penanda tangan'],['jabatan','Jabatan penanda tangan']];
 const certificate=[['jenisSertifikat','Jenis sertifikat'],['sertifikat','Nomor sertifikat (lengkap sesuai dokumen, termasuk elektronik)'],['pemilik','Nama pemilik sertifikat']];
+const koreksiSubject='Permohonan Koreksi Tanggal Jatuh Tempo Kredit di e-Sertifikat Penjamin (Polis) Asuransi Jamkrindo';
 const definitions={
+ koreksiJT:{title:'Surat Permohonan Koreksi Tanggal Jatuh Tempo',fields:[...meta,
+  ['tujuan','Kepada / alamat tujuan','textarea'],['perihal','Perihal manual','textarea'],
+  ['polis','Nomor e-Polis Asuransi KUR'],['penjamin','Nama perusahaan penjamin'],
+  ['nama','Nama debitur'],['los','Nomor aplikasi LOS'],['limit','Limit (Rp, boleh disertai terbilang)'],
+  ['jatuhTempoPolis','Tanggal jatuh tempo di polis','date'],['jatuhTempoBenar','Tanggal jatuh tempo sebenarnya','date'],
+  ['tenorPolis','Jangka Waktu di Polis'],['tenorBenar','Jangka Waktu Sebenarnya'],...settings]},
  kyc:{title:'Surat KYC Calon Debitur',fields:[...meta,...destination,
   ['nama','Nama calon debitur'],['perusahaan','Nama perusahaan'],['posisi','Jabatan saat ini'],
   ['mulaiPosisi','Tanggal mulai menjabat','date'],['bankGaji','Bank pembayaran gaji'],
@@ -31,6 +38,7 @@ function defaults(type){return {
  lampiran:type==='roya'?'2 (Dua) sertifikat':type==='angsuran'?'1 (satu) set':'-',
  ...(type==='htel'?{tujuan:'Kepala Kantor\nPertanahan Kabupaten Bandung',kotaTujuan:'Kabupaten Bandung',peringkat:'I (Pertama)',jenisSertifikat:'Hak Milik'}:{}),
  ...(type==='roya'?{tujuan:'Kepala Kantor\nBadan Pertanahan Nasional Kabupaten Bandung',kotaTujuan:'Kabupaten Bandung',peringkat:'I (Kesatu)',jenisSertifikat:'Hak Milik'}:{}),
+ ...(type==='koreksiJT'?{tujuan:'PT Jaminan Kredit Indonesia (Jamkrindo)\nKantor Cabang Bandung\nJl. Soekarno Hatta No. 774\nBandung',penjamin:'PT Jaminan Kredit Indonesia (Jamkrindo)',bank:'PT Bank Mandiri (Persero) Tbk',alamatKop:'Jl P.H. Hasan Mustapa No 39\nBandung\nTel. 022-7217861\nwww.bankmandiri.co.id',jabatan:'Penyelia Unit'}:{}),
  ...(type==='kyc'?{tujuan:'Retail Credit Center Jakarta\nPT Bank Mandiri (Persero) Tbk',kotaTujuan:'tempat',penandaTanganKyc:'deki',bank:'PT Bank Mandiri (Persero) Tbk',alamatKop:'Jl P.H. Hasan Mustapa No 39\nBandung\nTel. 022-7217861\nwww.bankmandiri.co.id',jabatan:'Penyelia Unit'}:{}),
  ...(type==='mitra'?{bankTtd:'PT. Bank Mandiri (Persero) Tbk',unitTtd:'KCP Bandung Jamsostek',jabatan:'Penyelia Unit',lampiran:'-'}:{}),
  ...(type==='bds'?{tujuan:'PT. Bank Mandiri (Persero) Tbk\nArea Bandung Surapati\nUP: HC & GA\nJl. Surapati No. 2\nKota Bandung',cabang:'KCP Bandung Jamsostek',unitTtd:'KCP Bandung Jamsostek',existingNama:'M Arief Fadhillah',existingId:'2083739540',baruNama:'Deki Elanda Pradikta',baruId:'2088734785',lampiran:'-',tandaTanganBds:'otomatis'}:{}),
@@ -39,7 +47,7 @@ function defaults(type){return {
 const css=`
 .mf-mitra{position:relative;padding:6mm 5mm;font:11pt/1.15 Arial;color:#111;min-height:297mm;isolation:isolate}.mf-mitra p{margin:0 0 4mm}.mf-mitra-heading{display:flex;justify-content:space-between;align-items:start;margin-bottom:5mm;font-size:10.5pt}.mf-mitra-heading img{width:37mm;height:auto}.mf-mitra-title{border-bottom:4px double #333;padding-bottom:1mm;margin-right:5mm;margin-bottom:2mm}.mf-mitra-meta{border-collapse:collapse;margin-bottom:8mm}.mf-mitra-meta td{padding:0 2mm}.mf-mitra-meta td:first-child{width:24mm}.mf-mitra-table{border-collapse:collapse;table-layout:fixed;width:100%;margin-top:2mm}.mf-mitra-table td,.mf-mitra-table th{border:1px solid #111;padding:2mm;text-align:left;overflow-wrap:anywhere;vertical-align:middle}.mf-mitra-table th i{font-size:9pt;font-weight:normal}.mf-mitra-table .center{text-align:center}.mf-mitra-closing{margin-top:8mm!important;text-align:justify}.mf-mitra .mf-property-ttd{margin-left:2mm;margin-top:3mm;break-inside:avoid}
 
-.mf-property{padding:20mm 24mm;font:10pt/1.35 Arial,sans-serif;min-height:296mm;overflow-wrap:anywhere}.mf-property p{margin:0 0 14px;text-align:justify}.mf-property-head{display:grid;grid-template-columns:minmax(0,1fr) 58mm;gap:8mm;min-height:49mm;margin-bottom:1mm}.mf-property-meta{padding-top:12mm;min-width:0}.mf-property-meta table{width:100%;border-collapse:collapse}.mf-property-meta td{padding:0;vertical-align:top}.mf-property-meta td:first-child{width:19mm}.mf-property-meta td:nth-child(2){width:4mm}.mf-property-brand{font:8pt/1.2 Arial;color:#17365d}.mf-property-brand img{display:block;width:58mm;height:auto;margin-bottom:3px}.mf-property-to{margin:0 0 17px;line-height:1.35}.mf-property-subject{display:grid;grid-template-columns:17mm 4mm minmax(0,1fr);gap:0;margin-bottom:18px;break-inside:avoid}.mf-property-subject>div:last-child{text-align:justify}.mf-property-list{padding-left:21px;margin:0 0 18px}.mf-property-kyc .mf-property-to{margin:3mm 0 0}.mf-property-kyc .mf-property-list{list-style:decimal outside}.mf-property-list li{padding-left:4px;text-align:justify;margin-bottom:10px}.mf-property-ttd{margin-top:24px;break-inside:avoid;page-break-inside:avoid}.mf-property-ttd .mf-property-ink{height:23mm;display:flex;align-items:center}.mf-property-ink img{width:43mm;height:22mm;object-fit:contain;object-position:left center}.mf-property-title{font:bold 11pt Arial!important;text-decoration:underline;text-align:center!important;margin:0 0 24px!important}.mf-property-data{width:100%;border-collapse:collapse;margin:16px 0 23px}.mf-property-data td{vertical-align:top;padding:3px 0}.mf-property-data td:first-child{width:47mm}.mf-property-data td:nth-child(2){width:4mm}.mf-property-stnk{font-size:11pt}.mf-property-bds .mf-property-head{min-height:0}.mf-property-bds .mf-property-brand{position:relative;transform:translate(10mm,-7mm)}.mf-property-bds .mf-property-to{position:relative;margin-top:-8mm}.mf-property-angsuran{font-size:11pt;padding:15mm 19mm}.mf-property-angsuran .mf-property-head{min-height:51mm}.mf-property-amounts{width:100%;table-layout:fixed;border-collapse:collapse;margin:18px 0 22px;font:10pt/1.3 Arial}.mf-property-amounts th,.mf-property-amounts td{border:1px solid #111;padding:7px 4px;overflow-wrap:anywhere;text-align:center}.mf-property-amounts th{font-weight:bold}.mf-property-amounts td{height:12mm}.mf-property-sign-pair{display:grid;grid-template-columns:1fr 1fr;gap:8mm;break-inside:avoid}.mf-property-sign-pair>div{min-width:0}.mf-property-sign-pair .mf-property-ttd{margin-top:0}.mf-property-form-settings{margin-top:18px;border-top:1px solid #ccd8e8;padding-top:12px}.mf-property-form-settings summary{font-weight:bold;cursor:pointer}.mf-property-help{font:12px/1.5 Arial;color:#64748b}
+.mf-property{padding:20mm 24mm;font:10pt/1.35 Arial,sans-serif;min-height:296mm;overflow-wrap:anywhere}.mf-property p{margin:0 0 14px;text-align:justify}.mf-property-head{display:grid;grid-template-columns:minmax(0,1fr) 58mm;gap:8mm;min-height:49mm;margin-bottom:1mm}.mf-property-meta{padding-top:12mm;min-width:0}.mf-property-meta table{width:100%;border-collapse:collapse}.mf-property-meta td{padding:0;vertical-align:top}.mf-property-meta td:first-child{width:19mm}.mf-property-meta td:nth-child(2){width:4mm}.mf-property-brand{font:8pt/1.2 Arial;color:#17365d}.mf-property-brand img{display:block;width:58mm;height:auto;margin-bottom:3px}.mf-property-to{margin:0 0 17px;line-height:1.35}.mf-property-subject{display:grid;grid-template-columns:17mm 4mm minmax(0,1fr);gap:0;margin-bottom:18px;break-inside:avoid}.mf-property-subject>div:last-child{text-align:justify}.mf-property-list{padding-left:21px;margin:0 0 18px}.mf-property-koreksiJT .mf-property-to{margin:3mm 0 4mm}.mf-property-koreksiJT .mf-property-head{min-height:0}.mf-property-koreksiJT table{font:inherit}.mf-property-koreksiJT .mf-property-data td:first-child{width:59mm}.mf-property-kyc .mf-property-to{margin:3mm 0 0}.mf-property-kyc .mf-property-list{list-style:decimal outside}.mf-property-list li{padding-left:4px;text-align:justify;margin-bottom:10px}.mf-property-ttd{margin-top:24px;break-inside:avoid;page-break-inside:avoid}.mf-property-ttd .mf-property-ink{height:23mm;display:flex;align-items:center}.mf-property-ink img{width:43mm;height:22mm;object-fit:contain;object-position:left center}.mf-property-title{font:bold 11pt Arial!important;text-decoration:underline;text-align:center!important;margin:0 0 24px!important}.mf-property-data{width:100%;border-collapse:collapse;margin:16px 0 23px}.mf-property-data td{vertical-align:top;padding:3px 0}.mf-property-data td:first-child{width:47mm}.mf-property-data td:nth-child(2){width:4mm}.mf-property-stnk{font-size:11pt}.mf-property-bds .mf-property-head{min-height:0}.mf-property-bds .mf-property-brand{position:relative;transform:translate(10mm,-7mm)}.mf-property-bds .mf-property-to{position:relative;margin-top:-8mm}.mf-property-angsuran{font-size:11pt;padding:15mm 19mm}.mf-property-angsuran .mf-property-head{min-height:51mm}.mf-property-amounts{width:100%;table-layout:fixed;border-collapse:collapse;margin:18px 0 22px;font:10pt/1.3 Arial}.mf-property-amounts th,.mf-property-amounts td{border:1px solid #111;padding:7px 4px;overflow-wrap:anywhere;text-align:center}.mf-property-amounts th{font-weight:bold}.mf-property-amounts td{height:12mm}.mf-property-sign-pair{display:grid;grid-template-columns:1fr 1fr;gap:8mm;break-inside:avoid}.mf-property-sign-pair>div{min-width:0}.mf-property-sign-pair .mf-property-ttd{margin-top:0}.mf-property-form-settings{margin-top:18px;border-top:1px solid #ccd8e8;padding-top:12px}.mf-property-form-settings summary{font-weight:bold;cursor:pointer}.mf-property-help{font:12px/1.5 Arial;color:#64748b}
 `;
 function render(type,values){
  const v=k=>esc(values[k]||'................').replace(/\n/g,'<br>');
@@ -58,6 +66,21 @@ function render(type,values){
  if(type==='htel')content=subject('Permohonan Pendaftaran Hak Tanggungan '+v('peringkat')+' Debitur An. '+v('nama')+'.')+'<p>Menunjuk perihal diatas, dengan ini kami lampirkan berkas pengurusan pendaftaran Hak Tanggungan Peringkat '+v('peringkat')+' guna kepentingan “PT. Bank Mandiri (Persero) Tbk.” dengan data sebagai berikut :</p><ol class="mf-property-list"><li>Asli Sertipikat '+v('jenisSertifikat')+' No. '+v('sertifikat')+', an. '+v('pemilik')+'.</li><li>Akta Pemberian Hak Tanggungan Nomor: '+v('akta')+' Tanggal '+dt('tanggalAkta')+'.</li><li>Surat Pengantar PPAT</li><li>Data-data para pihak</li></ol><p>Demikian kami sampaikan, atas perhatiannya kami ucapkan terima kasih.</p>'+sign();
  if(type==='roya'){const property=cert()+' yang terletak di '+v('lokasi');const ht='Hak Tanggungan Peringkat '+v('peringkat')+' No. '+v('ht')+' tanggal '+dt('tanggalHt');content=subject('Peroyaan Hak Tanggungan '+property+'.')+'<p>Dengan ini kami mohon bantuan Saudara untuk melaksanakan peroyaan '+ht+' yang mengikat '+property+'. Sertifikat tersebut sudah tidak menjadi agunan pada Bank kami.</p><p>Terlampir kami sampaikan asli dokumen sebagai berikut :</p><ol class="mf-property-list"><li>Asli '+property+'.</li><li>Asli Sertifikat '+ht+'.</li></ol><p>Demikian kami sampaikan. Atas perhatian dan kerjasamanya, kami ucapkan terima kasih.</p>'+sign();}
  if(type==='stnk')content='<h1 class="mf-property-title">SURAT KETERANGAN</h1>'+subject('BPKB yang Dijaminkan')+'<p>Menunjuk perihal tersebut diatas, menerangkan bahwa :</p>'+info([['No. BPKB',v('bpkb')],['Nama dalam BPKB',v('nama')],['Alamat',v('alamat')],['No Rangka/NIK',v('rangka')],['No Mesin',v('mesin')],['No.Pol dalam BPKB',v('polisi')]])+'<p>Merupakan jaminan di PT Bank Mandiri (Persero) Tbk.</p><p>Surat Keterangan ini dikeluarkan atas permintaan yang bersangkutan.</p><p>Demikian kami sampaikan agar dapat dipergunakan sesuai kebutuhan.</p>'+sign();
+ if(type==='koreksiJT'){
+  const subjectText=values.perihalKoreksiMode==='manual'?v('perihal'):esc(koreksiSubject);
+  const debtor=info([
+   ['Nama debitur',v('nama')],['No. Aplikasi LOS',v('los')],['Limit','Rp '+v('limit')],
+   ['Tanggal jatuh tempo di polis',dt('jatuhTempoPolis')],['Tanggal jatuh tempo sebenarnya',dt('jatuhTempoBenar')],
+   ['Jangka Waktu di Polis',v('tenorPolis')],['Jangka Waktu Sebenarnya',v('tenorBenar')]
+  ]);
+  const advisLogo=window.ADVIS_MANDIRI_LOGO_BASE64||logo;
+  return '<div class="mf-document"><article class="mf-page mf-property mf-property-koreksiJT">'+
+   '<div class="mf-property-head"><div class="mf-property-meta">'+letterMeta+'<div class="mf-property-to"><b>Kepada<br>'+v('tujuan')+'</b></div></div>'+
+   '<div class="mf-property-brand"><img src="'+esc(advisLogo)+'" alt="Bank Mandiri"><b>'+v('bank')+'</b><br>'+v('cabang')+'<br>'+v('alamatKop')+'</div></div>'+
+   subject('<b><u>'+subjectText+'</u></b>')+
+   '<p>Berdasarkan lampiran e-Polis Asuransi KUR No. '+v('polis')+' dari '+v('penjamin')+', kami informasikan bahwa terdapat perubahan tanggal jatuh tempo kredit tersebut. Sehubungan dengan hal itu, kami memohon koreksi dengan rincian sebagai berikut:</p>'+debtor+
+   '<p>Demikian kami sampaikan. Atas perhatian dan kerja samanya, kami ucapkan terima kasih.</p>'+sign()+'</article></div>';
+ }
  if(type==='kyc'){
   const advisLogo=window.ADVIS_MANDIRI_LOGO_BASE64||logo;
   const identity=info([['Nama',v('nama')],['Nama Perusahaan',v('perusahaan')],['Jabatan',v('posisi')]]);
@@ -81,6 +104,21 @@ function render(type,values){
  return '<div class="mf-document"><article class="mf-page mf-property mf-property-'+type+'"><div class="mf-property-head"><div class="mf-property-meta">'+letterMeta+'</div><div class="mf-property-brand"><img src="'+logo+'" alt="Bank Mandiri"><b>'+v('bank')+'</b><br>'+v('cabang')+'<br>'+v('alamatKop')+'</div></div>'+to+content+'</article></div>';
 }
 function setup(type,values={},preview=()=>{}){
+ if(type==='koreksiJT'){
+  const field=document.getElementById('mf_perihal'),label=field.previousElementSibling;
+  const panel=document.createElement('section');
+  panel.innerHTML='<label for="koreksiSubjectMode">Perihal</label><select id="koreksiSubjectMode"><option value="auto">Otomatis sesuai template</option><option value="manual">Isi perihal manual</option></select>';
+  label.before(panel);
+  const mode=panel.querySelector('select');mode.value=values.perihalKoreksiMode||'auto';
+  const update=()=>{
+   const manual=mode.value==='manual';
+   label.hidden=field.hidden=field.disabled=!manual;
+   values.perihalKoreksiMode=mode.value;
+   preview();
+  };
+  mode.onchange=update;update();
+ }
+
  if(type==='kyc'){
   const endpoint='/api/portal/ksm-signatures/kyc-yanuar';
   const panel=document.createElement('section');
