@@ -18,7 +18,7 @@ let currentVisitNasabah = null;
 let pendingImportData = [];
 let isSyncing = false;
 
-const STORAGE_KEY = 'portal_nasabah_mandiri_pipeline_v2';
+const STORAGE_KEY = 'portal_nasabah_mandiri_pipeline_v3_20261110';
 const VISIT_STORAGE_KEY = 'portal_mandiri_visits_v2';
 const CLOUD_SYNC_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701a130130a5a4916';
 
@@ -1306,12 +1306,27 @@ function handleExcelUpload(file) {
 
 function mapExcelRows(rawRows) {
   if (rawRows.length === 0) return [];
-  const headers = Object.keys(rawRows[0]);
+  const normalizedRows = rawRows.map(row => {
+    const norm = {};
+    for (const [k, v] of Object.entries(row)) norm[k.trim()] = v;
+    return norm;
+  });
+  const headers = Object.keys(normalizedRows[0]);
 
   const isMandiriLeadsFormat = headers.some(h => h.toLowerCase().includes('cifno') || h.toLowerCase().includes('max limit eligible'));
 
   if (isMandiriLeadsFormat) {
-    return rawRows.map((r, i) => {
+    const DUMMY_LOC = new Set(['', '0', '1', '10', 'a', 'aaa', 'jonggolumbu', 'jonggoljaya', 'null', '-']);
+    const cleanLoc = (val) => {
+      const s = String(val ?? '').trim();
+      return DUMMY_LOC.has(s.toLowerCase()) ? '' : s;
+    };
+    const cleanRtRw = (val) => {
+      const s = String(val ?? '').trim();
+      return (!s || s === '0' || s.toLowerCase() === 'null' || s === '-') ? '' : s;
+    };
+
+    return normalizedRows.map((r, i) => {
       const lim1 = cleanNumber(r['Max Limit Eligible_1'] || r['max limit eligible_1'] || 0);
       const lim2 = cleanNumber(r['Max Limit Eligible_2'] || r['max limit eligible_2'] || 0);
       const lim3 = cleanNumber(r['Max Limit Eligible_3'] || r['max limit eligible_3'] || 0);
@@ -1320,54 +1335,73 @@ function mapExcelRows(rawRows) {
       const p1 = String(r.prod_1 || r.PROD_1 || '').toUpperCase();
       const p2 = String(r.prod_2 || r.PROD_2 || '').toUpperCase();
       const p3 = String(r.prod_3 || r.PROD_3 || '').toUpperCase();
-      const leadsKur = String(r['Leads KUR Mikro'] || '');
-      const el1 = String(r.Eligible_1 || '');
+      const leadsKur = String(r['Leads KUR Mikro'] || '').trim();
+      const el1 = String(r.Eligible_1 || '').trim();
+      const el2 = String(r.Eligible_2 || '').trim();
+      const el3 = String(r.Eligible_3 || '').trim();
 
-      const canKur = p1.includes('KUR') || p2.includes('KUR') || p3.includes('KUR') || p1.includes('BOTH') || p2.includes('BOTH') || el1.includes('KUR') || leadsKur.includes('KUR');
-      const canKum = p1.includes('KUM') || p2.includes('KUM') || p3.includes('KUM') || p1.includes('BOTH') || p2.includes('BOTH') || el1.includes('KUM') || el1.includes('AMUNISI') || el1.includes('MADU');
+      const canKur = p1.includes('KUR') || p2.includes('KUR') || p3.includes('KUR') || p1.includes('BOTH') || p2.includes('BOTH') || p3.includes('BOTH') || el1.includes('KUR') || leadsKur.includes('KUR');
+      const canKum = p1.includes('KUM') || p2.includes('KUM') || p3.includes('KUM') || p1.includes('BOTH') || p2.includes('BOTH') || p3.includes('BOTH') || el1.includes('KUM') || el1.includes('AMUNISI') || el1.includes('MADU') || el2.includes('AMUNISI') || el2.includes('KUM');
 
       let produk = 'Kredit Mikro';
       if (canKur && canKum) produk = 'Bisa KUR & KUM (Pilihan Ganda)';
       else if (canKur) produk = (leadsKur ? 'KUR (' + leadsKur.replace('Leads ', '') + ')' : 'KUR Mikro / Kecil');
       else if (canKum) produk = 'KUM Mikro';
 
-      const lg = String(r['Leads Group'] || '').toUpperCase();
-      const tierKl = String(r['Tier Usia Lunas Kawan Lama'] || '');
-      const irisan = String(r['Ketr. Irisan Leads KUM Eligible_1'] || '');
+      const lg = String(r['Leads Group'] || '').trim();
+      const lgUpper = lg.toUpperCase();
+      const tierKl = String(r['Tier Usia Lunas Leads Kawan Lama'] || r['Tier Usia Lunas Kawan Lama'] || '').trim();
+      const tierBade = String(r['Tier Sisa Bade Leads ETB'] || r['Tier Sisa Bade'] || '').trim();
+      const irisan1 = String(r['Ketr. Irisan Leads KUM Eligible_1'] || '').trim();
+      const irisan2 = String(r['Ketr. Irisan Leads KUM Eligible_2'] || '').trim();
+      const irisan = [irisan1, irisan2].filter(Boolean).join(', ');
 
       let kategori = lg || 'Eksisting';
-      if (lg === 'KL' || tierKl || el1.includes('KawanLama') || el1.includes('KL') || irisan.includes('Kawan Lama')) {
+      if (lgUpper === 'KL' || tierKl || el1.includes('KawanLama') || el1.includes('KL') || irisan.includes('Kawan Lama')) {
         let sub = '';
         if (tierKl.includes('s.d 3bln')) sub = ' (Lunas ≤ 3 Bln)';
         else if (tierKl.includes('3bln s.d 12bln')) sub = ' (Lunas 3-12 Bln)';
         else if (tierKl.includes('>12bln')) sub = ' (Lunas > 12 Bln)';
         kategori = 'Kawan Lama' + sub;
-      } else if (lg.includes('ETB') || el1.includes('Ex-KUR') || el1.includes('Top Up')) {
-        const tierBade = String(r['Tier Sisa Bade'] || '');
-        kategori = 'ETB / Suplesi' + (tierBade ? ' (' + tierBade.replace('03. ', '').replace('02. ', '').replace('01. ', '') + ')' : '');
-      } else if (lg === 'ULTIMA' || el1.includes('Ultima')) {
+      } else if (lgUpper.includes('ETB') || el1.includes('Ex-KUR') || el1.includes('Top Up')) {
+        kategori = 'ETB / Suplesi' + (tierBade ? ' (' + tierBade.replace(/^0[123]\.\s*/, '') + ')' : '');
+      } else if (lgUpper === 'ULTIMA' || el1.includes('Ultima')) {
         kategori = 'KUR Ultima';
       }
 
       const elgParts = [];
-      if (r.Eligible_1) elgParts.push('Program: ' + r.Eligible_1);
-      if (r.Eligible_2) elgParts.push('Opsi 2: ' + r.Eligible_2);
-      if (r.Eligible_3) elgParts.push('Opsi 3: ' + r.Eligible_3);
-      if (r['Ketr. Irisan Leads KUM Eligible_1']) elgParts.push(r['Ketr. Irisan Leads KUM Eligible_1']);
-      if (r['Leads KUR Mikro']) elgParts.push(r['Leads KUR Mikro']);
-      if (r['Tier Sisa Bade']) elgParts.push(r['Tier Sisa Bade']);
+      if (el1) elgParts.push('Program: ' + el1);
+      if (el2) elgParts.push('Opsi 2: ' + el2);
+      if (el3) elgParts.push('Opsi 3: ' + el3);
+      if (irisan && irisan !== el1 && irisan !== el2) elgParts.push(irisan);
+      if (leadsKur) elgParts.push(leadsKur);
+      if (tierBade) elgParts.push(tierBade);
 
       let hp = String(r['No HP'] || r['no hp'] || '').trim();
       if (hp === '0' || hp === 'NULL') hp = '';
 
+      const rt = cleanRtRw(r.RT);
+      const rw = cleanRtRw(r.RW);
+      const rt_rw = (rt || rw) ? ('RT ' + (rt || '0') + ' / RW ' + (rw || '0')) : '';
+
+      const baseAlamat = String(r.Alamat || '').trim();
+      const kel = cleanLoc(r.Kelurahan);
+      const kec = cleanLoc(r.Kecamatan);
+      const pos = cleanLoc(r['Kode Pos']);
+      const addrParts = [baseAlamat];
+      if (kel && !baseAlamat.toLowerCase().includes(kel.toLowerCase())) addrParts.push(kel);
+      if (kec && !baseAlamat.toLowerCase().includes(kec.toLowerCase()) && kec.toLowerCase() !== kel.toLowerCase()) addrParts.push(kec);
+      if (pos && !baseAlamat.includes(pos)) addrParts.push(pos);
+
       return {
         id: 'cif-' + (r.cifno || (1000 + i)),
-        cifno: String(r.cifno || ''),
+        cifno: String(r.cifno || '').trim(),
         nama: String(r['Nama Debitur'] || r['nama debitur'] || r.Nama || `Debitur ${i + 1}`).trim(),
         hp: hp,
         sgp: String(r.sgp_nama || r['SGP Nama'] || '').trim(),
-        alamat: [r.Alamat, r.Kelurahan, r.Kecamatan, r['Kode Pos']].filter(Boolean).join(', '),
-        rt_rw: (r.RT && r.RW) ? 'RT ' + r.RT + ' / RW ' + r.RW : '',
+        alamat: addrParts.filter(Boolean).join(', '),
+        rt_rw: rt_rw,
+        rekening: String(r.Rekening || r.rekening || '').trim(),
         produk: produk,
         kategori: kategori,
         limit: primaryLimit,
@@ -1375,9 +1409,14 @@ function mapExcelRows(rawRows) {
         limit2: lim2,
         limit3: lim3,
         eligible: elgParts.join(' • ') || 'Eligible untuk pengajuan fasilitas kredit.',
-        eligible1: r.Eligible_1 || '',
-        eligible2: r.Eligible_2 || '',
-        eligible3: r.Eligible_3 || '',
+        eligible1: el1,
+        eligible2: el2,
+        eligible3: el3,
+        irisan: irisan,
+        leadsKur: leadsKur,
+        leadsGroup: lg,
+        tierKl: tierKl,
+        tierBade: tierBade,
         consent: r.Consent || 'Ada Consent',
         tindakan: r.Tindakan || 'Pesan Instan (WA,dll), Telepon, SMS, Kunjungan Langsung',
         tanggal: new Date().toISOString().split('T')[0]
@@ -1483,48 +1522,118 @@ function downloadTemplateExcel() {
   showToast('File Excel pipeline berhasil diunduh!', 'success');
 }
 
+function getRekeningNasabah(item) {
+  if (!item) return '';
+  const reks = new Set();
+  if (item.rekening) {
+    String(item.rekening).split(/\s*\/\s*|\s*,\s*/).map(s => s.trim()).filter(Boolean).forEach(r => reks.add(r));
+  }
+  const cif = String(item.cifno || '').trim();
+  const namaUpper = String(item.nama || '').trim().toUpperCase();
+
+  if (Array.isArray(dbTagihan)) {
+    dbTagihan.forEach(t => {
+      const matchCif = cif && String(t.cif || '').trim() === cif;
+      const matchNama = namaUpper && String(t.nama || '').trim().toUpperCase() === namaUpper;
+      if (matchCif || matchNama) {
+        const p = String(t.rekening || '').trim();
+        const a = String(t.rekAgf || '').trim();
+        if (p && p !== '-' && p !== '0') reks.add(p);
+        if (a && a !== '-' && a !== '0') reks.add(a);
+      }
+    });
+  }
+
+  if (Array.isArray(dbBooking)) {
+    dbBooking.forEach(b => {
+      const matchCif = cif && String(b.cif || '').trim() === cif;
+      const matchNama = namaUpper && String(b.nama || '').trim().toUpperCase() === namaUpper;
+      if (matchCif || matchNama) {
+        (b.fasilitas || []).forEach(f => {
+          const p = String(f.rekPjm || '').trim();
+          const a = String(f.rekTab || '').trim();
+          if (p && p !== '-' && p !== '0') reks.add(p);
+          if (a && a !== '-' && a !== '0') reks.add(a);
+        });
+      }
+    });
+  }
+
+  return [...reks].join(' / ');
+}
+
+function formatPhoneExport(hp) {
+  if (!hp) return '-';
+  let str = String(hp).replace(/[^0-9]/g, '');
+  if (!str || str === '0' || str.length < 5) return '-';
+  if (str.startsWith('62')) str = '0' + str.substring(2);
+  else if (str.startsWith('8')) str = '0' + str;
+  return str;
+}
+
+function formatAlamatLengkapExport(item) {
+  if (!item) return '-';
+  const base = String(item.alamat || '').trim();
+  const rtrw = String(item.rt_rw || '').trim();
+  if (!base && !rtrw) return '-';
+  if (rtrw && !base.toLowerCase().includes(rtrw.toLowerCase()) && !/rt\s*\d/i.test(base)) {
+    return [base, rtrw].filter(Boolean).join(', ');
+  }
+  return base || rtrw;
+}
+
+function formatStatusEligibleExport(item) {
+  if (!item) return '-';
+  const parts = [];
+  const elg = String(item.eligible || '').replace(/^Program:\s*/i, '').trim();
+  if (elg) parts.push(elg);
+  if (item.produk && !elg.toLowerCase().includes(String(item.produk).toLowerCase())) {
+    parts.push(`Produk: ${item.produk}`);
+  }
+  if (Number(item.limit) > 0) {
+    const limParts = [formatRupiah(item.limit)];
+    if (Number(item.limit2) > 0 && Number(item.limit2) !== Number(item.limit)) {
+      limParts.push(`Opsi 2: ${formatRupiah(item.limit2)}`);
+    }
+    parts.push(`Plafon: ${limParts.join(' / ')}`);
+  }
+  return parts.join(' • ') || '-';
+}
+
 function exportDatabaseToExcel() {
-  if (dbNasabah.length === 0) {
+  const sourceList = (typeof getFilteredData === 'function' && getFilteredData().length > 0)
+    ? getFilteredData()
+    : dbNasabah;
+
+  if (!sourceList || sourceList.length === 0) {
     showToast('Tidak ada data untuk diekspor', 'warning');
     return;
   }
 
-  const exportList = dbNasabah.map((item, idx) => ({
-    'No': idx + 1,
-    'Nama Debitur': item.nama,
-    'No CIF': item.cifno,
-    'No WhatsApp / HP': item.hp,
-    'Petugas SGP / RM': item.sgp,
-    'Produk Kredit': item.produk,
-    'Kategori': item.kategori,
-    'Eligible Limit Utama (Rp)': item.limit,
-    'Limit Opsi 2 (Rp)': item.limit2 || '',
-    'Program & Kelayakan': item.eligible,
-    'Consent Status': item.consent,
-    'Alamat': item.alamat
+  const exportList = sourceList.map((item) => ({
+    'No CIF': item.cifno || '-',
+    'Nama Nasabah': item.nama || '-',
+    'No Telfon': formatPhoneExport(item.hp),
+    'Alamat Lengkap': formatAlamatLengkapExport(item),
+    'Rekening': getRekeningNasabah(item) || '-',
+    'Status Eligible': formatStatusEligibleExport(item)
   }));
 
   const ws = XLSX.utils.json_to_sheet(exportList);
   ws['!cols'] = [
-    { wch: 6 },
-    { wch: 26 },
-    { wch: 16 },
-    { wch: 18 },
-    { wch: 25 },
-    { wch: 28 },
-    { wch: 22 },
-    { wch: 22 },
-    { wch: 18 },
-    { wch: 50 },
-    { wch: 16 },
-    { wch: 40 }
+    { wch: 16 }, // No CIF
+    { wch: 28 }, // Nama Nasabah
+    { wch: 18 }, // No Telfon
+    { wch: 52 }, // Alamat Lengkap
+    { wch: 32 }, // Rekening
+    { wch: 65 }  // Status Eligible
   ];
 
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Pipeline Debitur');
+  XLSX.utils.book_append_sheet(wb, ws, 'Leads KUR & KUM');
   const dateStr = new Date().toISOString().split('T')[0];
-  XLSX.writeFile(wb, `Pipeline_Debitur_Mandiri_${dateStr}.xlsx`);
-  showToast('Database berhasil diekspor ke file Excel!', 'success');
+  XLSX.writeFile(wb, `Export_Leads_KUR_KUM_${dateStr}.xlsx`);
+  showToast(`Berhasil mengekspor ${exportList.length} data nasabah ke Excel!`, 'success');
 }
 
 // ================= CRUD MANUAL =================

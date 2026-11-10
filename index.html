@@ -176,7 +176,8 @@
           <button id="btnOpenDataImport" type="button" onclick="openDataImport()" class="px-3 py-2 rounded-xl bg-white text-mandiri-navy font-bold text-xs sm:text-sm">Impor Data</button>
           <details id="portalTools" class="relative text-mandiri-navy text-xs sm:text-sm">
             <summary class="cursor-pointer px-3 py-2 rounded-xl bg-white font-bold">Tools</summary>
-            <div class="absolute right-0 mt-2 w-64 max-w-[85vw] bg-white border border-slate-200 rounded-xl shadow-lg p-2 z-50">
+            <div class="absolute right-0 mt-2 w-64 max-w-[85vw] bg-white border border-slate-200 rounded-xl shadow-lg p-2 z-50 space-y-1">
+              <button type="button" onclick="exportDatabaseToExcel()" class="w-full text-left block px-3 py-2 rounded-lg hover:bg-emerald-50 text-emerald-700 font-semibold"><i class="fa-solid fa-file-excel mr-1.5"></i>Export Leads KUR &amp; KUM</button>
               <a href="rapikan-tagihan.html" class="block px-3 py-2 rounded-lg hover:bg-blue-50 font-semibold">Rapikan Excel Tagihan</a>
             </div>
           </details>
@@ -194,7 +195,7 @@
         <button id="tabBtnPipeline" onclick="switchMainTab('pipeline')" class="flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm bg-white text-mandiri-navy shrink-0">
           <i class="fa-solid fa-user-plus text-mandiri-blue"></i>
           <span>Pipeline nasabah</span>
-          <span id="tabBadgePipelineCount" class="px-2 py-0.5 rounded-full text-[10px] bg-blue-100 text-mandiri-navy font-black">118</span>
+          <span id="tabBadgePipelineCount" class="px-2 py-0.5 rounded-full text-[10px] bg-blue-100 text-mandiri-navy font-black">109</span>
         </button>
 
         <!-- Tab 2: Monitoring Tagihan Bulanan -->
@@ -398,6 +399,10 @@
 
       <!-- View Switcher & Action Tools -->
       <div class="flex items-center space-x-2 self-end sm:self-auto">
+        <button id="btnExportExcel" type="button" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-xs flex items-center space-x-1.5 transition cursor-pointer" title="Export data Leads KUR &amp; KUM (No CIF, Nama Nasabah, No Telfon, Alamat Lengkap, Rekening, Status Eligible)">
+          <i class="fa-solid fa-file-excel text-sm"></i>
+          <span>Export Data Leads</span>
+        </button>
         <!-- View Toggle Buttons: Cards vs Table -->
         <div class="bg-slate-200/80 p-1 rounded-xl flex items-center space-x-1 text-xs font-semibold">
           <button id="btnViewCards" class="px-3 py-1.5 rounded-lg bg-white text-mandiri-navy shadow-xs flex items-center space-x-1 transition" title="Tampilan Kartu">
@@ -2494,11 +2499,11 @@
   <script src="template_advis.js?v=20261013_v1"></script>
   <!-- Data Nasabah (Hanya aktif otomatis jika file tersedia secara lokal di komputer pengguna) -->
   <script src="data_booking.js?v=20261015_v1" onerror="console.info('Mode online: data booking offline tidak dimuat.')"></script>
-  <script src="data_leads.js?v=20261013_v3" onerror="console.info('Mode online: data leads offline tidak dimuat.')"></script>
+  <script src="data_leads.js?v=20261110_v1" onerror="console.info('Mode online: data leads offline tidak dimuat.')"></script>
   <script src="data_tagihan.js?v=20261013_v4" onerror="console.info('Mode online: data tagihan offline tidak dimuat.')"></script>
   <!-- App Logic JavaScript -->
   <script src="tagihan-import.js?v=20261025"></script>
-  <script src="app.js?v=20261026_email"></script>
+  <script src="app.js?v=20261110_v1"></script>
   <script src="advis-email.js?v=20261026_google"></script>
   <script src="surat_sp.js?v=20261019_v6"></script>
   <script src="manual_property.js?v=20261109_koreksi_jt"></script>
