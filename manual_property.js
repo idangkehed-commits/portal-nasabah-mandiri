@@ -7,7 +7,18 @@ const destination=[['tujuan','Kepada / instansi tujuan','textarea'],['kotaTujuan
 const settings=[['bank','Nama bank pada kop'],['cabang','Cabang pada kop'],['alamatKop','Alamat dan kontak pada kop','textarea'],['bankTtd','Nama bank pada tanda tangan'],['unitTtd','Unit / cabang penanda tangan'],['pejabat','Nama penanda tangan'],['jabatan','Jabatan penanda tangan']];
 const certificate=[['jenisSertifikat','Jenis sertifikat'],['sertifikat','Nomor sertifikat (lengkap sesuai dokumen, termasuk elektronik)'],['pemilik','Nama pemilik sertifikat']];
 const koreksiSubject='Permohonan Koreksi Tanggal Jatuh Tempo Kredit di e-Sertifikat Penjamin (Polis) Asuransi Jamkrindo';
+const smeSubject='Keterangan Proses Pengajuan Kredit SME';
+const yanuarName='Yanuar Ishak Salahudin';
+const yanuarSignatureEndpoint='/api/portal/ksm-signatures/kyc-yanuar';
+async function loadYanuarSignature(){
+ const response=await fetch(yanuarSignatureEndpoint,{cache:'no-store'});
+ if(!response.ok)throw Error(response.status===404?'Gambar tanda tangan Yanuar belum diunggah di portal.':'Gambar tanda tangan Yanuar belum dapat dimuat.');
+ const blob=await response.blob();
+ if(!['image/jpeg','image/png'].includes(blob.type))throw Error('Format gambar tanda tangan Yanuar tidak valid.');
+ return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error('Gambar tanda tangan Yanuar belum dapat dibaca.'));reader.readAsDataURL(blob);});
+}
 const definitions={
+ sme:{title:smeSubject,fields:[...meta,['nama','Nama perusahaan'],['tujuan','Kepada (kosongkan untuk Direksi perusahaan)','textarea',false],['perihal','Perihal'],['isiSme','Isi surat (gunakan {perusahaan})','textarea'],...settings]},
  koreksiJT:{title:'Surat Permohonan Koreksi Tanggal Jatuh Tempo',fields:[...meta,
   ['tujuan','Kepada / alamat tujuan','textarea'],['perihal','Perihal manual','textarea'],
   ['polis','Nomor e-Polis Asuransi KUR'],['penjamin','Nama perusahaan penjamin'],
@@ -39,6 +50,7 @@ function defaults(type){return {
  ...(type==='htel'?{tujuan:'Kepala Kantor\nPertanahan Kabupaten Bandung',kotaTujuan:'Kabupaten Bandung',peringkat:'I (Pertama)',jenisSertifikat:'Hak Milik'}:{}),
  ...(type==='roya'?{tujuan:'Kepala Kantor\nBadan Pertanahan Nasional Kabupaten Bandung',kotaTujuan:'Kabupaten Bandung',peringkat:'I (Kesatu)',jenisSertifikat:'Hak Milik'}:{}),
  ...(type==='koreksiJT'?{tujuan:'PT Jaminan Kredit Indonesia (Jamkrindo)\nKantor Cabang Bandung\nJl. Soekarno Hatta No. 774\nBandung',penjamin:'PT Jaminan Kredit Indonesia (Jamkrindo)',bank:'PT Bank Mandiri (Persero) Tbk',alamatKop:'Jl P.H. Hasan Mustapa No 39\nBandung\nTel. 022-7217861\nwww.bankmandiri.co.id',jabatan:'Penyelia Unit'}:{}),
+ ...(type==='sme'?{perihal:smeSubject,isiSme:"Dengan hormat,\n\nDengan ini kami menerangkan bahwa {perusahaan} benar sedang dalam proses pengajuan fasilitas kredit SME di PT Bank Mandiri (Persero) Tbk, Cabang Jamsostek.\n\nAgar pengajuan tersebut dapat diproses lebih lanjut, kami mohon {perusahaan} segera melengkapi dan menyampaikan dokumen persyaratan yang masih diperlukan kepada Bank Mandiri Cabang Jamsostek.\n\nDemikian surat keterangan ini kami sampaikan. Atas perhatian dan kerja sama Bapak/Ibu, kami ucapkan terima kasih.",bank:'PT Bank Mandiri (Persero) Tbk',alamatKop:'Jl P.H. Hasan Mustapa No 39\nBandung\nTel. 022-7217861\nwww.bankmandiri.co.id',bankTtd:'PT Bank Mandiri (Persero) Tbk',pejabat:yanuarName,jabatan:'Branch Manager'}:{}),
  ...(type==='kyc'?{tujuan:'Retail Credit Center Jakarta\nPT Bank Mandiri (Persero) Tbk',kotaTujuan:'tempat',penandaTanganKyc:'deki',bank:'PT Bank Mandiri (Persero) Tbk',alamatKop:'Jl P.H. Hasan Mustapa No 39\nBandung\nTel. 022-7217861\nwww.bankmandiri.co.id',jabatan:'Penyelia Unit'}:{}),
  ...(type==='mitra'?{bankTtd:'PT. Bank Mandiri (Persero) Tbk',unitTtd:'KCP Bandung Jamsostek',jabatan:'Penyelia Unit',lampiran:'-'}:{}),
  ...(type==='bds'?{tujuan:'PT. Bank Mandiri (Persero) Tbk\nArea Bandung Surapati\nUP: HC & GA\nJl. Surapati No. 2\nKota Bandung',cabang:'KCP Bandung Jamsostek',unitTtd:'KCP Bandung Jamsostek',existingNama:'M Arief Fadhillah',existingId:'2083739540',baruNama:'Deki Elanda Pradikta',baruId:'2088734785',lampiran:'-',tandaTanganBds:'otomatis'}:{}),
@@ -54,7 +66,7 @@ function render(type,values){
  const dt=k=>values[k]?esc(new Date(values[k]+'T12:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})):'................';
  const letterMeta='<table><tbody><tr><td>Nomor</td><td>:</td><td>'+v('nomor')+'</td></tr><tr><td>Tanggal</td><td>:</td><td>'+dt('tanggal')+'</td></tr><tr><td>Lampiran</td><td>:</td><td>'+v('lampiran')+'</td></tr></tbody></table>';
  const info=rows=>'<table class="mf-property-data"><tbody>'+rows.map(([label,value])=>'<tr><td>'+esc(label)+'</td><td>:</td><td>'+value+'</td></tr>').join('')+'</tbody></table>';
- const sign=(second=false)=>{const s=second?'2':'';const image=type==='kyc'&&values.penandaTanganKyc==='yanuar'&&values.pejabat==='Yanuar Ishak Salahudin'?values.kycYanuarSignature:!second&&(type!=='kyc'||values.penandaTanganKyc==='deki')&&values.pejabat==='Deki Elanda Pradikta'&&(type!=='bds'||values.tandaTanganBds!=='manual')&&window.ADVIS_SIGNATURE_BASE64;return '<div class="mf-property-ttd"><div>'+v('bankTtd'+s)+'<br>'+v('unitTtd'+s)+'</div><div class="mf-property-ink">'+(image?'<img alt="Tanda tangan sesuai template" src="'+esc(image)+'">':'')+'</div><u><b>'+v('pejabat'+s)+'</b></u><br>'+v('jabatan'+s)+'</div>';};
+ const sign=(second=false)=>{const s=second?'2':'';const image=type==='sme'?(values.pejabat===yanuarName&&values.jabatan==='Branch Manager'&&values.smeYanuarSignature):type==='kyc'&&values.penandaTanganKyc==='yanuar'&&values.pejabat==='Yanuar Ishak Salahudin'?values.kycYanuarSignature:!second&&(type!=='kyc'||values.penandaTanganKyc==='deki')&&values.pejabat==='Deki Elanda Pradikta'&&(type!=='bds'||values.tandaTanganBds!=='manual')&&window.ADVIS_SIGNATURE_BASE64;return '<div class="mf-property-ttd"><div>'+v('bankTtd'+s)+'<br>'+v('unitTtd'+s)+'</div><div class="mf-property-ink">'+(image?'<img alt="Tanda tangan sesuai template" src="'+esc(image)+'">':'')+'</div><u><b>'+v('pejabat'+s)+'</b></u><br>'+v('jabatan'+s)+'</div>';};
  if(type==='mitra'){
   return '<div class="mf-document"><article class="mf-page mf-mitra"><div class="mf-mitra-heading"><b>PETUNJUK TEKNIS OPERASIONAL<br>KREDIT SERBAGUNA MANDIRI (KSM)<br>LAMPIRAN 2 – FORMAT DOKUMEN RELATIONSHIP</b><img src="'+logos.branch+'" alt="Bank Mandiri"></div><div class="mf-mitra-title"><b>LAMPIRAN 2.2　: Format Surat Perubahan Data Mitra ID</b></div><table class="mf-mitra-meta">'+[['Nomor',v('nomor')],['Tanggal',dt('tanggal')],['Lampiran',v('lampiran')]].map(([k,t])=>'<tr><td>'+k+'</td><td>:</td><td>'+t+'</td></tr>').join('')+'</table><p>Kepada Yth,<br><b>PT Bank Mandiri (Persero) Tbk</b><br>Consumer Credit Risk &amp; Analytics Group<br>Di tempat</p><p>Perihal　 : <b><u>Permohonan Perubahan Data Mitra ID</u></b></p><p>Berikut kami sampaikan permohonan perubahan data Mitra ID sebagai berikut :</p><table class="mf-mitra-table"><colgroup><col style="width:35%"><col style="width:3%"><col style="width:31%"><col style="width:31%"></colgroup><tbody>'+[['Mitra ID','mitraId'],['Nama Mitra','namaMitra'],['Unit Pengelola Mitra ID','unitMitra']].map(([k,t])=>'<tr><th>'+k+'</th><td>:</td><td colspan="2">'+v(t)+'</td></tr>').join('')+'<tr><th>Perubahan Data Mitra ID<br><i>(Contoh: Perubahan Nama Instansi/PIC Konfirmasi Perusahaan, dll)</i></th><td></td><th class="center">Sebelum</th><th class="center">Menjadi</th></tr>'+Array.from({length:3},(_,i)=>'<tr><td>'+v('data'+i)+'</td><td>:</td><td>'+v('sebelum'+i)+'</td><td>'+v('menjadi'+i)+'</td></tr>').join('')+'</tbody></table><p class="mf-mitra-closing">Demikian disampaikan, mohon bantuannya untuk dapat melakukan penyesuaian/<i>setting</i> pada sistem LOS.</p><p>Hormat kami,</p>'+sign()+'</article></div>';
  }
@@ -66,6 +78,14 @@ function render(type,values){
  if(type==='htel')content=subject('Permohonan Pendaftaran Hak Tanggungan '+v('peringkat')+' Debitur An. '+v('nama')+'.')+'<p>Menunjuk perihal diatas, dengan ini kami lampirkan berkas pengurusan pendaftaran Hak Tanggungan Peringkat '+v('peringkat')+' guna kepentingan “PT. Bank Mandiri (Persero) Tbk.” dengan data sebagai berikut :</p><ol class="mf-property-list"><li>Asli Sertipikat '+v('jenisSertifikat')+' No. '+v('sertifikat')+', an. '+v('pemilik')+'.</li><li>Akta Pemberian Hak Tanggungan Nomor: '+v('akta')+' Tanggal '+dt('tanggalAkta')+'.</li><li>Surat Pengantar PPAT</li><li>Data-data para pihak</li></ol><p>Demikian kami sampaikan, atas perhatiannya kami ucapkan terima kasih.</p>'+sign();
  if(type==='roya'){const property=cert()+' yang terletak di '+v('lokasi');const ht='Hak Tanggungan Peringkat '+v('peringkat')+' No. '+v('ht')+' tanggal '+dt('tanggalHt');content=subject('Peroyaan Hak Tanggungan '+property+'.')+'<p>Dengan ini kami mohon bantuan Saudara untuk melaksanakan peroyaan '+ht+' yang mengikat '+property+'. Sertifikat tersebut sudah tidak menjadi agunan pada Bank kami.</p><p>Terlampir kami sampaikan asli dokumen sebagai berikut :</p><ol class="mf-property-list"><li>Asli '+property+'.</li><li>Asli Sertifikat '+ht+'.</li></ol><p>Demikian kami sampaikan. Atas perhatian dan kerjasamanya, kami ucapkan terima kasih.</p>'+sign();}
  if(type==='stnk')content='<h1 class="mf-property-title">SURAT KETERANGAN</h1>'+subject('BPKB yang Dijaminkan')+'<p>Menunjuk perihal tersebut diatas, menerangkan bahwa :</p>'+info([['No. BPKB',v('bpkb')],['Nama dalam BPKB',v('nama')],['Alamat',v('alamat')],['No Rangka/NIK',v('rangka')],['No Mesin',v('mesin')],['No.Pol dalam BPKB',v('polisi')]])+'<p>Merupakan jaminan di PT Bank Mandiri (Persero) Tbk.</p><p>Surat Keterangan ini dikeluarkan atas permintaan yang bersangkutan.</p><p>Demikian kami sampaikan agar dapat dipergunakan sesuai kebutuhan.</p>'+sign();
+ if(type==='sme'){
+  const advisLogo=window.ADVIS_MANDIRI_LOGO_BASE64||logo;
+  const paragraphs=String(values.isiSme||'').replaceAll('{perusahaan}',()=>values.nama||'................').trim().split(/\n\s*\n/).map(text=>'<p>'+esc(text).replace(/\n/g,'<br>')+'</p>').join('');
+  return '<div class="mf-document"><article class="mf-page mf-property mf-property-koreksiJT">'+
+   '<div class="mf-property-head"><div class="mf-property-meta">'+letterMeta+'<div class="mf-property-to">Kepada Yth.<br><b>'+(values.tujuan?v('tujuan'):'Direksi '+v('nama'))+'</b></div></div>'+
+   '<div class="mf-property-brand"><img src="'+esc(advisLogo)+'" alt="Bank Mandiri"><b>'+v('bank')+'</b><br>'+v('cabang')+'<br>'+v('alamatKop')+'</div></div>'+
+   subject('<b><u>'+v('perihal')+'</u></b>')+paragraphs+'<p>Hormat kami,</p>'+sign()+'</article></div>';
+ }
  if(type==='koreksiJT'){
   const subjectText=values.perihalKoreksiMode==='manual'?v('perihal'):esc(koreksiSubject);
   const debtor=info([
@@ -104,6 +124,22 @@ function render(type,values){
  return '<div class="mf-document"><article class="mf-page mf-property mf-property-'+type+'"><div class="mf-property-head"><div class="mf-property-meta">'+letterMeta+'</div><div class="mf-property-brand"><img src="'+logo+'" alt="Bank Mandiri"><b>'+v('bank')+'</b><br>'+v('cabang')+'<br>'+v('alamatKop')+'</div></div>'+to+content+'</article></div>';
 }
 function setup(type,values={},preview=()=>{}){
+ if(type==='sme'){
+  const status=document.createElement('p');
+  status.className='mf-property-help';
+  status.setAttribute('role','status');
+  status.textContent='Memuat tanda tangan Yanuar dari portal…';
+  document.getElementById('mfFields').append(status);
+  delete values.smeYanuarSignature;
+  loadYanuarSignature().then(image=>{
+   if(!status.isConnected)return;
+   values.smeYanuarSignature=image;
+   status.textContent='Tanda tangan Yanuar siap digunakan.';
+   preview();
+  }).catch(error=>{
+   if(status.isConnected)status.textContent=error.message+' Ruang tanda tangan tetap tersedia.';
+  });
+ }
  if(type==='koreksiJT'){
   const field=document.getElementById('mf_perihal'),label=field.previousElementSibling;
   const panel=document.createElement('section');
@@ -120,7 +156,7 @@ function setup(type,values={},preview=()=>{}){
  }
 
  if(type==='kyc'){
-  const endpoint='/api/portal/ksm-signatures/kyc-yanuar';
+  const endpoint=yanuarSignatureEndpoint;
   const panel=document.createElement('section');
   panel.innerHTML='<label for="kycSigner">Pilihan penanda tangan</label><select id="kycSigner"><option value="deki">Deki Elanda Pradikta — Penyelia Unit</option><option value="yanuar">Yanuar Ishak Salahudin — Branch Manager</option><option value="manual">Isi manual / tanda tangan basah</option></select><div id="kycSignatureUpload" hidden><label for="kycSignatureFile">Unggah atau ganti gambar tanda tangan Yanuar</label><input id="kycSignatureFile" type="file" accept="image/jpeg,image/png"><p id="kycSignatureStatus" class="mf-property-help" role="status"></p></div>';
   document.getElementById('mfFields').prepend(panel);
@@ -130,10 +166,7 @@ function setup(type,values={},preview=()=>{}){
   async function loadSignature(){
    const current=++generation;
    try{
-    const response=await fetch(endpoint,{cache:'no-store'});
-    if(!response.ok)throw Error(response.status===404?'Gambar tanda tangan belum diunggah.':'Gambar tanda tangan belum dapat dimuat.');
-    const blob=await response.blob();
-    const image=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(blob);});
+    const image=await loadYanuarSignature();
     if(current!==generation||!panel.isConnected||select.value!=='yanuar')return;
     values.kycYanuarSignature=image;status.textContent='Gambar tanda tangan Yanuar siap digunakan.';preview();
    }catch(error){if(current===generation&&panel.isConnected){delete values.kycYanuarSignature;status.textContent=error.message;preview();}}
