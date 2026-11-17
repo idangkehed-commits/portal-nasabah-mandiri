@@ -1,0 +1,2137 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Perlengkapan Surat Akad Kredit (PK) - Portal Nasabah</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            mandiri: {
+              navy: '#092c54',
+              gold: '#f59e0b',
+              accent: '#d97706',
+              blue: '#0284c7'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #edf2f8;
+      color: #1e293b;
+    }
+    
+    /* Layout */
+    .app-header {
+      background: #092c54;
+      color: white;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+    .app-layout {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      height: calc(100vh - 65px);
+      overflow: hidden;
+    }
+    .app-sidebar {
+      background: white;
+      border-right: 1px solid #cbd5e1;
+      padding: 20px;
+      overflow-y: auto;
+      height: 100%;
+    }
+    .app-preview-wrap {
+      background: #e2e8f0;
+      overflow-y: auto;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+    }
+
+    /* A4 Paper Styles */
+    .paper-a4 {
+      background: white;
+      width: 210mm;
+      min-height: 297mm;
+      padding: 16mm 18mm 16mm 18mm;
+      margin-bottom: 24mm;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+      color: #0f172a;
+      font-size: 10.5pt;
+      line-height: 1.45;
+      position: relative;
+      break-after: page;
+      page-break-after: always;
+    }
+    .paper-a4:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Legal 2-Column Layout for Surat Kuasa */
+    .legal-two-col {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      column-gap: 20px;
+      align-items: start;
+    }
+    .legal-two-col.balanced {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    /* Print styling */
+    @page {
+      size: A4 portrait;
+      margin: 12mm 15mm;
+    }
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+      }
+      .app-header, .app-sidebar, .no-print, .preview-toolbar {
+        display: none !important;
+      }
+      .app-layout {
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+      .app-preview-wrap {
+        background: white !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        display: block !important;
+      }
+      .paper-a4 {
+        width: 100% !important;
+        min-height: auto !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+      .paper-a4:last-of-type {
+        page-break-after: auto !important;
+        break-after: auto !important;
+      }
+    }
+
+    /* Typography helpers */
+    .title-doc {
+      font-weight: 800;
+      text-align: center;
+      text-transform: uppercase;
+      font-size: 13pt;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .subtitle-doc {
+      font-weight: 700;
+      text-align: center;
+      font-size: 10.5pt;
+      margin-bottom: 16px;
+    }
+    .mandiri-logo-header {
+      height: 38px;
+      width: auto;
+      object-fit: contain;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9.5pt;
+      margin: 12px 0;
+    }
+    .data-table th, .data-table td {
+      border: 1px solid #1e293b;
+      padding: 6px 8px;
+      vertical-align: top;
+    }
+    .data-table th {
+      background-color: #f1f5f9;
+      font-weight: 700;
+      text-align: center;
+    }
+    .clause-num {
+      width: 22px;
+      vertical-align: top;
+      font-weight: 600;
+    }
+    .clause-body {
+      vertical-align: top;
+      text-align: justify;
+      text-justify: inter-word;
+    }
+    .signature-box {
+      margin-top: 25px;
+      break-inside: avoid;
+    }
+    .stamp-box {
+      border: 1px dashed #94a3b8;
+      width: 85px;
+      height: 48px;
+      font-size: 7.5pt;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      margin: 10px auto;
+      text-align: center;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="app-header no-print">
+    <div class="flex items-center gap-3">
+      <a href="/" class="text-white hover:text-amber-300 transition-colors p-2 rounded-lg hover:bg-white/10" title="Kembali ke Portal">
+        <i class="fa-solid fa-arrow-left text-lg"></i>
+      </a>
+      <img src="/mandiri_logo.png" alt="Mandiri Logo" class="h-8 brightness-0 invert">
+      <div>
+        <h1 class="text-base font-bold leading-tight flex items-center gap-2">
+          Perlengkapan Surat Akad Kredit (PK)
+          <span class="text-[10px] uppercase font-extrabold px-2 py-0.5 bg-amber-400 text-slate-950 rounded">SME & Mikro</span>
+        </h1>
+        <p class="text-xs text-blue-200">Paket Berkas Akad: BAST, Kuasa Jual Persediaan & Moral Obligation, GCG, Biaya, dll.</p>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-2.5">
+      <!-- Font Switcher -->
+      <select id="fontFamilySelect" class="bg-blue-950 border border-blue-400/40 text-white text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-amber-400">
+        <option value="Arial, sans-serif">Font: Arial</option>
+        <option value="'Calibri', 'Carlito', sans-serif">Font: Calibri</option>
+        <option value="'Times New Roman', serif">Font: Times New Roman</option>
+      </select>
+
+      <button id="btnPrintSelected" class="px-3.5 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white font-bold text-xs flex items-center gap-1.5 transition">
+        <i class="fa-solid fa-print"></i> Cetak Dokumen Aktif
+      </button>
+
+      <button id="btnPrintAll" class="px-3.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shadow transition">
+        <i class="fa-solid fa-layer-group"></i> Cetak Semua Paket (A4)
+      </button>
+    </div>
+  </header>
+
+  <!-- App Layout -->
+  <div class="app-layout">
+    
+    <!-- Sidebar: Form Controls & Data Selection -->
+    <aside class="app-sidebar no-print">
+
+      <!-- 1. Pencarian Data Booking -->
+      <div class="mb-5 pb-5 border-b border-slate-200">
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+          <i class="fa-solid fa-magnifying-glass text-blue-600 mr-1"></i> Cari Nasabah Booking
+        </label>
+        <div class="relative">
+          <input type="text" id="bookingSearchInput" placeholder="Ketik Nama, CIF, No. KTP, No. Rekening, atau No. PK..." 
+            class="w-full text-xs p-2.5 pr-8 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <span id="bookingSearchClear" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer hidden">
+            <i class="fa-solid fa-times"></i>
+          </span>
+        </div>
+        <div id="bookingSearchResults" class="mt-1 max-h-52 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-lg text-xs hidden divide-y divide-slate-100 z-20"></div>
+
+        <!-- Pilihan Fasilitas jika lebih dari 1 -->
+        <div id="facilitySelectWrapper" class="mt-2.5 hidden">
+          <label class="block text-[11px] font-semibold text-slate-500 mb-1">Pilih Fasilitas Kredit:</label>
+          <select id="facilitySelect" class="w-full text-xs p-2 border border-blue-300 bg-blue-50/50 rounded-lg focus:ring-2 focus:ring-blue-500 font-medium"></select>
+        </div>
+      </div>
+
+      <!-- 2. Pilihan Surat yang Dilihat / Dicetak -->
+      <div class="mb-5 pb-5 border-b border-slate-200">
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-bold uppercase tracking-wider text-slate-600">
+            <i class="fa-solid fa-file-contract text-blue-600 mr-1"></i> Dokumen Yang Ditampilkan
+          </label>
+          <button id="toggleViewMode" class="text-[11px] font-bold text-blue-600 hover:text-blue-800">
+            <i class="fa-solid fa-eye mr-0.5"></i> <span id="toggleViewModeText">Tampilkan Semua</span>
+          </button>
+        </div>
+
+        <div class="space-y-1" id="docListWrapper">
+          <button type="button" data-doc="bast" class="doc-tab-btn w-full text-left px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between bg-blue-50 text-blue-900 border border-blue-200">
+            <span>1. BAST Agunan (Moral Obligation)</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+          <button type="button" data-doc="kuasa_persediaan" class="doc-tab-btn w-full text-left px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between hover:bg-slate-100 text-slate-700">
+            <span>2. Kuasa Jual Persediaan</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+          <button type="button" data-doc="kuasa_moral" class="doc-tab-btn w-full text-left px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between hover:bg-slate-100 text-slate-700">
+            <span>3. Kuasa Jual Moral Obligation</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+          <button type="button" data-doc="pernyataan_biaya" class="doc-tab-btn w-full text-left px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between hover:bg-slate-100 text-slate-700">
+            <span>4. Surat Pernyataan (Biaya Akad)</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+          <button type="button" data-doc="asuransi_jiwa" class="doc-tab-btn w-full text-left px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between hover:bg-slate-100 text-slate-700">
+            <span>5. Permohonan Asuransi Jiwa (AXA)</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+          <button type="button" data-doc="kuasa_debet" class="doc-tab-btn w-full text-left px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between hover:bg-slate-100 text-slate-700">
+            <span>6. Kuasa Pendebetan Rekening</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+          <button type="button" data-doc="gcg" class="doc-tab-btn w-full text-left px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between hover:bg-slate-100 text-slate-700">
+            <span>7. Pernyataan Pelaksanaan GCG</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+          <button type="button" data-doc="dana_tertahan" class="doc-tab-btn w-full text-left px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between hover:bg-slate-100 text-slate-700">
+            <span>8. Kesediaan Dana Tertahan 2x</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+          <button type="button" data-doc="belum_nikah" class="doc-tab-btn w-full text-left px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between hover:bg-slate-100 text-slate-700">
+            <span>9. Pernyataan Belum Menikah (Lajang)</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. Skenario Pihak Agunan -->
+      <div class="mb-5 pb-5 border-b border-slate-200">
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+          <i class="fa-solid fa-users text-blue-600 mr-1"></i> Skenario Pihak (BAST & Kuasa)
+        </label>
+        <div class="grid grid-cols-3 gap-1.5 mb-3">
+          <button type="button" id="btnScenario2" class="scenario-btn p-2 text-center rounded-lg border text-xs font-bold bg-blue-50 border-blue-400 text-blue-800">
+            2 Pihak<br><span class="text-[10px] font-normal text-slate-500">Debitur + Pasangan</span>
+          </button>
+          <button type="button" id="btnScenario3" class="scenario-btn p-2 text-center rounded-lg border text-xs font-bold border-slate-200 hover:bg-slate-50 text-slate-700">
+            3 Pihak<br><span class="text-[10px] font-normal text-slate-500">Pemilik ke-3 + Deb</span>
+          </button>
+          <button type="button" id="btnScenario1" class="scenario-btn p-2 text-center rounded-lg border text-xs font-bold border-slate-200 hover:bg-slate-50 text-slate-700">
+            1 Pihak<br><span class="text-[10px] font-normal text-slate-500">Debitur Sendiri</span>
+          </button>
+        </div>
+
+        <!-- Form Manual Pihak Ketiga (Muncul saat skenario 3 Pihak) -->
+        <div id="thirdPartyForm" class="p-3 bg-amber-50/70 border border-amber-300 rounded-lg space-y-2 hidden">
+          <p class="text-[11px] font-bold text-amber-900 flex items-center gap-1">
+            <i class="fa-solid fa-id-card"></i> Data Pemilik Agunan (Pihak Ketiga):
+          </p>
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-600">Nama Lengkap Pemilik Dokumen:</label>
+            <input type="text" id="pihak3_nama" class="w-full text-xs p-1.5 border border-slate-300 rounded bg-white" placeholder="Contoh: Haji Ahmad Somad">
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-600">Nomor KTP Pemilik:</label>
+            <input type="text" id="pihak3_ktp" class="w-full text-xs p-1.5 border border-slate-300 rounded bg-white" placeholder="320xxxxxxxxxxxxx">
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-600">Alamat Lengkap Pemilik:</label>
+            <textarea id="pihak3_alamat" rows="2" class="w-full text-xs p-1.5 border border-slate-300 rounded bg-white" placeholder="Jalan, RT/RW, Kelurahan, Kecamatan, Kota"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Accordion Rincian Data Form -->
+      <div class="space-y-3 text-xs">
+        
+        <!-- Accordion 1: Data Debitur & Pasangan -->
+        <details class="border border-slate-200 rounded-lg overflow-hidden group" open>
+          <summary class="bg-slate-50 p-2.5 font-bold cursor-pointer hover:bg-slate-100 flex items-center justify-between text-slate-700">
+            <span><i class="fa-solid fa-user mr-1.5 text-blue-600"></i> Data Debitur & Pasangan</span>
+            <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 transition-transform"></i>
+          </summary>
+          <div class="p-3 space-y-2 bg-white">
+            <div>
+              <label class="block text-[10px] text-slate-500 font-semibold">Nama Debitur:</label>
+              <input type="text" id="deb_nama" class="w-full p-1.5 border border-slate-300 rounded font-bold">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">No. KTP Debitur:</label>
+                <input type="text" id="deb_ktp" class="w-full p-1.5 border border-slate-300 rounded">
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">Pekerjaan Debitur:</label>
+                <input type="text" id="deb_pekerjaan" class="w-full p-1.5 border border-slate-300 rounded">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">Tempat & Tanggal Lahir:</label>
+                <input type="text" id="deb_lahir" class="w-full p-1.5 border border-slate-300 rounded" placeholder="Bandung, 10/05/1990">
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">Nomor HP:</label>
+                <input type="text" id="deb_telp" class="w-full p-1.5 border border-slate-300 rounded">
+              </div>
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 font-semibold">Alamat Rumah (Jalan, RT/RW):</label>
+              <input type="text" id="deb_alamat" class="w-full p-1.5 border border-slate-300 rounded">
+            </div>
+            <div class="grid grid-cols-3 gap-1.5">
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">Kelurahan:</label>
+                <input type="text" id="deb_kelurahan" class="w-full p-1.5 border border-slate-300 rounded">
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">Kecamatan:</label>
+                <input type="text" id="deb_kecamatan" class="w-full p-1.5 border border-slate-300 rounded">
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">Kota/Kab:</label>
+                <input type="text" id="deb_kota" class="w-full p-1.5 border border-slate-300 rounded">
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100">
+              <label class="block text-[10px] text-slate-500 font-semibold">Nama Pasangan (Suami/Istri):</label>
+              <input type="text" id="deb_pasangan" class="w-full p-1.5 border border-slate-300 rounded font-semibold">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">No. KTP Pasangan:</label>
+                <input type="text" id="deb_pasangan_ktp" class="w-full p-1.5 border border-slate-300 rounded">
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">Pekerjaan Pasangan:</label>
+                <input type="text" id="deb_pasangan_pekerjaan" class="w-full p-1.5 border border-slate-300 rounded">
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <!-- Accordion 2: Data Fasilitas & Perjanjian Kredit -->
+        <details class="border border-slate-200 rounded-lg overflow-hidden group">
+          <summary class="bg-slate-50 p-2.5 font-bold cursor-pointer hover:bg-slate-100 flex items-center justify-between text-slate-700">
+            <span><i class="fa-solid fa-file-invoice-dollar mr-1.5 text-blue-600"></i> Fasilitas & Perjanjian Kredit</span>
+            <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 transition-transform"></i>
+          </summary>
+          <div class="p-3 space-y-2 bg-white">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">Jenis Kredit:</label>
+                <input type="text" id="fac_jenisKredit" class="w-full p-1.5 border border-slate-300 rounded font-bold" placeholder="KUM / KUR">
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">Nomor PK:</label>
+                <input type="text" id="fac_noPk" class="w-full p-1.5 border border-slate-300 rounded font-bold">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">Tanggal PK:</label>
+                <input type="text" id="fac_tglPk" class="w-full p-1.5 border border-slate-300 rounded" placeholder="12/11/2026 atau 12 November 2026">
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">Hari Akad (PK):</label>
+                <input type="text" id="fac_hariPk" class="w-full p-1.5 border border-slate-300 rounded" placeholder="Kamis">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">Limit Plafon (Rp):</label>
+                <input type="text" id="fac_limit" class="w-full p-1.5 border border-slate-300 rounded font-bold">
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">Jangka Waktu (Bulan):</label>
+                <input type="number" id="fac_tenor" class="w-full p-1.5 border border-slate-300 rounded">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">Angsuran / Bulan (Rp):</label>
+                <input type="text" id="fac_angsuran" class="w-full p-1.5 border border-slate-300 rounded font-bold">
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">Dana Tertahan (2x Angsuran):</label>
+                <input type="text" id="fac_danaTertahan" class="w-full p-1.5 border border-amber-300 bg-amber-50 rounded font-bold" readonly>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">No. Rekening Pinjaman:</label>
+                <input type="text" id="fac_rekPjm" class="w-full p-1.5 border border-slate-300 rounded">
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">No. Rekening Tabungan:</label>
+                <input type="text" id="fac_rekTab" class="w-full p-1.5 border border-slate-300 rounded font-bold">
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <!-- Accordion 3: Data Agunan (Persediaan & Moral Obligation) -->
+        <details class="border border-slate-200 rounded-lg overflow-hidden group">
+          <summary class="bg-slate-50 p-2.5 font-bold cursor-pointer hover:bg-slate-100 flex items-center justify-between text-slate-700">
+            <span><i class="fa-solid fa-warehouse mr-1.5 text-blue-600"></i> Agunan & Dokumen Jaminan</span>
+            <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 transition-transform"></i>
+          </summary>
+          <div class="p-3 space-y-2 bg-white">
+            <div>
+              <label class="block text-[10px] text-slate-500 font-semibold">Agunan Utama (Persediaan Barang Dagang/Usaha):</label>
+              <textarea id="agn_persediaan" rows="2" class="w-full p-1.5 border border-slate-300 rounded text-xs" placeholder="Persediaan barang dagang dan perlengkapan usaha yang terletak di..."></textarea>
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 font-semibold">Jenis Dokumen Agunan Tambahan:</label>
+              <input type="text" id="agn_jenisDokumen" class="w-full p-1.5 border border-slate-300 rounded font-semibold" placeholder="BPKB / SHM / SHGB">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 font-semibold">Rincian Dokumen Agunan / Moral Obligation:</label>
+              <textarea id="agn_moralDetail" rows="3" class="w-full p-1.5 border border-slate-300 rounded text-xs" placeholder="BPKB No... a.n... Kendaraan R2 Merk... ATAU SHM No... a.n... Luas... m2..."></textarea>
+            </div>
+          </div>
+        </details>
+
+        <!-- Accordion 4: Rincian Biaya Akad Kredit -->
+        <details class="border border-slate-200 rounded-lg overflow-hidden group">
+          <summary class="bg-slate-50 p-2.5 font-bold cursor-pointer hover:bg-slate-100 flex items-center justify-between text-slate-700">
+            <span><i class="fa-solid fa-calculator mr-1.5 text-blue-600"></i> Rincian Biaya Akad (Surat Pernyataan)</span>
+            <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 transition-transform"></i>
+          </summary>
+          <div class="p-3 space-y-2 bg-white">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">a. Biaya Provisi (Rp):</label>
+                <input type="text" id="fee_provisi" class="fee-input w-full p-1.5 border border-slate-300 rounded" value="0">
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">b. Biaya Admin (Rp):</label>
+                <input type="text" id="fee_admin" class="fee-input w-full p-1.5 border border-slate-300 rounded" value="1">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">c. Biaya Meterai:</label>
+                <input type="text" id="fee_meterai" class="w-full p-1.5 border border-slate-300 rounded" value="Bawa Sendiri">
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">d. Biaya BPJSTK (Rp):</label>
+                <input type="text" id="fee_bpjstk" class="fee-input w-full p-1.5 border border-slate-300 rounded" value="0">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">e. Asuransi Jiwa (Rp):</label>
+                <input type="text" id="fee_asuransiJiwa" class="fee-input w-full p-1.5 border border-slate-300 rounded" value="312.900">
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">f. Asuransi Kerugian (Rp):</label>
+                <input type="text" id="fee_asuransiKerugian" class="fee-input w-full p-1.5 border border-slate-300 rounded" value="0">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">g. Asuransi Sijitu (Rp):</label>
+                <input type="text" id="fee_asuransiSijitu" class="fee-input w-full p-1.5 border border-slate-300 rounded" value="600.000">
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">h. Biaya AXA (Rp):</label>
+                <input type="text" id="fee_biayaAxa" class="fee-input w-full p-1.5 border border-slate-300 rounded" value="-">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">i. Biaya Notaris (Rp):</label>
+                <input type="text" id="fee_notaris" class="fee-input w-full p-1.5 border border-slate-300 rounded" value="0">
+              </div>
+              <div>
+                <label class="block text-[10px] text-blue-900 font-bold">TOTAL BIAYA (Rp):</label>
+                <input type="text" id="fee_total" class="w-full p-1.5 border border-blue-400 bg-blue-50 font-extrabold rounded text-blue-900" readonly value="912.901">
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <!-- Accordion 5: Data Pejabat Bank Mandiri -->
+        <details class="border border-slate-200 rounded-lg overflow-hidden group">
+          <summary class="bg-slate-50 p-2.5 font-bold cursor-pointer hover:bg-slate-100 flex items-center justify-between text-slate-700">
+            <span><i class="fa-solid fa-briefcase mr-1.5 text-blue-600"></i> Pejabat & Unit Bank Mandiri</span>
+            <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 transition-transform"></i>
+          </summary>
+          <div class="p-3 space-y-2 bg-white">
+            <div>
+              <label class="block text-[10px] text-slate-500 font-semibold">Nama Pejabat (Penerima Kuasa):</label>
+              <input type="text" id="bnk_pejabat" class="w-full p-1.5 border border-slate-300 rounded font-bold" value="Deki Elanda Pradikta">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">NIP Pejabat:</label>
+                <input type="text" id="bnk_nip" class="w-full p-1.5 border border-slate-300 rounded" value="2088734785">
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-500 font-semibold">Jabatan Pejabat:</label>
+                <input type="text" id="bnk_jabatan" class="w-full p-1.5 border border-slate-300 rounded" value="Mikro Banking Manager">
+              </div>
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 font-semibold">Branch / Kantor Mandiri:</label>
+              <input type="text" id="bnk_branch" class="w-full p-1.5 border border-slate-300 rounded" value="Branch Bandung Jamsostek">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-500 font-semibold">Surat Kuasa Pimpinan Bank:</label>
+              <textarea id="bnk_skPimpinan" rows="2" class="w-full p-1.5 border border-slate-300 rounded text-xs">Surat Kuasa dari Tuan Nixon LP Napitupulu selaku Group Head Micro Network Develompment Group No.MRB.MND/SK.2650/2011 tanggal 2 Agustus 2011</textarea>
+            </div>
+          </div>
+        </details>
+
+      </div>
+
+    </aside>
+
+    <!-- Main Preview Area -->
+    <main class="app-preview-wrap" id="previewContainer">
+      <!-- Container for rendered papers -->
+      <div id="renderedDocsWrap" class="w-full flex flex-col items-center">
+        <!-- Rendered A4 documents will be injected here via JavaScript -->
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Load Booking Data Script -->
+  <script src="/data_booking.js?v=20261015_v1" onerror="console.info('Mode online: data booking offline tidak dimuat.')"></script>
+
+  <!-- Application Logic -->
+  <script>
+    (function() {
+      // State Management
+      let currentDoc = 'bast'; // 'bast', 'kuasa_persediaan', 'kuasa_moral', etc.
+      let viewMode = 'single'; // 'single' | 'all'
+      let currentScenario = '2'; // '1' (Debitur Sendiri), '2' (Debitur + Pasangan), '3' (Pihak 3 + Debitur + Pasangan)
+      let selectedDebitur = null;
+      let selectedFacilityIndex = 0;
+
+      // Database
+      const db = (typeof window.MANDIRI_BOOKING_DATA !== 'undefined' && Array.isArray(window.MANDIRI_BOOKING_DATA))
+        ? window.MANDIRI_BOOKING_DATA
+        : (typeof dbBooking !== 'undefined' && Array.isArray(dbBooking) ? dbBooking : []);
+
+      // Date & Number Format Helpers
+      const BULAN_INDO = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      const HARI_INDO = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+      function angkaKeHuruf(n) {
+        n = parseInt(n, 10);
+        if (isNaN(n)) return '';
+        const satuan = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam', 'Tujuh', 'Delapan', 'Sembilan', 'Sepuluh', 'Sebelas'];
+        if (n < 12) return satuan[n];
+        if (n < 20) return angkaKeHuruf(n - 10) + ' Belas';
+        if (n < 100) return angkaKeHuruf(Math.floor(n / 10)) + ' Puluh' + (n % 10 !== 0 ? ' ' + satuan[n % 10] : '');
+        if (n < 200) return 'Seratus' + (n % 100 !== 0 ? ' ' + angkaKeHuruf(n % 100) : '');
+        if (n < 1000) return angkaKeHuruf(Math.floor(n / 100)) + ' Ratus' + (n % 100 !== 0 ? ' ' + angkaKeHuruf(n % 100) : '');
+        if (n < 2000) return 'Seribu' + (n % 1000 !== 0 ? ' ' + angkaKeHuruf(n % 1000) : '');
+        if (n < 1000000) return angkaKeHuruf(Math.floor(n / 1000)) + ' Ribu' + (n % 1000 !== 0 ? ' ' + angkaKeHuruf(n % 1000) : '');
+        return String(n);
+      }
+
+      function parseDateString(str) {
+        if (!str) return null;
+        // Format dd/mm/yyyy
+        const parts = str.split('/');
+        if (parts.length === 3) {
+          const d = parseInt(parts[0], 10);
+          const m = parseInt(parts[1], 10) - 1;
+          const y = parseInt(parts[2], 10);
+          return new Date(y, m, d);
+        }
+        return new Date(str);
+      }
+
+      function formatRupiah(num) {
+        if (!num) return '0';
+        const clean = String(num).replace(/[^0-9]/g, '');
+        return Number(clean).toLocaleString('id-ID');
+      }
+
+      function cleanNum(val) {
+        if (!val) return 0;
+        const clean = String(val).replace(/[^0-9]/g, '');
+        return Number(clean) || 0;
+      }
+
+      // Initialize with sample or empty state
+      function initDefaults() {
+        const today = new Date();
+        const d = today.getDate();
+        const m = BULAN_INDO[today.getMonth()];
+        const y = today.getFullYear();
+        const hari = HARI_INDO[today.getDay()];
+
+        document.getElementById('fac_hariPk').value = hari;
+        document.getElementById('fac_tglPk').value = `${String(d).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${y}`;
+      }
+
+      // Populate Form from Debitur & Facility
+      function populateFromDebitur(deb, facIndex = 0) {
+        selectedDebitur = deb;
+        selectedFacilityIndex = facIndex;
+        const fac = (deb.fasilitas && deb.fasilitas[facIndex]) ? deb.fasilitas[facIndex] : {};
+
+        // Debitur
+        document.getElementById('deb_nama').value = deb.nama || '';
+        document.getElementById('deb_ktp').value = deb.ktp || '';
+        document.getElementById('deb_pekerjaan').value = deb.pekerjaan || 'Wiraswasta';
+        document.getElementById('deb_lahir').value = [deb.tempatLahir, deb.tglLahir].filter(Boolean).join(', ') + (deb.umur ? ` (${deb.umur} Tahun)` : '');
+        document.getElementById('deb_telp').value = deb.telp || '';
+        document.getElementById('deb_alamat').value = deb.alamat || '';
+        document.getElementById('deb_kelurahan').value = deb.kelurahan || '';
+        document.getElementById('deb_kecamatan').value = deb.kecamatan || '';
+        document.getElementById('deb_kota').value = deb.kota || 'Bandung';
+
+        // Pasangan
+        document.getElementById('deb_pasangan').value = deb.namaPasangan || '';
+        document.getElementById('deb_pasangan_ktp').value = deb.ktpPasangan || '';
+        document.getElementById('deb_pasangan_pekerjaan').value = deb.pekerjaanPasangan || 'Mengurus Rumah Tangga';
+
+        // Fasilitas
+        document.getElementById('fac_jenisKredit').value = fac.jenisKredit || 'KUM';
+        document.getElementById('fac_noPk').value = fac.noPk || 'R06.Br.BJK/0034/KUM/2026';
+        if (fac.tglPk) {
+          document.getElementById('fac_tglPk').value = fac.tglPk;
+          const dt = parseDateString(fac.tglPk);
+          if (dt && !isNaN(dt.getTime())) {
+            document.getElementById('fac_hariPk').value = HARI_INDO[dt.getDay()];
+          }
+        }
+        document.getElementById('fac_limit').value = formatRupiah(fac.limit || 0);
+        document.getElementById('fac_tenor').value = fac.jkWaktu || 36;
+        document.getElementById('fac_angsuran').value = formatRupiah(fac.angsuran || 0);
+        document.getElementById('fac_rekPjm').value = fac.rekPjm || '';
+        document.getElementById('fac_rekTab').value = fac.rekTab || '';
+
+        // Auto calculate 2x Angsuran
+        const angsuranVal = cleanNum(fac.angsuran);
+        document.getElementById('fac_danaTertahan').value = formatRupiah(angsuranVal * 2);
+
+        // Agunan
+        document.getElementById('agn_persediaan').value = fac.jaminanUtama || `Persediaan barang dagang dan perlengkapan usaha yang terletak di ${deb.alamatUsaha || deb.alamat || ''}`;
+        document.getElementById('agn_jenisDokumen').value = fac.jenisDokumen || (fac.jaminanTambahan1 && fac.jaminanTambahan1.includes('SHM') ? 'SHM' : 'BPKB');
+        document.getElementById('agn_moralDetail').value = fac.jaminanTambahan1 || '';
+
+        // Scenario Detection: If pasangan is empty -> Scenario 1 (Sendiri/Lajang), otherwise Scenario 2
+        if (!deb.namaPasangan || deb.namaPasangan.trim() === '' || deb.namaPasangan === '-') {
+          setScenario('1');
+        } else {
+          setScenario('2');
+        }
+
+        // Try extracting An [Nama] for third party suggestion
+        const jaminan = fac.jaminanTambahan1 || '';
+        const anMatch = jaminan.match(/a[\.\/]?n\.?\s+([A-Za-z0-9\s\,\.]+?)(?=\s+No|\s+Merk|\s+Rangka|\s+yang|\s+seluas|$)/i);
+        if (anMatch && anMatch[1]) {
+          const ownerCandidate = anMatch[1].trim();
+          if (ownerCandidate.toLowerCase() !== deb.nama.toLowerCase()) {
+            document.getElementById('pihak3_nama').value = ownerCandidate;
+          }
+        }
+
+        recalculateFees();
+        renderAllDocs();
+      }
+
+      // Scenario Switcher
+      function setScenario(sc) {
+        currentScenario = sc;
+        const btn1 = document.getElementById('btnScenario1');
+        const btn2 = document.getElementById('btnScenario2');
+        const btn3 = document.getElementById('btnScenario3');
+        const form3 = document.getElementById('thirdPartyForm');
+
+        [btn1, btn2, btn3].forEach(b => {
+          b.className = 'scenario-btn p-2 text-center rounded-lg border text-xs font-bold border-slate-200 hover:bg-slate-50 text-slate-700';
+        });
+
+        if (sc === '1') {
+          btn1.className = 'scenario-btn p-2 text-center rounded-lg border text-xs font-bold bg-blue-50 border-blue-400 text-blue-800';
+          form3.classList.add('hidden');
+        } else if (sc === '3') {
+          btn3.className = 'scenario-btn p-2 text-center rounded-lg border text-xs font-bold bg-blue-50 border-blue-400 text-blue-800';
+          form3.classList.remove('hidden');
+        } else {
+          // Default: 2 Pihak
+          btn2.className = 'scenario-btn p-2 text-center rounded-lg border text-xs font-bold bg-blue-50 border-blue-400 text-blue-800';
+          form3.classList.add('hidden');
+        }
+        renderAllDocs();
+      }
+
+      document.getElementById('btnScenario1').onclick = () => setScenario('1');
+      document.getElementById('btnScenario2').onclick = () => setScenario('2');
+      document.getElementById('btnScenario3').onclick = () => setScenario('3');
+
+      // Auto-recalculate Fees in Surat Pernyataan
+      function recalculateFees() {
+        const feeIds = ['fee_provisi', 'fee_admin', 'fee_bpjstk', 'fee_asuransiJiwa', 'fee_asuransiKerugian', 'fee_asuransiSijitu', 'fee_biayaAxa', 'fee_notaris'];
+        let total = 0;
+        feeIds.forEach(id => {
+          const val = document.getElementById(id).value;
+          total += cleanNum(val);
+        });
+        document.getElementById('fee_total').value = formatRupiah(total);
+      }
+
+      document.querySelectorAll('.fee-input').forEach(input => {
+        input.addEventListener('input', () => {
+          recalculateFees();
+          renderAllDocs();
+        });
+      });
+
+      // Update Angsuran & Dana Tertahan
+      document.getElementById('fac_angsuran').addEventListener('input', (e) => {
+        const val = cleanNum(e.target.value);
+        document.getElementById('fac_danaTertahan').value = formatRupiah(val * 2);
+        renderAllDocs();
+      });
+
+      // Search Booking Autocomplete
+      const searchInput = document.getElementById('bookingSearchInput');
+      const searchResults = document.getElementById('bookingSearchResults');
+      const searchClear = document.getElementById('bookingSearchClear');
+      const facilitySelectWrapper = document.getElementById('facilitySelectWrapper');
+      const facilitySelect = document.getElementById('facilitySelect');
+
+      searchInput.addEventListener('input', (e) => {
+        const q = e.target.value.trim().toLowerCase();
+        if (!q) {
+          searchResults.classList.add('hidden');
+          searchClear.classList.add('hidden');
+          return;
+        }
+        searchClear.classList.remove('hidden');
+        if (q.length < 2) return;
+
+        const matches = db.filter(d => {
+          const hay = [d.nama, d.cif, d.ktp, ...(d.fasilitas || []).map(f => f.rekPjm || f.rekTab || f.noPk)].join(' ').toLowerCase();
+          return hay.includes(q);
+        }).slice(0, 15);
+
+        searchResults.innerHTML = '';
+        if (matches.length === 0) {
+          searchResults.innerHTML = '<div class="p-3 text-slate-500 text-center">Nasabah tidak ditemukan.</div>';
+        } else {
+          matches.forEach(item => {
+            const btn = document.createElement('div');
+            btn.className = 'p-2.5 hover:bg-blue-50 cursor-pointer flex justify-between items-center transition';
+            const fac = (item.fasilitas && item.fasilitas[0]) ? item.fasilitas[0] : {};
+            btn.innerHTML = `
+              <div>
+                <span class="font-bold text-slate-900">${item.nama}</span>
+                <span class="text-[10px] text-slate-500 block">CIF: ${item.cif || '-'} &bull; KTP: ${item.ktp || '-'}</span>
+              </div>
+              <div class="text-right">
+                <span class="font-semibold text-blue-700">${fac.jenisKredit || 'KUM'}</span>
+                <span class="text-[10px] text-slate-500 block">Rp ${formatRupiah(fac.limit || 0)}</span>
+              </div>
+            `;
+            btn.onclick = () => {
+              searchInput.value = item.nama;
+              searchResults.classList.add('hidden');
+              
+              // Multi-facility support
+              if (item.fasilitas && item.fasilitas.length > 1) {
+                facilitySelectWrapper.classList.remove('hidden');
+                facilitySelect.innerHTML = '';
+                item.fasilitas.forEach((f, idx) => {
+                  const opt = document.createElement('option');
+                  opt.value = idx;
+                  opt.textContent = `${f.jenisKredit || 'Kredit'} - ${f.noPk || ('Fasilitas ' + (idx + 1))} (Plafon: Rp ${formatRupiah(f.limit || 0)})`;
+                  facilitySelect.appendChild(opt);
+                });
+                facilitySelect.onchange = () => {
+                  populateFromDebitur(item, parseInt(facilitySelect.value, 10));
+                };
+              } else {
+                facilitySelectWrapper.classList.add('hidden');
+              }
+
+              populateFromDebitur(item, 0);
+            };
+            searchResults.appendChild(btn);
+          });
+        }
+        searchResults.classList.remove('hidden');
+      });
+
+      searchClear.onclick = () => {
+        searchInput.value = '';
+        searchResults.classList.add('hidden');
+        searchClear.classList.add('hidden');
+      };
+
+      // Document Switcher (Single vs All View)
+      document.querySelectorAll('.doc-tab-btn').forEach(btn => {
+        btn.onclick = () => {
+          currentDoc = btn.dataset.doc;
+          viewMode = 'single';
+          updateDocButtons();
+          renderAllDocs();
+        };
+      });
+
+      function updateDocButtons() {
+        document.querySelectorAll('.doc-tab-btn').forEach(btn => {
+          if (viewMode === 'single' && btn.dataset.doc === currentDoc) {
+            btn.className = 'doc-tab-btn w-full text-left px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-between bg-blue-50 text-blue-900 border border-blue-300 shadow-sm';
+          } else {
+            btn.className = 'doc-tab-btn w-full text-left px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between hover:bg-slate-100 text-slate-700';
+          }
+        });
+        document.getElementById('toggleViewModeText').textContent = viewMode === 'all' ? 'Tampilkan Satuan' : 'Tampilkan Semua';
+      }
+
+      document.getElementById('toggleViewMode').onclick = () => {
+        viewMode = (viewMode === 'all') ? 'single' : 'all';
+        updateDocButtons();
+        renderAllDocs();
+      };
+
+      // Listen for all input changes in sidebar to re-render in real-time
+      document.querySelector('.app-sidebar').addEventListener('input', (e) => {
+        if (e.target.id === 'bookingSearchInput') return;
+        renderAllDocs();
+      });
+
+      // Font Family Switcher
+      document.getElementById('fontFamilySelect').onchange = (e) => {
+        const font = e.target.value;
+        document.querySelectorAll('.paper-a4').forEach(p => {
+          p.style.fontFamily = font;
+        });
+      };
+
+      // Print Handlers
+      document.getElementById('btnPrintSelected').onclick = () => {
+        viewMode = 'single';
+        updateDocButtons();
+        renderAllDocs();
+        setTimeout(() => window.print(), 100);
+      };
+
+      document.getElementById('btnPrintAll').onclick = () => {
+        viewMode = 'all';
+        updateDocButtons();
+        renderAllDocs();
+        setTimeout(() => window.print(), 100);
+      };
+
+      // Get Consolidated Form Data
+      function getData() {
+        const rawTgl = document.getElementById('fac_tglPk').value || '';
+        let tglDt = parseDateString(rawTgl);
+        let tglAngka = '12';
+        let tglBulan = 'November';
+        let tglTahun = '2026';
+        let tglHuruf = 'Dua Belas';
+        let tglLengkap = rawTgl;
+
+        if (tglDt && !isNaN(tglDt.getTime())) {
+          tglAngka = String(tglDt.getDate());
+          tglBulan = BULAN_INDO[tglDt.getMonth()];
+          tglTahun = String(tglDt.getFullYear());
+          tglHuruf = angkaKeHuruf(tglAngka);
+          tglLengkap = `${tglAngka} ${tglBulan} ${tglTahun}`;
+        }
+
+        return {
+          scenario: currentScenario,
+          hariPk: document.getElementById('fac_hariPk').value || 'Kamis',
+          tglPk: rawTgl,
+          tglAngka,
+          tglBulan,
+          tglTahun,
+          tglHuruf,
+          tglLengkap,
+          
+          // Debitur
+          debNama: document.getElementById('deb_nama').value || '........................................',
+          debKtp: document.getElementById('deb_ktp').value || '........................................',
+          debPekerjaan: document.getElementById('deb_pekerjaan').value || 'Wiraswasta',
+          debLahir: document.getElementById('deb_lahir').value || '........................................',
+          debTelp: document.getElementById('deb_telp').value || '........................................',
+          debAlamat: document.getElementById('deb_alamat').value || '........................................',
+          debKelurahan: document.getElementById('deb_kelurahan').value || '....................',
+          debKecamatan: document.getElementById('deb_kecamatan').value || '....................',
+          debKota: document.getElementById('deb_kota').value || 'Bandung',
+
+          // Pasangan
+          pasNama: document.getElementById('deb_pasangan').value || '........................................',
+          pasKtp: document.getElementById('deb_pasangan_ktp').value || '........................................',
+          pasPekerjaan: document.getElementById('deb_pasangan_pekerjaan').value || 'Mengurus Rumah Tangga',
+
+          // Pihak Ketiga (Pemilik Agunan)
+          pihak3Nama: document.getElementById('pihak3_nama').value || '........................................',
+          pihak3Ktp: document.getElementById('pihak3_ktp').value || '........................................',
+          pihak3Alamat: document.getElementById('pihak3_alamat').value || '........................................',
+
+          // Fasilitas
+          jenisKredit: document.getElementById('fac_jenisKredit').value || 'KUM',
+          noPk: document.getElementById('fac_noPk').value || '........................................',
+          limit: document.getElementById('fac_limit').value || '0',
+          tenor: document.getElementById('fac_tenor').value || '36',
+          angsuran: document.getElementById('fac_angsuran').value || '0',
+          danaTertahan: document.getElementById('fac_danaTertahan').value || '0',
+          rekPjm: document.getElementById('fac_rekPjm').value || '....................',
+          rekTab: document.getElementById('fac_rekTab').value || '....................',
+
+          // Agunan
+          persediaan: document.getElementById('agn_persediaan').value || 'Persediaan barang dagang dan perlengkapan usaha yang terletak di alamat usaha.',
+          jenisDokumen: document.getElementById('agn_jenisDokumen').value || 'BPKB',
+          moralDetail: document.getElementById('agn_moralDetail').value || 'Dokumen jaminan tambahan kendaraan bermotor / sertipikat tanah dan bangunan.',
+
+          // Biaya
+          provisi: document.getElementById('fee_provisi').value || '0',
+          admin: document.getElementById('fee_admin').value || '1',
+          meterai: document.getElementById('fee_meterai').value || 'Bawa Sendiri',
+          bpjstk: document.getElementById('fee_bpjstk').value || '0',
+          asuransiJiwa: document.getElementById('fee_asuransiJiwa').value || '0',
+          asuransiKerugian: document.getElementById('fee_asuransiKerugian').value || '0',
+          asuransiSijitu: document.getElementById('fee_asuransiSijitu').value || '0',
+          biayaAxa: document.getElementById('fee_biayaAxa').value || '-',
+          notaris: document.getElementById('fee_notaris').value || '0',
+          totalBiaya: document.getElementById('fee_total').value || '0',
+
+          // Bank Pejabat
+          pejabat: document.getElementById('bnk_pejabat').value || 'Deki Elanda Pradikta',
+          nip: document.getElementById('bnk_nip').value || '2088734785',
+          jabatan: document.getElementById('bnk_jabatan').value || 'Mikro Banking Manager',
+          branch: document.getElementById('bnk_branch').value || 'Branch Bandung Jamsostek',
+          skPimpinan: document.getElementById('bnk_skPimpinan').value || 'Surat Kuasa dari Tuan Nixon LP Napitupulu No.MRB.MND/SK.2650/2011 tanggal 2 Agustus 2011'
+        };
+      }
+
+      // ==========================================
+      // DOCUMENT TEMPLATE BUILDERS
+      // ==========================================
+
+      // 1. BAST Moral Obligation
+      function renderBast(d) {
+        let pihakPertamaHtml = '';
+        let signatureHtml = '';
+
+        if (d.scenario === '3') {
+          // 3 Pihak: Pihak 3 (Pemilik) + Debitur + Pasangan
+          pihakPertamaHtml = `
+            <table class="w-full text-[10pt] mb-2">
+              <tr>
+                <td style="width: 25px; vertical-align: top;">1.</td>
+                <td style="width: 140px; vertical-align: top;">Nama</td>
+                <td style="width: 15px; vertical-align: top;">:</td>
+                <td class="font-bold">${d.pihak3Nama}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td>No. KTP</td>
+                <td>:</td>
+                <td>${d.pihak3Ktp}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td style="vertical-align: top;">Alamat</td>
+                <td style="vertical-align: top;">:</td>
+                <td>${d.pihak3Alamat}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td colspan="3" class="text-slate-600 italic">Dalam hal ini bertindak selaku Pemilik Agunan (Pihak Ketiga).</td>
+              </tr>
+              <tr><td colspan="4" class="py-1"></td></tr>
+              <tr>
+                <td style="vertical-align: top;">2.</td>
+                <td>Nama</td>
+                <td>:</td>
+                <td class="font-bold">${d.debNama}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td>No. KTP</td>
+                <td>:</td>
+                <td>${d.debKtp}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td style="vertical-align: top;">Alamat</td>
+                <td style="vertical-align: top;">:</td>
+                <td>${d.debAlamat}, Kel. ${d.debKelurahan}, Kec. ${d.debKecamatan}, ${d.debKota}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td colspan="3" class="text-slate-600 italic">Dalam hal ini bertindak selaku Debitur.</td>
+              </tr>
+              <tr><td colspan="4" class="py-1"></td></tr>
+              <tr>
+                <td style="vertical-align: top;">3.</td>
+                <td>Nama</td>
+                <td>:</td>
+                <td class="font-bold">${d.pasNama}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td>No. KTP</td>
+                <td>:</td>
+                <td>${d.pasKtp}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td style="vertical-align: top;">Alamat</td>
+                <td style="vertical-align: top;">:</td>
+                <td>${d.debAlamat}, Kel. ${d.debKelurahan}, Kec. ${d.debKecamatan}, ${d.debKota}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td colspan="3" class="text-slate-600 italic">Dalam hal ini bertindak selaku Pasangan (Suami/Istri Debitur) yang turut memberikan persetujuan.</td>
+              </tr>
+            </table>
+          `;
+
+          signatureHtml = `
+            <div class="grid grid-cols-2 gap-4 mt-6 signature-box text-[9.5pt]">
+              <div>
+                <p class="font-bold">PIHAK PERTAMA,</p>
+                <div class="grid grid-cols-3 gap-2 mt-2 text-center">
+                  <div>
+                    <p class="text-[8.5pt]">Pemilik Dokumen,</p>
+                    <div class="stamp-box">Materai<br>Rp. 10.000</div>
+                    <p class="font-bold underline mt-3">${d.pihak3Nama}</p>
+                  </div>
+                  <div>
+                    <p class="text-[8.5pt]">Debitur,</p>
+                    <div class="h-[48px]"></div>
+                    <p class="font-bold underline mt-5">${d.debNama}</p>
+                  </div>
+                  <div>
+                    <p class="text-[8.5pt]">Pasangan Debitur,</p>
+                    <div class="h-[48px]"></div>
+                    <p class="font-bold underline mt-5">${d.pasNama}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="text-center">
+                <p class="font-bold">PIHAK KEDUA,</p>
+                <p class="text-[8.5pt]">PT BANK MANDIRI (PERSERO) Tbk.<br>${d.branch}</p>
+                <div class="h-[48px]"></div>
+                <p class="font-bold underline mt-5">${d.pejabat}</p>
+                <p class="text-[8.5pt]">${d.jabatan}</p>
+              </div>
+            </div>
+          `;
+        } else if (d.scenario === '1') {
+          // 1 Pihak: Debitur Sendiri
+          pihakPertamaHtml = `
+            <table class="w-full text-[10pt] mb-2">
+              <tr>
+                <td style="width: 25px; vertical-align: top;">1.</td>
+                <td style="width: 140px; vertical-align: top;">Nama</td>
+                <td style="width: 15px; vertical-align: top;">:</td>
+                <td class="font-bold">${d.debNama}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td>No. KTP</td>
+                <td>:</td>
+                <td>${d.debKtp}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td style="vertical-align: top;">Alamat</td>
+                <td style="vertical-align: top;">:</td>
+                <td>${d.debAlamat}, Kel. ${d.debKelurahan}, Kec. ${d.debKecamatan}, ${d.debKota}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td colspan="3" class="text-slate-600 italic">Dalam hal ini bertindak selaku Debitur dan Pemilik Agunan.</td>
+              </tr>
+            </table>
+          `;
+
+          signatureHtml = `
+            <div class="grid grid-cols-2 gap-8 mt-8 signature-box text-[10pt]">
+              <div class="text-center">
+                <p class="font-bold">PIHAK PERTAMA,</p>
+                <p class="text-[9pt]">Debitur / Pemilik Agunan</p>
+                <div class="stamp-box">Materai<br>Rp. 10.000</div>
+                <p class="font-bold underline mt-4">${d.debNama}</p>
+              </div>
+
+              <div class="text-center">
+                <p class="font-bold">PIHAK KEDUA,</p>
+                <p class="text-[9pt]">PT BANK MANDIRI (PERSERO) Tbk.<br>${d.branch}</p>
+                <div class="h-[48px]"></div>
+                <p class="font-bold underline mt-6">${d.pejabat}</p>
+                <p class="text-[9pt]">${d.jabatan}</p>
+              </div>
+            </div>
+          `;
+        } else {
+          // 2 Pihak: Debitur + Pasangan (Default)
+          pihakPertamaHtml = `
+            <table class="w-full text-[10pt] mb-2">
+              <tr>
+                <td style="width: 25px; vertical-align: top;">1.</td>
+                <td style="width: 140px; vertical-align: top;">Nama</td>
+                <td style="width: 15px; vertical-align: top;">:</td>
+                <td class="font-bold">${d.debNama}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td>No. KTP</td>
+                <td>:</td>
+                <td>${d.debKtp}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td style="vertical-align: top;">Alamat</td>
+                <td style="vertical-align: top;">:</td>
+                <td>${d.debAlamat}, Kel. ${d.debKelurahan}, Kec. ${d.debKecamatan}, ${d.debKota}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td colspan="3" class="text-slate-600 italic">Dalam hal ini bertindak selaku Debitur dan Pemilik Agunan.</td>
+              </tr>
+              <tr><td colspan="4" class="py-1"></td></tr>
+              <tr>
+                <td style="vertical-align: top;">2.</td>
+                <td>Nama</td>
+                <td>:</td>
+                <td class="font-bold">${d.pasNama}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td>No. KTP</td>
+                <td>:</td>
+                <td>${d.pasKtp}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td style="vertical-align: top;">Alamat</td>
+                <td style="vertical-align: top;">:</td>
+                <td>${d.debAlamat}, Kel. ${d.debKelurahan}, Kec. ${d.debKecamatan}, ${d.debKota}</td>
+              </tr>
+              <tr>
+                <td></td>
+                <td colspan="3" class="text-slate-600 italic">Dalam hal ini bertindak selaku Suami/Istri Debitur yang turut memberikan persetujuan.</td>
+              </tr>
+            </table>
+          `;
+
+          signatureHtml = `
+            <div class="grid grid-cols-2 gap-6 mt-8 signature-box text-[10pt]">
+              <div>
+                <p class="font-bold text-center">PIHAK PERTAMA,</p>
+                <div class="grid grid-cols-2 gap-3 mt-2 text-center">
+                  <div>
+                    <p class="text-[9pt]">Debitur,</p>
+                    <div class="stamp-box">Materai<br>Rp. 10.000</div>
+                    <p class="font-bold underline mt-4">${d.debNama}</p>
+                  </div>
+                  <div>
+                    <p class="text-[9pt]">Pasangan Debitur,</p>
+                    <div class="h-[48px]"></div>
+                    <p class="font-bold underline mt-6">${d.pasNama}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="text-center">
+                <p class="font-bold">PIHAK KEDUA,</p>
+                <p class="text-[9pt]">PT BANK MANDIRI (PERSERO) Tbk.<br>${d.branch}</p>
+                <div class="h-[48px]"></div>
+                <p class="font-bold underline mt-6">${d.pejabat}</p>
+                <p class="text-[9pt]">${d.jabatan}</p>
+              </div>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="paper-a4" id="paper-bast">
+            <div class="flex justify-between items-start mb-3">
+              <div class="w-20"></div>
+              <div class="text-center flex-1">
+                <h2 class="title-doc">BERITA ACARA SERAH TERIMA</h2>
+                <h3 class="subtitle-doc">MORAL OBLIGATION</h3>
+                <p class="text-[9.5pt] -mt-2">No. : BAST / ${d.noPk} / ${d.tglTahun}</p>
+              </div>
+              <div>
+                <img src="/mandiri_logo.png" alt="Mandiri" class="mandiri-logo-header">
+              </div>
+            </div>
+
+            <p class="text-justify mb-2 text-[10pt]">
+              Pada hari ini <span class="font-semibold">${d.hariPk}</span> tanggal <span class="font-semibold">${d.tglAngka}</span> bulan <span class="font-semibold">${d.tglBulan}</span> tahun <span class="font-semibold">${d.tglTahun}</span> (${d.tglLengkap}) telah dilakukan serah terima barang jaminan / Moral Obligation antara pihak-pihak sebagai berikut :
+            </p>
+
+            <div class="mb-2">
+              <p class="font-bold text-[10pt] mb-1">PIHAK PERTAMA :</p>
+              ${pihakPertamaHtml}
+            </div>
+
+            <div class="mb-3">
+              <p class="font-bold text-[10pt] mb-1">PIHAK KEDUA :</p>
+              <table class="w-full text-[10pt]">
+                <tr>
+                  <td style="width: 25px; vertical-align: top;">1.</td>
+                  <td style="width: 140px; vertical-align: top;">Nama</td>
+                  <td style="width: 15px; vertical-align: top;">:</td>
+                  <td class="font-bold">${d.pejabat}</td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td>NIP</td>
+                  <td>:</td>
+                  <td>${d.nip}</td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td>Jabatan</td>
+                  <td>:</td>
+                  <td>${d.jabatan}</td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td style="vertical-align: top;">Unit Kerja</td>
+                  <td style="vertical-align: top;">:</td>
+                  <td>PT Bank Mandiri (Persero) Tbk. ${d.branch}</td>
+                </tr>
+              </table>
+            </div>
+
+            <ol class="list-decimal pl-5 space-y-1 text-justify text-[9.5pt]">
+              <li>
+                Bahwa PIHAK PERTAMA telah menyerahkan kepada PIHAK KEDUA dan PIHAK KEDUA mengakui telah menerima dari PIHAK PERTAMA dokumen asli jaminan sebagai berikut :
+              </li>
+            </ol>
+
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 30px;">No.</th>
+                  <th style="width: 130px;">No. Rekening</th>
+                  <th style="width: 140px;">Nama Nasabah</th>
+                  <th style="width: 90px;">Jenis Dokumen</th>
+                  <th>No. Bukti Dokumen / Keterangan</th>
+                  <th style="width: 120px;">Masa Berlaku Agunan</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="text-center font-bold">1</td>
+                  <td class="font-mono">${d.rekPjm}</td>
+                  <td class="font-bold">${d.debNama}</td>
+                  <td class="text-center font-bold">${d.jenisDokumen}</td>
+                  <td>${d.moralDetail}</td>
+                  <td class="text-center font-semibold">Sampai Dengan Kredit Lunas</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <ol class="list-decimal pl-5 space-y-1 text-justify text-[9.5pt]" start="2">
+              <li>
+                Bahwa mulai sejak tanggal serah terima ini maka PIHAK KEDUA bertanggung jawab untuk menyimpan dokumen tersebut di atas sesuai ketentuan Bank Mandiri.
+              </li>
+              <li>
+                PIHAK PERTAMA dengan ini menyatakan bahwa dokumen tidak akan ditarik sampai kredit atas nama debitur <span class="font-bold">${d.debNama}</span> telah lunas atau dinyatakan lunas oleh PIHAK KEDUA.
+              </li>
+            </ol>
+
+            <p class="text-justify mt-3 text-[9.5pt]">
+              Demikian Berita Acara Serah Terima Agunan ini dibuat dengan sebenarnya dan ditandatangani di Bandung pada hari dan tanggal tersebut di atas.
+            </p>
+
+            ${signatureHtml}
+          </div>
+        `;
+      }
+
+      // 2. Surat Kuasa Menjual Agunan Persediaan (2 Kolom)
+      function renderKuasaPersediaan(d) {
+        let pasanganClause = '';
+        let pasanganSign = '';
+
+        if (d.scenario !== '1') {
+          pasanganClause = ` dan untuk melakukan perbuatan hukum sebagaimana diatur dalam akta ini telah mendapat persetujuan dari Suami/Istri yakni Tuan/Nyonya <span class="font-bold">${d.pasNama}</span>, ${d.pasPekerjaan}, bertempat tinggal di ${d.debAlamat}, pemegang KTP. no. <span class="font-mono">${d.pasKtp}</span> diterbitkan oleh Desa/Kelurahan ${d.debKelurahan}, Kecamatan ${d.debKecamatan}, Kab/Kodya ${d.debKota},`;
+          pasanganSign = `<div class="mt-4"><p class="font-bold underline">${d.pasNama}</p><p class="text-[8pt] text-slate-500">Persetujuan Pasangan</p></div>`;
+        }
+
+        return `
+          <div class="paper-a4" id="paper-kuasa-persediaan">
+            <div class="text-center mb-3">
+              <h2 class="title-doc" style="font-size: 11pt;">SURAT KUASA MENJUAL AGUNAN PERSEDIAAN</h2>
+            </div>
+
+            <div class="legal-two-col text-[8.5pt] leading-tight text-justify">
+              <!-- Kolom Kiri: Teks Legal, Komparisi & Kewenangan -->
+              <div class="pr-2 border-r border-slate-300">
+                <p class="mb-1.5">
+                  Pada hari ini <span class="font-bold">${d.hariPk}</span>, tanggal <span class="font-bold">${d.tglPk}</span> (${d.tglHuruf} Bulan ${d.tglBulan} Tahun Dua Ribu Dua Puluh Enam) yang bertanda tangan dibawah ini :
+                </p>
+
+                <p class="mb-1.5">
+                  Tuan/Nyonya <span class="font-bold">${d.debNama}</span>, ${d.debPekerjaan}, bertempat tinggal di ${d.debAlamat} ${d.debKota}, pemegang KTP. No. <span class="font-mono">${d.debKtp}</span> diterbitkan oleh Lurah ${d.debKelurahan}, Kecamatan ${d.debKecamatan} Kab/Kodya ${d.debKota}${pasanganClause} untuk selanjutnya dalam akta ini disebut-----------------<strong>"Debitur"</strong>.:----------------------------------------------------<strong>"PEMBERI KUASA"</strong>---------------------------
+                </p>
+
+                <p class="mb-1">PEMBERI KUASA dengan ini menerangkan terlebih dahulu hal-hal sebagai berikut :</p>
+                <ul class="list-disc pl-4 space-y-1 mb-1.5">
+                  <li>Bahwa PEMBERI KUASA adalah sebagai pemilik atas barang-barang berupa <span class="font-semibold">${d.persediaan}</span>, yang selanjutnya dalam akta ini disebut <strong>"Barang Persediaan"</strong>.</li>
+                  <li>Bahwa PEMBERI KUASA telah memperoleh fasilitas kredit <span class="font-bold">${d.jenisKredit}</span> berdasarkan akta Perjanjian Kredit <span class="font-mono">${d.noPk}</span> tanggal ${d.tglPk} selanjutnya disebut <strong>"Perjanjian Kredit"</strong>.</li>
+                  <li>Kuasa yang diberikan oleh PEMBERI KUASA baru dapat digunakan apabila PEMBERI KUASA telah wanprestasi/ingkar janji/lalai berdasarkan Perjanjian Kredit.</li>
+                </ul>
+
+                <p class="mb-1.5">
+                  Bahwa PEMBERI KUASA dengan ini memberikan kuasa dan kewenangan sepenuhnya kepada :<br>
+                  <strong>Bapak ${d.pejabat}</strong> selaku ${d.jabatan} ${d.branch}, Nomor Induk Pegawai ${d.nip} dan bertindak berdasarkan kuasa sebagaimana tertuang dalam ${d.skPimpinan}, oleh karena itu sah bertindak untuk dan atas nama PT Bank Mandiri (Persero) Tbk., suatu perseroan terbatas yang didirikan berdasarkan perundang-undangan RI dan berkedudukan di Jakarta, untuk selanjutnya disebut <strong>"Bank"</strong>.: ----------------------------------------------------<strong>"PENERIMA KUASA"</strong>-------------------------------------------------------------------------<strong>KHUSUS</strong>-----------------------------------------
+                </p>
+
+                <p class="mb-1 font-semibold">Untuk dan atas nama PEMBERI KUASA melakukan tindakan-tindakan hukum sebagai berikut:</p>
+                <ol class="list-decimal pl-4 space-y-0.5 mb-1.5">
+                  <li>Melepaskan hak atau menjual / memindahtangankan dalam bentuk apapun juga kepada orang atau pihak siapa dan manapun atas Barang Persediaan.</li>
+                  <li>Menawarkan kepada siapapun juga termasuk kepada dirinya sendiri sebagai PENERIMA KUASA.</li>
+                  <li>Menentukan pembeli dan nilai/harga penjualan atas Barang Persediaan termasuk menerima pembayarannya dan menggunakannya untuk melunasi/mengurangi kewajiban PEMBERI KUASA berdasarkan Perjanjian Kredit.</li>
+                  <li>Membayar biaya-biaya dan ongkos yang timbul berkenaan dengan penjualan Barang Persediaan.</li>
+                  <li>Menghadap pejabat-pejabat yang berwenang, memberikan keterangan-keterangan atau penjelasan-penjelasan, melakukan penolakan, menandatangani akta-akta atau dokumen-dokumen yang berhubungan dengan itu.</li>
+                  <li>Melakukan tindakan apapun juga yang dianggap perlu sehubungan dengan pelaksanaan pemberian kuasa ini tanpa ada yang dikecualikan.</li>
+                </ol>
+
+                <p class="mb-1">
+                  Sehubungan dengan pemberian kuasa ini, maka PEMBERI KUASA dengan ini membebaskan PENERIMA KUASA dari segala resiko ataupun kerugian yang timbul akibat dari tuntutan pihak ketiga lainnya.
+                </p>
+
+                <p>
+                  Kuasa ini diberikan dengan Hak Substitusi dan tidak dapat ditarik kembali, diubah, dan atau tidak akan berakhir dikarenakan sebab-sebab yang tercantum dalam pasal 1813, 1814 dan 1816 Kitab Undang-Undang Hukum Perdata atau dikarenakan sebab apapun juga tanpa persetujuan tertulis terlebih dahulu dari PENERIMA KUASA.
+                </p>
+              </div>
+
+              <!-- Kolom Kanan: Penutup & Tanda Tangan -->
+              <div class="pl-2 flex flex-col justify-between h-full">
+                <div>
+                  <p class="mb-4">
+                    Demikian Surat Kuasa ini dibuat dan akan berakhir setelah adanya pemberitahuan dari PENERIMA KUASA yang menyatakan bahwa seluruh kewajiban PEMBERI KUASA sehubungan dengan Perjanjian Kredit tersebut diatas berakhir/dinyatakan selesai / lunas.
+                  </p>
+                </div>
+
+                <div class="mt-8 space-y-10">
+                  <!-- Pemberi Kuasa -->
+                  <div class="text-center">
+                    <p class="font-bold">PEMBERI KUASA</p>
+                    <div class="stamp-box">Materai<br>Rp. 10.000</div>
+                    <p class="font-bold underline mt-3">${d.debNama}</p>
+                    <p class="text-[8pt] text-slate-500">Debitur</p>
+                    ${pasanganSign}
+                  </div>
+
+                  <!-- Penerima Kuasa -->
+                  <div class="text-center pt-4 border-t border-dashed border-slate-300">
+                    <p class="font-bold">PENERIMA KUASA</p>
+                    <p class="text-[8pt] text-slate-600">PT BANK MANDIRI (PERSERO) Tbk.</p>
+                    <div class="h-12"></div>
+                    <p class="font-bold underline">${d.pejabat}</p>
+                    <p class="text-[8pt] text-slate-500">${d.jabatan}</p>
+                  </div>
+                </div>
+
+                <div class="mt-12 text-[7pt] text-slate-400 text-right">
+                  Surat Kuasa Menjual Agunan Persediaan | Hal 1 dari 1
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // 3. Surat Kuasa Menjual Moral Obligation (2 Kolom)
+      function renderKuasaMoral(d) {
+        let pemberiKuasaComp = '';
+        let signPemberiKuasa = '';
+
+        if (d.scenario === '3') {
+          // Pihak Ketiga sebagai Pemilik Dokumen
+          pemberiKuasaComp = `
+            Tuan/Nyonya <span class="font-bold">${d.pihak3Nama}</span>, bertempat tinggal di ${d.pihak3Alamat}, pemegang KTP. No. <span class="font-mono">${d.pihak3Ktp}</span>, bertindak selaku Pemilik Dokumen Agunan, bersama-sama dengan Debitur Tuan/Nyonya <span class="font-bold">${d.debNama}</span>, pemegang KTP No. <span class="font-mono">${d.debKtp}</span> dan telah mendapat persetujuan dari suami/istri Tuan/Nyonya <span class="font-bold">${d.pasNama}</span>, pemegang KTP No. <span class="font-mono">${d.pasKtp}</span>, untuk selanjutnya dalam akta ini disebut--------------------------------------------<strong>"Debitur" / "PEMBERI KUASA"</strong>--------------------------
+          `;
+          signPemberiKuasa = `
+            <p class="text-[8pt]">Pemilik Dokumen,</p>
+            <div class="stamp-box">Materai<br>Rp. 10.000</div>
+            <p class="font-bold underline mt-2">${d.pihak3Nama}</p>
+            <div class="grid grid-cols-2 gap-2 mt-3">
+              <div>
+                <p class="font-bold underline text-[8pt]">${d.debNama}</p>
+                <p class="text-[7.5pt] text-slate-500">Debitur</p>
+              </div>
+              <div>
+                <p class="font-bold underline text-[8pt]">${d.pasNama}</p>
+                <p class="text-[7.5pt] text-slate-500">Pasangan Debitur</p>
+              </div>
+            </div>
+          `;
+        } else if (d.scenario === '1') {
+          pemberiKuasaComp = `
+            Tuan/Nyonya <span class="font-bold">${d.debNama}</span>, ${d.debPekerjaan}, bertempat tinggal di ${d.debAlamat} ${d.debKota}, pemegang KTP. no. <span class="font-mono">${d.debKtp}</span> diterbitkan oleh Desa/Kelurahan ${d.debKelurahan}, Kecamatan ${d.debKecamatan} Kab/Kodya ${d.debKota}, untuk selanjutnya dalam akta ini disebut--------------------------------------------<strong>"Debitur" / "PEMBERI KUASA"</strong>--------------------------
+          `;
+          signPemberiKuasa = `
+            <p class="text-[8pt]">Pemilik Dokumen / Debitur,</p>
+            <div class="stamp-box">Materai<br>Rp. 10.000</div>
+            <p class="font-bold underline mt-2">${d.debNama}</p>
+            <p class="text-[7.5pt] text-slate-500">Debitur</p>
+          `;
+        } else {
+          // 2 Pihak (Debitur & Pasangan)
+          pemberiKuasaComp = `
+            Tuan/Nyonya <span class="font-bold">${d.debNama}</span>, ${d.debPekerjaan}, bertempat tinggal di ${d.debAlamat} ${d.debKota}, pemegang KTP. no. <span class="font-mono">${d.debKtp}</span> diterbitkan oleh Desa/Kelurahan ${d.debKelurahan}, Kecamatan ${d.debKecamatan} Kab/Kodya ${d.debKota} dan untuk melakukan perbuatan hukum telah mendapat persetujuan dari suami/istri, Tuan/Nyonya <span class="font-bold">${d.pasNama}</span>, ${d.pasPekerjaan}, pemegang KTP No <span class="font-mono">${d.pasKtp}</span>, bertempat tinggal sama dengan suami/istrinya sebagaimana disebut diatas, yang turut hadir dan menandatangani akta ini, untuk selanjutnya dalam akta ini disebut--------------------------------------------<strong>"Debitur" / "PEMBERI KUASA"</strong>--------------------------
+          `;
+          signPemberiKuasa = `
+            <p class="text-[8pt]">Pemilik Dokumen,</p>
+            <div class="stamp-box">Materai<br>Rp. 10.000</div>
+            <p class="font-bold underline mt-2">${d.debNama}</p>
+            <p class="text-[7.5pt] text-slate-500">Debitur</p>
+            <div class="mt-3">
+              <p class="font-bold underline text-[8pt]">${d.pasNama}</p>
+              <p class="text-[7.5pt] text-slate-500">Pasangan Debitur</p>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="paper-a4" id="paper-kuasa-moral">
+            <div class="text-center mb-3">
+              <h2 class="title-doc" style="font-size: 11pt;">SURAT KUASA MENJUAL MORAL OBLIGATION</h2>
+            </div>
+
+            <div class="legal-two-col text-[8.5pt] leading-tight text-justify">
+              <!-- Kolom Kiri -->
+              <div class="pr-2 border-r border-slate-300">
+                <p class="mb-1.5">
+                  Pada hari ini <span class="font-bold">${d.hariPk}</span>, tanggal <span class="font-bold">${d.tglPk}</span> (${d.tglHuruf} Bulan ${d.tglBulan} Tahun Dua Ribu Dua Puluh Enam) yang bertanda tangan dibawah ini :
+                </p>
+
+                <p class="mb-1.5">
+                  ${pemberiKuasaComp}
+                </p>
+
+                <p class="mb-1">PEMBERI KUASA dengan ini menerangkan terlebih dahulu hal-hal sebagai berikut :</p>
+                <ul class="list-disc pl-4 space-y-1 mb-1.5">
+                  <li>Bahwa PEMBERI KUASA adalah pemilik yang sah atas barang-barang berupa: <span class="font-semibold">${d.moralDetail}</span> yang selanjutnya dalam akta ini disebut <strong>"Moral Obligation"</strong>.</li>
+                  <li>Bahwa PEMBERI KUASA telah memperoleh fasilitas kredit <span class="font-bold">${d.jenisKredit}</span> berdasarkan akta Perjanjian Kredit <span class="font-mono">${d.noPk}</span> tanggal ${d.tglPk} selanjutnya disebut <strong>"Perjanjian Kredit"</strong>.</li>
+                  <li>Kuasa yang diberikan oleh PEMBERI KUASA baru dapat digunakan apabila PEMBERI KUASA telah wanprestasi/ingkar janji/lalai berdasarkan Perjanjian Kredit.</li>
+                </ul>
+
+                <p class="mb-1.5">
+                  Bahwa PEMBERI KUASA dengan ini memberikan kuasa dan kewenangan sepenuhnya kepada :<br>
+                  <strong>Bapak ${d.pejabat}</strong> selaku ${d.jabatan} ${d.branch}, Nomor Induk Pegawai ${d.nip} dan bertindak berdasarkan kuasa sebagaimana tertuang dalam ${d.skPimpinan}, oleh karena itu sah bertindak untuk dan atas nama PT Bank Mandiri (Persero) Tbk., suatu perseroan terbatas yang didirikan berdasarkan perundang-undangan RI dan berkedudukan di Jakarta, untuk selanjutnya disebut <strong>"Bank"</strong>.: ----------------------------------------------------<strong>"PENERIMA KUASA"</strong>-------------------------------------------------------------------------<strong>KHUSUS</strong>-----------------------------------------
+                </p>
+
+                <p class="mb-1 font-semibold">Untuk dan atas nama PEMBERI KUASA melakukan tindakan-tindakan hukum sebagai berikut:</p>
+                <ol class="list-decimal pl-4 space-y-0.5 mb-1.5">
+                  <li>Melepaskan hak atau menjual / memindahtangankan dalam bentuk apapun juga kepada orang atau pihak siapa dan manapun atas Moral Obligation.</li>
+                  <li>Menawarkan kepada siapapun juga termasuk kepada dirinya sendiri sebagai PENERIMA KUASA.</li>
+                  <li>Menentukan pembeli dan nilai/harga penjualan atas Agunan termasuk menerima pembayarannya dan menggunakannya untuk melunasi/mengurangi kewajiban PEMBERI KUASA berdasarkan Perjanjian Kredit.</li>
+                  <li>Membayar biaya-biaya dan ongkos yang timbul berkenaan dengan penjualan Agunan.</li>
+                  <li>Menghadap pejabat-pejabat yang berwenang, memberikan keterangan-keterangan atau penjelasan-penjelasan, melakukan penolakan, menandatangani akta-akta atau dokumen-dokumen yang berhubungan dengan itu.</li>
+                  <li>Melakukan tindakan apapun juga yang dianggap perlu sehubungan dengan pelaksanaan pemberian kuasa ini tanpa ada yang dikecualikan.</li>
+                </ol>
+
+                <p class="mb-1">
+                  Sehubungan dengan pemberian kuasa ini, maka PEMBERI KUASA dengan ini membebaskan PENERIMA KUASA dari segala resiko ataupun kerugian yang timbul akibat dari tuntutan pihak ketiga lainnya.
+                </p>
+
+                <p>
+                  Kuasa ini diberikan dengan Hak Substitusi dan tidak dapat ditarik kembali, diubah, dan atau tidak akan berakhir dikarenakan sebab-sebab yang tercantum dalam pasal 1813, 1814 dan 1816 Kitab Undang-Undang Hukum Perdata atau dikarenakan sebab apapun juga tanpa persetujuan tertulis terlebih dahulu dari PENERIMA KUASA.
+                </p>
+              </div>
+
+              <!-- Kolom Kanan -->
+              <div class="pl-2 flex flex-col justify-between h-full">
+                <div>
+                  <p class="mb-4">
+                    Demikian Surat Kuasa ini dibuat dan akan berakhir setelah adanya pemberitahuan dari PENERIMA KUASA yang menyatakan bahwa seluruh kewajiban PEMBERI KUASA sehubungan dengan Perjanjian Kredit tersebut diatas berakhir/dinyatakan selesai / lunas.
+                  </p>
+                </div>
+
+                <div class="mt-8 space-y-8">
+                  <!-- Pemberi Kuasa -->
+                  <div class="text-center">
+                    <p class="font-bold">PEMBERI KUASA</p>
+                    ${signPemberiKuasa}
+                  </div>
+
+                  <!-- Penerima Kuasa -->
+                  <div class="text-center pt-4 border-t border-dashed border-slate-300">
+                    <p class="font-bold">PENERIMA KUASA</p>
+                    <p class="text-[8pt] text-slate-600">PT BANK MANDIRI (PERSERO) Tbk.</p>
+                    <div class="h-10"></div>
+                    <p class="font-bold underline">${d.pejabat}</p>
+                    <p class="text-[8pt] text-slate-500">${d.jabatan}</p>
+                  </div>
+                </div>
+
+                <div class="mt-8 text-[7pt] text-slate-400 text-right">
+                  Surat Kuasa Menjual Moral Obligation | Hal 1 dari 1
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // 4. Surat Pernyataan (Biaya Akad)
+      function renderPernyataanBiaya(d) {
+        return `
+          <div class="paper-a4" id="paper-pernyataan-biaya">
+            <div class="text-center mb-4">
+              <h2 class="title-doc">SURAT PERNYATAAN</h2>
+            </div>
+
+            <p class="mb-2 text-[10pt]">Yang bertandatangan di bawah ini :</p>
+            <table class="w-full text-[10pt] mb-3">
+              <tr>
+                <td style="width: 120px;">Nama</td>
+                <td style="width: 15px;">:</td>
+                <td class="font-bold">${d.debNama}</td>
+              </tr>
+              <tr>
+                <td>No. KTP</td>
+                <td>:</td>
+                <td class="font-mono">${d.debKtp}</td>
+              </tr>
+              <tr>
+                <td style="vertical-align: top;">Alamat</td>
+                <td style="vertical-align: top;">:</td>
+                <td>${d.debAlamat} Kelurahan ${d.debKelurahan} Kecamatan ${d.debKecamatan} Kota ${d.debKota}</td>
+              </tr>
+              <tr>
+                <td>Pekerjaan</td>
+                <td>:</td>
+                <td>${d.debPekerjaan}</td>
+              </tr>
+            </table>
+
+            <p class="mb-2 text-[10pt]">Dengan ini menyatakan bahwa :</p>
+            <ol class="list-decimal pl-5 space-y-2 text-justify text-[9.5pt]">
+              <li>
+                Atas fasilitas kredit yang akan atau telah diperoleh dari PT Bank Mandiri (Persero), Tbk. (selanjutnya disebut Bank Mandiri) maka saya berjanji dan sanggup memenuhi seluruh kewajiban kredit saya selaku Debitur kepada Bank Mandiri, termasuk namun tidak terbatas pada pemenuhan pembayaran pokok dan/atau bunga, denda maupun ongkos kredit sesuai dengan jangka waktu yang telah ditetapkan dalam perjanjian kredit atas dokumentasi kredit lainnya antara saya dengan Bank Mandiri.
+              </li>
+              <li>
+                Fasilitas Kredit yang saya peroleh dari Bank Mandiri dilakukan sendiri tanpa melalui perantara orang lain atau <strong>calo</strong>.
+              </li>
+              <li>
+                Tidak akan menduplikasikan semua dokumen yang dijadikan jaminan di Bank Mandiri dengan alasan apapun tanpa syarat.
+              </li>
+              <li>
+                Segala biaya yang dikeluarkan seluruhnya sesuai dengan ketentuan yang ditetapkan oleh PT. Bank Mandiri (Persero) Tbk, yang terdiri dari :
+                <div class="my-2 ml-4">
+                  <table class="text-[9pt] border-collapse" style="width: 280px;">
+                    <tr><td style="width: 25px;">a.</td><td style="width: 160px;">Biaya Provisi</td><td style="width: 10px;">:Rp</td><td class="text-right">${d.provisi}</td></tr>
+                    <tr><td>b.</td><td>Biaya Admin</td><td>:Rp</td><td class="text-right">${d.admin}</td></tr>
+                    <tr><td>c.</td><td>Biaya Meterai</td><td>:Rp</td><td class="text-right">${d.meterai}</td></tr>
+                    <tr><td>d.</td><td>Biaya BPJSTK</td><td>:Rp</td><td class="text-right">${d.bpjstk}</td></tr>
+                    <tr><td>e.</td><td>Biaya Asuransi Jiwa</td><td>:Rp</td><td class="text-right">${d.asuransiJiwa}</td></tr>
+                    <tr><td>f.</td><td>Biaya Asuransi Kerugian</td><td>:Rp</td><td class="text-right">${d.asuransiKerugian}</td></tr>
+                    <tr><td>g.</td><td>Biaya Asuransi Sijitu</td><td>:Rp</td><td class="text-right">${d.asuransiSijitu}</td></tr>
+                    <tr><td>h.</td><td>Biaya AXA</td><td>:Rp</td><td class="text-right">${d.biayaAxa}</td></tr>
+                    <tr><td>i.</td><td>Biaya Notaris</td><td>:Rp</td><td class="text-right">${d.notaris}</td></tr>
+                    <tr class="font-bold border-t border-slate-700">
+                      <td colspan="2" class="pt-1">T O T A L</td>
+                      <td class="pt-1">:Rp</td>
+                      <td class="text-right pt-1">${d.totalBiaya}</td>
+                    </tr>
+                  </table>
+                </div>
+              </li>
+              <li value="6">
+                Saya tidak pernah memberikan <strong>IMBALAN</strong> dalam bentuk apapun (<strong>Uang, Barang atau lainnya</strong>) kepada seluruh pegawai PT. Bank Mandiri (Persero) Tbk, sehubungan dengan kredit yang saya ajukan/terima.
+              </li>
+              <li>
+                Saya Bersedia rekening tabungan atas nama saya <u><strong>diblokir dua kali angsuran</strong></u> sampai kredit tersebut dinyatakan <strong>LUNAS</strong> oleh pihak bank.
+              </li>
+              <li>
+                Apabila kemudian hari pernyataan ini tidak sesuai, maka segala resiko hukum yang mungkin timbul menjadi tanggung jawab saya sepenuhnya.
+              </li>
+            </ol>
+
+            <p class="text-justify mt-2 text-[9.5pt]">
+              Surat pernyataan ini tidak dapat dicabut atau dibatalkan dengan alasan apapun juga selama kewajiban kredit dimaksud di atas belum dinyatakan lunas oleh Bank Mandiri.
+            </p>
+            <p class="text-justify mt-1 text-[9.5pt]">
+              Kami membebaskan Bank Mandiri dari segala tuntutan yang timbul akibat surat pernyataan ini.
+            </p>
+            <p class="text-justify mt-1 text-[9.5pt]">
+              Demikian surat pernyataan ini dibuat dengan sebenarnya dan dalam keadaan sehat wal'afiat, tanpa ada tekanan dari pihak manapun, dan dapat dipergunakan sebagaimana mestinya.
+            </p>
+
+            <div class="mt-6 flex justify-between items-end signature-box text-[10pt]">
+              <div></div>
+              <div class="text-center w-64">
+                <p>Bandung, ${d.tglBulan} ${d.tglTahun}</p>
+                <p class="mt-1">Debitur</p>
+                <div class="stamp-box">Materai<br>Rp. 10.000</div>
+                <p class="font-bold underline mt-3">${d.debNama}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // 5. Surat Permohonan Untuk Asuransi Jiwa (AXA)
+      function renderAsuransiJiwa(d) {
+        return `
+          <div class="paper-a4" id="paper-asuransi-jiwa">
+            <div class="text-center mb-6 pt-4">
+              <h2 class="title-doc">SURAT PERMOHONAN UNTUK ASURANSI JIWA</h2>
+            </div>
+
+            <p class="mb-3 text-[10.5pt]">Yang bertandatangan di bawah ini :</p>
+            
+            <table class="w-full text-[10.5pt] mb-6 space-y-1">
+              <tr>
+                <td style="width: 210px; padding: 3px 0;">Nama</td>
+                <td style="width: 20px;">:</td>
+                <td class="font-bold">${d.debNama}</td>
+              </tr>
+              <tr>
+                <td style="padding: 3px 0;">Tempat, Tanggal Lahir</td>
+                <td>:</td>
+                <td>${d.debLahir}</td>
+              </tr>
+              <tr>
+                <td style="vertical-align: top; padding: 3px 0;">Alamat</td>
+                <td style="vertical-align: top;">:</td>
+                <td>${d.debAlamat} Kel. ${d.debKelurahan} Kec. ${d.debKecamatan} ${d.debKota}</td>
+              </tr>
+              <tr>
+                <td style="padding: 3px 0;">No KTP</td>
+                <td>:</td>
+                <td class="font-mono">${d.debKtp}</td>
+              </tr>
+              <tr>
+                <td style="padding: 3px 0;">No Handphone, Email</td>
+                <td>:</td>
+                <td>${d.debTelp}</td>
+              </tr>
+              <tr>
+                <td style="padding: 3px 0;">Pekerjaan / Usaha</td>
+                <td>:</td>
+                <td>${d.debPekerjaan}</td>
+              </tr>
+              <tr>
+                <td style="padding: 3px 0;">Limit / Jangka Waktu</td>
+                <td>:</td>
+                <td class="font-semibold">Rp. ${d.limit} Jangka Waktu ${d.tenor} Bulan</td>
+              </tr>
+              <tr>
+                <td style="padding: 3px 0;">No PK dan Tgl PK</td>
+                <td>:</td>
+                <td>${d.noPk} ${d.tglPk}</td>
+              </tr>
+              <tr>
+                <td style="padding: 3px 0;">Nomor Rekening Tab.</td>
+                <td>:</td>
+                <td class="font-mono font-bold">${d.rekTab}</td>
+              </tr>
+            </table>
+
+            <p class="mb-2 text-[10.5pt] font-semibold">Dengan ini menyatakan,</p>
+            <p class="text-justify mb-4 text-[10.5pt] leading-relaxed">
+              Melakukan permohonan untuk penutupan asuransi jiwa kredit melalui <strong>Asuransi AXA Mandiri</strong> serta menyatakan memahami setiap syarat dan ketentuan yang berlaku.
+            </p>
+
+            <p class="text-justify mb-8 text-[10.5pt] leading-relaxed">
+              Demikian surat pernyataan ini dibuat dengan sebenar-benarnya tanpa ada paksaan dari pihak manapun dan untuk dapat dipergunakan sebagaimana mestinya.
+            </p>
+
+            <div class="flex justify-end mt-12 signature-box text-[10.5pt]">
+              <div class="text-center w-64">
+                <p>Bandung, ${d.tglPk}</p>
+                <p class="mt-1">Debitur,</p>
+                <div class="h-20"></div>
+                <p class="font-bold underline">${d.debNama}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // 6. Surat Kuasa Pendebetan Rekening (Auto Debet)
+      function renderKuasaDebet(d) {
+        return `
+          <div class="paper-a4" id="paper-kuasa-debet">
+            <div class="flex justify-between items-start mb-6">
+              <div class="w-20"></div>
+              <div class="text-center flex-1">
+                <h2 class="title-doc" style="font-size: 14pt;">SURAT KUASA</h2>
+              </div>
+              <div>
+                <img src="/mandiri_logo.png" alt="Mandiri Logo" class="mandiri-logo-header">
+              </div>
+            </div>
+
+            <p class="mb-2 text-[10.5pt]">Yang bertanda tangan di bawah ini :</p>
+            <table class="w-full text-[10.5pt] mb-3">
+              <tr>
+                <td style="width: 140px; padding: 2px 0;">Nama</td>
+                <td style="width: 20px;">:</td>
+                <td class="font-bold">${d.debNama}</td>
+              </tr>
+              <tr>
+                <td style="vertical-align: top; padding: 2px 0;">Alamat</td>
+                <td style="vertical-align: top;">:</td>
+                <td>${d.debAlamat} Kelurahan/Desa ${d.debKelurahan} Kecamatan ${d.debKecamatan} Kota/Kabupaten ${d.debKota}</td>
+              </tr>
+              <tr>
+                <td style="padding: 2px 0;">No. KTP</td>
+                <td>:</td>
+                <td class="font-mono">${d.debKtp}</td>
+              </tr>
+              <tr>
+                <td colspan="3" class="pt-1 font-semibold text-slate-700">(Selanjutnya disebut <strong>PEMBERI KUASA</strong>)</td>
+              </tr>
+            </table>
+
+            <p class="mb-2 text-[10.5pt]">
+              PEMBERI KUASA adalah pemegang rekening tabungan pada PT BANK MANDIRI (PERSERO) Tbk. sebagai berikut :
+            </p>
+            <table class="w-full text-[10.5pt] mb-3 ml-4">
+              <tr>
+                <td style="width: 140px; padding: 2px 0;">Nomor Rekening</td>
+                <td style="width: 20px;">:</td>
+                <td class="font-mono font-bold">${d.rekTab}</td>
+              </tr>
+              <tr>
+                <td style="padding: 2px 0;">Atas nama</td>
+                <td>:</td>
+                <td class="font-bold">${d.debNama}</td>
+              </tr>
+            </table>
+
+            <p class="text-justify mb-3 text-[10.5pt] leading-relaxed">
+              Sehubungan dengan fasilitas kredit yang akan diterima <strong>PEMBERI KUASA</strong> dari PT Bank Mandiri (Persero) Tbk. sesuai Perjanjian Kredit No. <span class="font-mono">${d.noPk}</span> tanggal ${d.tglLengkap}, dengan ini memberi kuasa dengan Hak Substitusi kepada :
+            </p>
+
+            <p class="text-justify mb-3 text-[10.5pt] leading-relaxed">
+              PT Bank Mandiri (Persero) Tbk. suatu lembaga perbankan yang berkedudukan di Jakarta dalam hal ini diwakili oleh <strong>${d.pejabat}</strong> dalam kedudukan sebagai ${d.jabatan} ${d.branch}.<br>
+              (Selanjutnya disebut <strong>PENERIMA KUASA</strong>)
+            </p>
+
+            <p class="text-justify mb-3 text-[10.5pt] leading-relaxed">
+              Untuk menerima dan/atau memotong rekening tabungan <strong>PEMBERI KUASA</strong> sebagai pembayaran atas angsuran kredit pokok berikut bunga, denda tunggakan dan/atau ongkos-ongkos serta biaya-biaya lainnya yang terhutang (bila ada), yang merupakan total kewajiban yang jatuh tempo setiap bulan, atas fasilitas kredit yang diterima <strong>PEMBERI KUASA</strong> dari <strong>PENERIMA KUASA</strong>.
+            </p>
+
+            <p class="text-justify mb-6 text-[10.5pt] leading-relaxed">
+              Surat Kuasa ini tidak dicabut kembali, melainkan hanya akan berakhir apabila jumlah hutang pokok berikut bunga, denda tunggakan dan/atau ongkos-ongkos serta biaya-biaya lainnya yang terhutang atas fasilitas kredit yang <strong>PEMBERI KUASA</strong> terima dinyatakan lunas oleh <strong>PENERIMA KUASA</strong>.
+            </p>
+
+            <div class="grid grid-cols-2 gap-8 mt-10 signature-box text-[10.5pt]">
+              <div>
+                <p class="font-bold">PENERIMA KUASA</p>
+                <div class="h-24"></div>
+                <p class="font-bold underline">${d.pejabat}</p>
+                <p class="text-[9.5pt] text-slate-600">${d.jabatan}</p>
+              </div>
+
+              <div class="text-right">
+                <p>Bandung, ${d.tglBulan} ${d.tglTahun}</p>
+                <p class="font-bold">PEMBERI KUASA,</p>
+                <div class="stamp-box float-right clear-both my-2">materai<br>Rp 10.000</div>
+                <div class="clear-both pt-2">
+                  <p class="font-bold underline">${d.debNama}</p>
+                  <p class="text-[9.5pt] text-slate-600">Debitur</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // 7. Pernyataan Pelaksanaan GCG
+      function renderGcg(d) {
+        return `
+          <div class="paper-a4" id="paper-gcg">
+            <div class="text-center mb-4 pt-2">
+              <h2 class="title-doc">PERNYATAAN PELAKSANAAN GOOD CORPORATE GOVERNANCE</h2>
+              <h3 class="subtitle-doc">(GCG)</h3>
+            </div>
+
+            <p class="mb-2 text-[10pt]">Yang bertanda tangan di bawah ini:</p>
+            <table class="w-full text-[10pt] mb-3">
+              <tr>
+                <td style="width: 130px; padding: 2px 0;">Nama</td>
+                <td style="width: 20px;">:</td>
+                <td class="font-bold">${d.debNama}</td>
+              </tr>
+              <tr>
+                <td style="vertical-align: top; padding: 2px 0;">Alamat</td>
+                <td style="vertical-align: top;">:</td>
+                <td>${d.debAlamat} Kelurahan/Desa ${d.debKelurahan} Kecamatan ${d.debKecamatan} Kota/Kabupaten ${d.debKota}</td>
+              </tr>
+              <tr>
+                <td style="padding: 2px 0;">Nomor KTP</td>
+                <td>:</td>
+                <td class="font-mono">${d.debKtp}</td>
+              </tr>
+            </table>
+
+            <p class="mb-2 text-[10pt]">Dengan ini menyatakan bahwa :</p>
+            <ol class="list-decimal pl-5 space-y-2 text-justify text-[9pt]">
+              <li>
+                Permohonan / Pengajuan kredit atas nama tersebut di atas yang diajukan kepada PT. Bank Mandiri (Persero) Tbk, ${d.branch}, tidak dilakukan melalui perantara orang lain <strong>(CALO)</strong>.
+              </li>
+              <li>
+                Saya tidak memberikan <strong>IMBALAN</strong> dalam bentuk apapun (berupa uang, barang dll) kepada pihak manapun termasuk seluruh karyawan PT. Bank Mandiri (Persero) Tbk, sehubungan dengan kredit yang saya ajukan.
+                <ol class="list-none pl-4 space-y-1 mt-1">
+                  <li>a. Imbalan dalam bentuk apapun adalah tidak terbatas pada pemberian dalam bentuk uang, barang bergerak/ tidak bergerak, hak-hak, fasilitas-fasilitas dan/ atau segala sesuatu yang dapat ditafsirkan sebagai imbalan dalam arti yang seluas-luasnya yang menguntungkan dan/ atau dapat menyebabkan keuntungan pribadi dalam kelompoknya yang diduga/ atau dapat diduga secara langsung atau tidak langsung berkaitan dengan kredit yang diberikan.</li>
+                  <li>b. Imbalan dengan nilai berapapun artinya tidak melihat besar kecilnya nilai imbalan.</li>
+                  <li>c. Melalui pihak manapun artinya sebelum kredit dinyatakan lunas oleh Bank, tidak akan pernah memberikan dan/ atau janji memberikan baik secara langsung maupun tidak langsung baik tersirat kepada Komisaris, Direksi, karyawan PT Bank Mandiri (Persero) Tbk. kepada keluarga, pihak manapun yang mengatasnamakan dirinya sendiri atau Bank Mandiri sehubungan dengan kredit yang diberikan.</li>
+                  <li>d. Dengan alasan apapun artinya tidak mengecualikan apapun latar belakang/ alasan/ pertimbangan pemberian imbalan.</li>
+                  <li>e. Kewajiban yang diatur/ ditentukan dalam PK adalah biaya-biaya yang dibebankan kepada nasabah berkaitan dengan pemberian fasilitas kredit.</li>
+                </ol>
+              </li>
+              <li>
+                Memberi kuasa kepada PT Bank Mandiri (Persero) Tbk ${d.branch} untuk melakukan <strong>pendebetan rekening</strong> tabungan apabila diperlukan untuk pembayaran angsuran maupun kekurangan angsuran atas pinjaman saya.
+              </li>
+              <li>
+                Hasil pencairan akan digunakan seluruhnya oleh saya sendiri dan tidak akan diberikan / dipinjamkan kepada siapapun baik seluruhnya ataupun sebagian.
+              </li>
+            </ol>
+
+            <p class="text-justify mt-3 text-[9pt]">
+              Apabila dikemudian hari pernyataan ini tidak sesuai, saya bersedia menerima konsekuensi <strong>HUKUM</strong> mengenai pemberian keterangan palsu sebagaimana diatur dalam Undang - Undang.
+            </p>
+            <p class="text-justify mt-2 text-[9pt]">
+              Demikian surat pernyataan ini saya buat dengan sebenarnya, tanpa ada tekanan dari pihak manapun juga, dan untuk dapat dipergunakan sebagaimana mestinya.
+            </p>
+
+            <div class="flex justify-end mt-6 signature-box text-[10pt]">
+              <div class="text-center w-64">
+                <p>Bandung, ${d.tglBulan} ${d.tglTahun}</p>
+                <p class="mt-1">Yang membuat pernyataan</p>
+                <div class="stamp-box">Materai<br>Rp. 10.000</div>
+                <p class="font-bold underline mt-3">${d.debNama}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // 8. Surat Pernyataan Kesediaan Menyediakan Dana Tertahan
+      function renderDanaTertahan(d) {
+        return `
+          <div class="paper-a4" id="paper-dana-tertahan">
+            <div class="text-center mb-6 pt-4">
+              <h2 class="title-doc leading-snug" style="font-size: 11.5pt;">
+                SURAT PERNYATAAN KESEDIAAN MENYEDIAKAN DANA TERTAHAN<br>
+                UNTUK MENJAGA KELANCARAN ANGSURAN
+              </h2>
+            </div>
+
+            <p class="mb-3 text-[10.5pt]">Yang bertanda tangan di bawah ini :</p>
+            <table class="w-full text-[10.5pt] mb-4 space-y-1">
+              <tr>
+                <td style="width: 210px; padding: 2.5px 0;">Nama</td>
+                <td style="width: 20px;">:</td>
+                <td class="font-bold">${d.debNama}</td>
+              </tr>
+              <tr>
+                <td style="padding: 2.5px 0;">No KTP</td>
+                <td>:</td>
+                <td class="font-mono">${d.debKtp}</td>
+              </tr>
+              <tr>
+                <td style="padding: 2.5px 0;">Limit / Jangka Waktu</td>
+                <td>:</td>
+                <td class="font-semibold">Rp. ${d.limit} / ${d.tenor} Bulan</td>
+              </tr>
+              <tr>
+                <td style="padding: 2.5px 0;">No PK</td>
+                <td>:</td>
+                <td class="font-mono">${d.noPk}</td>
+              </tr>
+              <tr>
+                <td style="padding: 2.5px 0;">Tgl PK</td>
+                <td>:</td>
+                <td>${d.tglLengkap}</td>
+              </tr>
+              <tr>
+                <td style="padding: 2.5px 0;">Nomor Rekening</td>
+                <td>:</td>
+                <td class="font-mono font-bold">${d.rekTab}</td>
+              </tr>
+              <tr>
+                <td style="padding: 2.5px 0;">Angsuran per bulan</td>
+                <td>:</td>
+                <td class="font-bold text-blue-900">Rp. ${d.angsuran}</td>
+              </tr>
+            </table>
+
+            <p class="mb-2 text-[10.5pt] font-semibold">Dengan ini menyatakan,</p>
+            <ol class="list-decimal pl-5 space-y-3 text-justify text-[10.5pt] leading-relaxed mb-6">
+              <li>
+                Bersedia untuk menempatkan dana tertahan pada rekening tabungan tersebut sebesar nominal <strong>2x angsuran (Rp. ${d.danaTertahan})</strong> untuk menjaga ketepatan pembayaran angsuran sampai dengan kewajiban kredit telah lunas.
+              </li>
+              <li>
+                Bersedia mengaktifkan transaksi bisnis dalam rangka monitoring kondisi usaha debitur.
+              </li>
+            </ol>
+
+            <p class="text-justify mb-8 text-[10.5pt] leading-relaxed">
+              Demikian surat pernyataan ini dibuat dengan sebenar-benarnya tanpa ada paksaan dari pihak manapun dan untuk dapat dipergunakan sebagaimana mestinya.
+            </p>
+
+            <div class="flex justify-end mt-12 signature-box text-[10.5pt]">
+              <div class="text-center w-64">
+                <p>Bandung, ${d.tglLengkap}</p>
+                <p class="mt-1">Debitur,</p>
+                <div class="h-20"></div>
+                <p class="font-bold underline">(${d.debNama})</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // 9. Surat Pernyataan Belum Pernah Menikah (Lajang)
+      function renderBelumNikah(d) {
+        return `
+          <div class="paper-a4" id="paper-belum-nikah">
+            <div class="text-center mb-6 pt-4">
+              <h2 class="title-doc">SURAT PERNYATAAN BELUM PERNAH MENIKAH</h2>
+            </div>
+
+            <p class="mb-3 text-[10.5pt]">Yang bertanda tangan di bawah ini :</p>
+            <table class="w-full text-[10.5pt] mb-6 space-y-1">
+              <tr>
+                <td style="width: 200px; padding: 3px 0;">Nama</td>
+                <td style="width: 20px;">:</td>
+                <td class="font-bold">${d.debNama}</td>
+              </tr>
+              <tr>
+                <td style="padding: 3px 0;">Tempat & Tgl Lahir</td>
+                <td>:</td>
+                <td>${d.debLahir}</td>
+              </tr>
+              <tr>
+                <td style="vertical-align: top; padding: 3px 0;">Alamat</td>
+                <td style="vertical-align: top;">:</td>
+                <td>${d.debAlamat} Desa/Kelurahan ${d.debKelurahan} Kecamatan ${d.debKecamatan} Kabupaten/Kota ${d.debKota}</td>
+              </tr>
+              <tr>
+                <td style="padding: 3px 0;">No. KTP</td>
+                <td>:</td>
+                <td class="font-mono">${d.debKtp}</td>
+              </tr>
+            </table>
+
+            <p class="text-justify mb-4 text-[10.5pt] leading-relaxed">
+              Sehubungan dengan pemberian fasilitas kredit oleh PT Bank Mandiri (Persero) Tbk, dengan ini saya menyatakan dengan sebenar-benarnya bahwa sampai dengan saat ini saya benar-benar berstatus <strong>TIDAK MENIKAH</strong>.
+            </p>
+
+            <p class="text-justify mb-8 text-[10.5pt] leading-relaxed">
+              Demikian surat pernyataan ini saya buat dengan sebenar-benarnya dan saya siap mempertanggungjawabkan pernyataan saya ini di depan hukum apabila ternyata surat pernyataan ini tidak sesuai dengan keadaan yang sebenarnya.
+            </p>
+
+            <div class="flex justify-end mt-12 signature-box text-[10.5pt]">
+              <div class="text-center w-64">
+                <p>Bandung, ${d.tglLengkap}</p>
+                <p class="mt-1">Yang menyatakan,</p>
+                <div class="h-20"></div>
+                <p class="font-bold underline">${d.debNama}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Render Master Function
+      function renderAllDocs() {
+        const wrap = document.getElementById('renderedDocsWrap');
+        const data = getData();
+        const font = document.getElementById('fontFamilySelect').value;
+
+        if (viewMode === 'all') {
+          // Render all documents in sequence
+          wrap.innerHTML = `
+            ${renderBast(data)}
+            ${renderKuasaPersediaan(data)}
+            ${renderKuasaMoral(data)}
+            ${renderPernyataanBiaya(data)}
+            ${renderAsuransiJiwa(data)}
+            ${renderKuasaDebet(data)}
+            ${renderGcg(data)}
+            ${renderDanaTertahan(data)}
+            ${renderBelumNikah(data)}
+          `;
+        } else {
+          // Render only selected document
+          switch (currentDoc) {
+            case 'bast':
+              wrap.innerHTML = renderBast(data);
+              break;
+            case 'kuasa_persediaan':
+              wrap.innerHTML = renderKuasaPersediaan(data);
+              break;
+            case 'kuasa_moral':
+              wrap.innerHTML = renderKuasaMoral(data);
+              break;
+            case 'pernyataan_biaya':
+              wrap.innerHTML = renderPernyataanBiaya(data);
+              break;
+            case 'asuransi_jiwa':
+              wrap.innerHTML = renderAsuransiJiwa(data);
+              break;
+            case 'kuasa_debet':
+              wrap.innerHTML = renderKuasaDebet(data);
+              break;
+            case 'gcg':
+              wrap.innerHTML = renderGcg(data);
+              break;
+            case 'dana_tertahan':
+              wrap.innerHTML = renderDanaTertahan(data);
+              break;
+            case 'belum_nikah':
+              wrap.innerHTML = renderBelumNikah(data);
+              break;
+            default:
+              wrap.innerHTML = renderBast(data);
+          }
+        }
+
+        // Apply selected font family
+        document.querySelectorAll('.paper-a4').forEach(p => {
+          p.style.fontFamily = font;
+        });
+      }
+
+      // Initial Launch
+      initDefaults();
+      // If booking data is available, load first record as sample preview
+      if (db.length > 0) {
+        populateFromDebitur(db[0], 0);
+      } else {
+        renderAllDocs();
+      }
+
+    })();
+  </script>
+</body>
+</html>

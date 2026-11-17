@@ -168,6 +168,10 @@
 
         <!-- Header Action: Cetak Advis dan Form Surat Manual -->
         <div class="flex flex-wrap justify-end items-center gap-2">
+          <button id="btnAkadKredit" type="button" onclick="window.open('/akad.html', '_blank', 'noopener')" class="flex items-center space-x-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm shadow-md transition-all duration-200" title="Buka Perlengkapan Surat Akad Kredit (PK)">
+            <i class="fa-solid fa-file-contract text-base"></i>
+            <span>Surat Akad Kredit (PK)</span>
+          </button>
           <button id="btnOpenCetakAdvisModal" onclick="openModalCetakAdvis()" class="flex items-center space-x-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs sm:text-sm shadow-md transition-all duration-200" title="Buka Formulir & Cetak Surat Advis LMAP Mandiri">
             <i class="fa-solid fa-file-invoice text-base"></i>
             <span>Cetak Advis LMAP</span>
@@ -177,6 +181,7 @@
           <details id="portalTools" class="relative text-mandiri-navy text-xs sm:text-sm">
             <summary class="cursor-pointer px-3 py-2 rounded-xl bg-white font-bold">Tools</summary>
             <div class="absolute right-0 mt-2 w-64 max-w-[85vw] bg-white border border-slate-200 rounded-xl shadow-lg p-2 z-50 space-y-1">
+              <a href="/akad.html" target="_blank" rel="noopener" class="w-full text-left block px-3 py-2 rounded-lg hover:bg-emerald-50 text-emerald-800 font-semibold"><i class="fa-solid fa-file-contract mr-1.5"></i>Perlengkapan Akad Kredit (PK)</a>
               <button type="button" onclick="exportDatabaseToExcel()" class="w-full text-left block px-3 py-2 rounded-lg hover:bg-emerald-50 text-emerald-700 font-semibold"><i class="fa-solid fa-file-excel mr-1.5"></i>Export Leads KUR &amp; KUM</button>
               <a href="rapikan-tagihan.html" class="block px-3 py-2 rounded-lg hover:bg-blue-50 font-semibold">Rapikan Excel Tagihan</a>
             </div>
