@@ -157,7 +157,8 @@ function defaults(type){return {
  alamatKop:type==='htel'||type==='angsuran'?classic:branch,
  bankTtd:type==='htel'?'PT. Bank Mandiri (Persero) Tbk.':type==='angsuran'?'PT. Bank Mandiri (persero) Tbk':'PT Bank Mandiri (Persero) Tbk.',
  unitTtd:type==='angsuran'?'MBU Bandung Jamsostek 1':'Branch Bandung Jamsostek',
- pejabat:'Deki Elanda Pradikta',jabatan:type==='roya'?'Penyelia Unit':'Mikro Banking Manager',
+ nama:'Branch Bandung Jamsostek',
+   pejabat:'Deki Elanda Pradikta',jabatan:type==='roya'?'Penyelia Unit':'Mikro Banking Manager',
  lampiran:type==='roya'?'2 (Dua) sertifikat':type==='angsuran'?'1 (satu) set':'-',
  ...(type==='htel'?{tujuan:'Kepala Kantor\nPertanahan Kabupaten Bandung',kotaTujuan:'Kabupaten Bandung',peringkat:'I (Pertama)',jenisSertifikat:'Hak Milik'}:{}),
  ...(type==='roya'?{tujuan:'Kepala Kantor\nBadan Pertanahan Nasional Kabupaten Bandung',kotaTujuan:'Kabupaten Bandung',peringkat:'I (Kesatu)',jenisSertifikat:'Hak Milik'}:{}),
@@ -197,32 +198,32 @@ const css=`
 
 .mf-property{padding:20mm 24mm;font:10pt/1.35 Arial,sans-serif;min-height:296mm;overflow-wrap:anywhere}.mf-property p{margin:0 0 14px;text-align:justify}.mf-property-head{display:grid;grid-template-columns:minmax(0,1fr) 58mm;gap:8mm;min-height:49mm;margin-bottom:1mm}.mf-property-meta{padding-top:12mm;min-width:0}.mf-property-meta table{width:100%;border-collapse:collapse}.mf-property-meta td{padding:0;vertical-align:top}.mf-property-meta td:first-child{width:19mm}.mf-property-meta td:nth-child(2){width:4mm}.mf-property-brand{font:8pt/1.2 Arial;color:#17365d}.mf-property-brand img{display:block;width:58mm;height:auto;margin-bottom:3px}.mf-property-to{margin:0 0 17px;line-height:1.35}.mf-property-subject{display:grid;grid-template-columns:17mm 4mm minmax(0,1fr);gap:0;margin-bottom:18px;break-inside:avoid}.mf-property-subject>div:last-child{text-align:justify}.mf-property-list{padding-left:21px;margin:0 0 18px}.mf-property-koreksiJT .mf-property-to{margin:3mm 0 4mm}.mf-property-koreksiJT .mf-property-head{min-height:0}.mf-property-koreksiJT table{font:inherit}.mf-property-koreksiJT .mf-property-data td:first-child{width:59mm}.mf-property-kyc .mf-property-to{margin:3mm 0 0}.mf-property-kyc .mf-property-list{list-style:decimal outside}.mf-property-list li{padding-left:4px;text-align:justify;margin-bottom:10px}.mf-property-ttd{margin-top:24px;break-inside:avoid;page-break-inside:avoid}.mf-property-ttd .mf-property-ink{height:23mm;display:flex;align-items:center}.mf-property-ink img{width:43mm;height:22mm;object-fit:contain;object-position:left center}.mf-property-title{font:bold 11pt Arial!important;text-decoration:underline;text-align:center!important;margin:0 0 24px!important}.mf-property-data{width:100%;border-collapse:collapse;margin:16px 0 23px}.mf-property-data td{vertical-align:top;padding:3px 0}.mf-property-data td:first-child{width:47mm}.mf-property-data td:nth-child(2){width:4mm}.mf-property-stnk{font-size:11pt}.mf-property-bds .mf-property-head{min-height:0}.mf-property-bds .mf-property-brand{position:relative;transform:translate(10mm,-7mm)}.mf-property-bds .mf-property-to{position:relative;margin-top:-8mm}.mf-property-angsuran{font-size:11pt;padding:15mm 19mm}.mf-property-angsuran .mf-property-head{min-height:51mm}.mf-property-amounts{width:100%;table-layout:fixed;border-collapse:collapse;margin:18px 0 22px;font:10pt/1.3 Arial}.mf-property-amounts th,.mf-property-amounts td{border:1px solid #111;padding:7px 4px;overflow-wrap:anywhere;text-align:center}.mf-property-amounts th{font-weight:bold}.mf-property-amounts td{height:12mm}.mf-property-sign-pair{display:grid;grid-template-columns:1fr 1fr;gap:8mm;break-inside:avoid}.mf-property-sign-pair>div{min-width:0}.mf-property-sign-pair .mf-property-ttd{margin-top:0}.mf-property-form-settings{margin-top:18px;border-top:1px solid #ccd8e8;padding-top:12px}.mf-property-form-settings summary{font-weight:bold;cursor:pointer}.mf-property-help{font:12px/1.5 Arial;color:#64748b}
 
-.mf-st-page{padding:16mm 20mm 15mm;font:10pt/1.35 Arial,sans-serif;color:#000;min-height:296mm;box-sizing:border-box;overflow-wrap:anywhere}
-.mf-st-top-logo{display:flex;justify-content:flex-end;margin-bottom:5mm}
-.mf-st-top-logo img{width:44mm;height:auto;max-height:20mm;object-fit:contain}
-.mf-st-title-block{text-align:center;margin-bottom:5mm}
-.mf-st-title{font-size:11pt!important;font-weight:bold!important;text-decoration:underline;margin:0 0 3px!important;letter-spacing:0.5px;text-align:center!important}
-.mf-st-nomor{font-size:10pt;font-weight:normal;margin:0;text-align:center}
-.mf-st-lead{text-align:justify;margin:0 0 2.5mm;font-size:10pt;line-height:1.35}
-.mf-st-party-table{width:100%;border-collapse:collapse;margin-bottom:3mm;font-size:10pt}
-.mf-st-party-table td{vertical-align:top;padding:1.5px 0}
-.mf-st-label{width:25mm}
-.mf-st-colon{width:4mm;text-align:center}
-.mf-st-val{text-align:left}
-.mf-st-table{width:100%;border-collapse:collapse;margin:3mm 0 4mm;font-size:9pt;table-layout:fixed}
-.mf-st-table th{background-color:#1e4b88;color:#ffffff;border:1px solid #000;padding:5px 4px;text-align:center;font-weight:bold;vertical-align:middle}
-.mf-st-table td{border:1px solid #000;padding:5px 6px;vertical-align:middle;line-height:1.3}
-.mf-st-td-center{text-align:center}
-.mf-st-td-upper{text-transform:uppercase}
-.mf-st-td-doc{text-align:left;font-size:8.5pt;line-height:1.25}
-.mf-st-closing{text-align:justify;margin:4mm 0 5mm;font-size:10pt;line-height:1.35}
-.mf-st-sign-area{margin-top:5mm;break-inside:avoid;page-break-inside:avoid}
-.mf-st-sign-box{width:85mm;text-align:left}
-.mf-st-bank,.mf-st-unit{font-size:10pt;line-height:1.3}
-.mf-st-ink{height:23mm;display:flex;align-items:center;margin:2px 0}
-.mf-st-ink img{max-height:22mm;width:auto;object-fit:contain}
-.mf-st-pejabat{font-size:10.5pt;line-height:1.3}
-.mf-st-jabatan{font-size:10pt;line-height:1.3}
+.mf-st-page{width:210mm!important;max-width:210mm!important;min-height:275mm!important;max-height:297mm!important;padding:13mm 18mm 12mm!important;font:10pt/1.35 Arial,sans-serif!important;color:#000!important;box-sizing:border-box!important;overflow:hidden!important;background:#fff!important;page-break-after:avoid!important;break-after:avoid!important;page-break-inside:avoid!important;break-inside:avoid!important}
+.mf-st-top-logo{display:flex!important;justify-content:flex-end!important;margin-bottom:4mm!important}
+.mf-st-top-logo img{width:42mm!important;height:auto!important;max-height:18mm!important;object-fit:contain!important}
+.mf-st-title-block{text-align:center!important;margin-bottom:4mm!important}
+.mf-st-title{font-size:11pt!important;font-weight:bold!important;text-decoration:underline!important;margin:0 0 2px!important;letter-spacing:0.5px!important;text-align:center!important;text-transform:uppercase!important}
+.mf-st-nomor{font-size:10pt!important;font-weight:normal!important;margin:0!important;text-align:center!important}
+.mf-st-lead{text-align:justify!important;margin:0 0 2mm!important;font-size:10pt!important;line-height:1.35!important}
+.mf-st-party-table{width:100%!important;border-collapse:collapse!important;margin-bottom:2.5mm!important;font-size:10pt!important}
+.mf-st-party-table td{vertical-align:top!important;padding:1px 0!important}
+.mf-st-label{width:25mm!important}
+.mf-st-colon{width:4mm!important;text-align:center!important}
+.mf-st-val{text-align:left!important}
+.mf-st-table{width:100%!important;border-collapse:collapse!important;margin:2.5mm 0 3.5mm!important;font-size:9pt!important;table-layout:fixed!important}
+.mf-st-table th{background-color:#1e4b88!important;color:#ffffff!important;border:1px solid #000000!important;padding:5px 4px!important;text-align:center!important;font-weight:bold!important;vertical-align:middle!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+.mf-st-table td{border:1px solid #000000!important;padding:5px 6px!important;vertical-align:middle!important;line-height:1.3!important}
+.mf-st-td-center{text-align:center!important}
+.mf-st-td-upper{text-transform:uppercase!important}
+.mf-st-td-doc{text-align:left!important;font-size:8.5pt!important;line-height:1.25!important}
+.mf-st-closing{text-align:justify!important;margin:3.5mm 0 4mm!important;font-size:10pt!important;line-height:1.35!important}
+.mf-st-sign-area{margin-top:4mm!important;break-inside:avoid!important;page-break-inside:avoid!important}
+.mf-st-sign-box{width:85mm!important;text-align:left!important}
+.mf-st-bank,.mf-st-unit{font-size:10pt!important;line-height:1.3!important}
+.mf-st-ink{height:22mm!important;display:flex!important;align-items:center!important;margin:2px 0!important}
+.mf-st-ink img{max-height:22mm!important;width:auto!important;object-fit:contain!important}
+.mf-st-pejabat{font-size:10.5pt!important;line-height:1.3!important}
+.mf-st-jabatan{font-size:10pt!important;line-height:1.3!important}
 
 .mf-gov-page{padding:18mm 22mm 15mm;font:10.5pt/1.35 Arial,sans-serif;color:#000;overflow-wrap:anywhere}
 .mf-gov-kop{display:flex;align-items:center;justify-content:center;position:relative;min-height:24mm;margin-bottom:2px}

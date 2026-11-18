@@ -39,15 +39,84 @@ const order=[['nomor','Nomor surat'],['tanggal','Tanggal surat','date'],['lampir
   function showFields(){document.getElementById('mfWord').hidden=type!=='mitra';if(extra?.definitions[type])for(const [k,v] of Object.entries(extra.defaults(type)))if(values()[k]===undefined)values()[k]=v;if(type==='order')initOrderDefaults();document.getElementById('mfFields').innerHTML=definitions().map(([key,label,kind,required])=>`<label for="mf_${key}">${escape(label)}${required===false?' (opsional)':' *'}</label>${kind==='textarea'?`<textarea id="mf_${key}" data-key="${key}" ${required===false?'':'required'}>${escape(values()[key]||'')}</textarea>`:`<input id="mf_${key}" data-key="${key}" type="${kind||'text'}" value="${escape(values()[key]||'')}" ${required===false?'':'required'}>`}`).join('');if(type==='ajk')setupAjk();if(type==='order')setupOrder();if(extra?.definitions[type])extra.setup(type,values(),preview);preview();}
   async function output(pdf){
     if(!document.getElementById('mfForm').reportValidity()) return;
-    const name=(extra?.definitions[type]?.title||(type==='komitmen'?'Surat Komitmen':type==='ajk'?'Surat Pernyataan Penolakan AJK':type==='order'?'Surat Order Agunan':'Form Coaching SG'))+' - '+(values().nama||'');
+    const name=(extra?.definitions[type]?.title||(type==='komitmen'?'Surat Komitmen':type==='ajk'?'Surat Pernyataan Penolakan AJK':type==='order'?'Surat Order Agunan':'Form Coaching SG'))+' - '+(values().nama||values().nomor||'');
     const filename=name.replace(/[\\/:*?"<>|]/g,'_');
-    if(!pdf){const w=window.open('','_blank');if(!w){alert('Izinkan pop-up untuk mencetak surat.');return;}w.document.write('<!doctype html><html lang="id"><head><meta charset="utf-8"><title>'+escape(name)+'</title><style>'+css+'body{margin:0}@page{size:A4;margin:0}</style></head><body>'+document.getElementById('mfPreview').innerHTML+'</body></html>');w.document.close();w.focus();w.print();return;}
+    const getCombinedCss = () => css + '\n' + (window.ManualPropertyTemplates?.css || '');
+
+    if(!pdf){
+      const w=window.open('','_blank');
+      if(!w){alert('Izinkan pop-up untuk mencetak surat.');return;}
+      const previewHtml=document.getElementById('mfPreview').innerHTML;
+      w.document.write('<!doctype html><html lang="id"><head><meta charset="utf-8"><title>'+escape(name)+'</title><style>'+
+        getCombinedCss() +
+        '@page{size:A4 portrait;margin:0}'+
+        'html,body{margin:0!important;padding:0!important;background:#fff!important;font-family:Arial,sans-serif!important;color:#000!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}'+
+        '.mf-document{width:210mm!important;margin:0 auto!important;background:#fff!important}'+
+        '.mf-page{box-shadow:none!important;border:none!important;margin:0!important}'+
+        '@media print{html,body{width:210mm!important;margin:0!important;padding:0!important}.mf-document{width:100%!important;margin:0!important}.mf-page{box-shadow:none!important;border:none!important}}'+
+        '</style></head><body>'+previewHtml+'</body></html>');
+      w.document.close();
+      setTimeout(()=>{w.focus();w.print();}, 250);
+      return;
+    }
+
     if(typeof html2pdf!=='function'){alert('Pustaka PDF tidak tersedia. Gunakan Cetak dan pilih Simpan sebagai PDF.');return;}
-    const button=document.getElementById('mfPdf');button.disabled=true;button.textContent='Membuat PDF...';
-    const host=document.createElement('div');host.innerHTML=document.getElementById('mfPreview').innerHTML;document.body.append(host);
-    try{await html2pdf().set({margin:0,filename:filename+'.pdf',image:{type:'jpeg',quality:.98},html2canvas:{scale:2,scrollX:0,scrollY:0},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(host.firstElementChild).save();}
-    catch(error){console.error('PDF formulir:',error);alert('PDF gagal dibuat. Gunakan Cetak dan pilih Simpan sebagai PDF.');}
-    finally{host.remove();button.disabled=false;button.textContent='Unduh PDF';}
+    const button=document.getElementById('mfPdf');
+    button.disabled=true;
+    button.textContent='Membuat PDF...';
+
+    const previewEl=document.getElementById('mfPreview').querySelector('.mf-document')||document.getElementById('mfPreview').firstElementChild;
+    if(!previewEl){
+      button.disabled=false;
+      button.textContent='Unduh PDF';
+      alert('Konten surat belum siap.');
+      return;
+    }
+
+    const host=document.createElement('div');
+    host.id='mfPdfHost';
+    host.style.cssText='position:fixed;left:0;top:0;width:210mm;background:#fff;z-index:99999;font-family:Arial,sans-serif;color:#000;margin:0;padding:0;box-sizing:border-box;pointer-events:none;';
+
+    const styleTag=document.createElement('style');
+    styleTag.textContent=getCombinedCss() + `
+      #mfPdfHost, #mfPdfHost * { box-sizing: border-box; }
+      #mfPdfHost .mf-document { width: 210mm !important; margin: 0 !important; background: #fff !important; }
+      #mfPdfHost .mf-page { box-shadow: none !important; border: none !important; margin: 0 !important; }
+      #mfPdfHost .mf-st-table th { background-color: #1e4b88 !important; color: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    `;
+    host.appendChild(styleTag);
+
+    const clone=previewEl.cloneNode(true);
+    host.appendChild(clone);
+    document.body.appendChild(host);
+
+    try{
+      const opt={
+        margin:0,
+        filename:filename+'.pdf',
+        image:{type:'jpeg',quality:.98},
+        html2canvas:{
+          scale:2,
+          useCORS:true,
+          logging:false,
+          scrollX:0,
+          scrollY:0,
+          windowWidth:794
+        },
+        jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+        pagebreak:{mode:['css','legacy']}
+      };
+      await html2pdf().set(opt).from(clone).save();
+    }
+    catch(error){
+      console.error('PDF formulir:',error);
+      alert('PDF gagal dibuat. Gunakan Cetak dan pilih Simpan sebagai PDF.');
+    }
+    finally{
+      host.remove();
+      button.disabled=false;
+      button.textContent='Unduh PDF';
+    }
   }
   function init(){
     const style=document.createElement('style');style.textContent=css;document.head.append(style);
