@@ -79,6 +79,25 @@ const definitions={
  roya:{title:'Surat Permohonan Roya',fields:[...meta,...destination,...certificate,['lokasi','Letak tanah (blok, desa, kecamatan, kabupaten/kota)','textarea'],['peringkat','Peringkat hak tanggungan'],['ht','Nomor sertifikat hak tanggungan'],['tanggalHt','Tanggal sertifikat hak tanggungan','date'],...settings]},
  stnk:{title:'Surat Keterangan BPKB untuk Perpanjangan STNK',fields:[...meta,['bpkb','Nomor BPKB'],['nama','Nama dalam BPKB'],['alamat','Alamat dalam BPKB','textarea'],['rangka','Nomor rangka / NIK kendaraan'],['mesin','Nomor mesin'],['polisi','Nomor polisi dalam BPKB'],...settings]},
  bds:{title:'Permohonan Ganti Nama User BDS',fields:[...meta,['tujuan','Kepada / alamat tujuan','textarea'],['existingNama','Nama user existing'],['existingId','Nomor user existing'],['baruNama','Nama user baru'],['baruId','Nomor user baru'],...settings]},
+ tugasAgunan:{title:'Surat Tugas Pengambilan Dokumen Legal dan Agunan',fields:[
+  ['nomor','Nomor Surat Tugas'],
+  ['tanggal','Tanggal Surat Tugas','date'],
+  ['hari','Hari (opsional, otomatis bila kosong)','text',false],
+  ['namaPemberi','Nama Pemberi Tugas (Pejabat)'],
+  ['nipPemberi','NIP Pemberi Tugas'],
+  ['unitPemberi','Unit Kerja Pemberi Tugas'],
+  ['jabatanPemberi','Jabatan Pemberi Tugas'],
+  ['namaPenerima','Nama Penerima Tugas (Petugas)'],
+  ['nipPenerima','NIP Penerima Tugas'],
+  ['unitPenerima','Unit Kerja Penerima Tugas'],
+  ['jabatanPenerima','Jabatan Penerima Tugas'],
+  ['tujuanTugas','Uraian / Keperluan Pengambilan Dokumen','textarea'],
+  ['penutup','Kalimat Penutup Surat Tugas','textarea',false],
+  ['bankTtd','Nama Bank pada Tanda Tangan'],
+  ['unitTtd','Unit / Cabang pada Tanda Tangan'],
+  ['pejabat','Nama Pejabat Penanda Tangan'],
+  ['jabatan','Jabatan Pejabat Penanda Tangan']
+ ]},
  angsuran:{title:'Surat Penyesuaian Angsuran',fields:[...meta,['tujuan','Kepada / unit tujuan','textarea'],['kotaTujuan','Lokasi tujuan'],['nota','Nomor nota restrukturisasi'],['tanggalNota','Tanggal nota restrukturisasi','date'],['nama','Nama debitur'],['rekening','Nomor rekening pinjaman'],['agf','Nomor rekening tabungan (AGF)'],['periode','Periode angsuran'],['pokok','Angsuran pokok (Rp)'],['bunga','Angsuran bunga (Rp)'],['tbyd','TBYD (Rp)'],['bydt','BYDT (Rp)'],['jumlah','Jumlah angsuran (Rp)'],...settings,['bankTtd2','Nama bank penanda tangan kedua'],['unitTtd2','Unit penanda tangan kedua'],['pejabat2','Nama penanda tangan kedua'],['jabatan2','Jabatan penanda tangan kedua']]}
 };
 const classic='Jl P. H. H. Mustofa No 39 Neglasari\nBandung\nTel. 022-7217861\nFax.022-7217863\nwww.bankmandiri.co.id';
@@ -147,12 +166,63 @@ function defaults(type){return {
  ...(type==='kyc'?{tujuan:'Retail Credit Center Jakarta\nPT Bank Mandiri (Persero) Tbk',kotaTujuan:'tempat',penandaTanganKyc:'deki',bank:'PT Bank Mandiri (Persero) Tbk',alamatKop:'Jl P.H. Hasan Mustapa No 39\nBandung\nTel. 022-7217861\nwww.bankmandiri.co.id',jabatan:'Penyelia Unit'}:{}),
  ...(type==='mitra'?{bankTtd:'PT. Bank Mandiri (Persero) Tbk',unitTtd:'KCP Bandung Jamsostek',jabatan:'Penyelia Unit',lampiran:'-'}:{}),
  ...(type==='bds'?{tujuan:'PT. Bank Mandiri (Persero) Tbk\nArea Bandung Surapati\nUP: HC & GA\nJl. Surapati No. 2\nKota Bandung',cabang:'KCP Bandung Jamsostek',unitTtd:'KCP Bandung Jamsostek',existingNama:'M Arief Fadhillah',existingId:'2083739540',baruNama:'Deki Elanda Pradikta',baruId:'2088734785',lampiran:'-',tandaTanganBds:'otomatis'}:{}),
+ ...(type==='tugasAgunan'?{
+   nomor:'R06.Br.BJK/0516/2026',
+   tanggal:'2026-10-05',
+   hari:'Senin',
+   namaPemberi:'Deki Elanda Pradikta',
+   nipPemberi:'2088734785',
+   unitPemberi:'Branch Bandung Jamsostek',
+   jabatanPemberi:'Penyelia Unit',
+   namaPenerima:'Adi Maulana',
+   nipPenerima:'1691050057',
+   unitPenerima:'Branch Bandung Jamsostek',
+   jabatanPenerima:'Pramubakti',
+   tujuanTugas:'Untuk melakukan pengambilan atas dokumen-dokumen debitur di Cluster yang telah diambil dari beranda ruang khasanah Credit Operation penyimpanan dokumen agunan sebagaimana terinci dalam tabel di bawah ini:',
+   penutup:'Demikian Surat Tugas ini dibuat dan ditandatangani oleh yang berwenang sebagaimana mestinya dan untuk dipergunakan sebagai catatan administrasi masing-masing pihak serta digunakan sebagai alat bukti bila diperlukan dikemudian hari.',
+   bankTtd:'PT Bank Mandiri (Persero) Tbk.',
+   unitTtd:'Branch Bandung Jamsostek',
+   pejabat:'Deki Elanda Pradikta',
+   jabatan:'Penyelia Unit',
+   tandaTangan:'otomatis',
+   items:[
+     {rekPjm:'1310101771642',nama:'MOHAMAD ZAMZAM',dokumen:'SHGB NO. 8200 AN LATIFAH; SHT NO. 05484/2022; SKMHT NO. 5/2021; APHT NO. 11/2022, PENGECEKAN SETIPIKAT',tglOrder:'30/09/2026'},
+     {rekPjm:'1310102084391',nama:'HERI IMANUDIN FEVRIANSYAH',dokumen:'BPKB NP. P-04641502; BPKB NO. L-12894328, APLIKASI, PK, ASURANSI JIWA',tglOrder:'30/09/2026'}
+   ]
+ }:{}),
  ...(type==='angsuran'?{tujuan:'PT. Bank Mandiri (Persero), Tbk.\nLoan Appraisal Maintenance and Posting Department',kotaTujuan:'Tempat',bankTtd2:'PT. Bank Mandiri (persero) Tbk',unitTtd2:'MBC Bandung Surapati',pejabat2:'Atika Fadillah',jabatan2:'Micro Banking Cluster Manager'}:{})
 };}
 const css=`
 .mf-mitra{position:relative;padding:6mm 5mm;font:11pt/1.15 Arial;color:#111;min-height:297mm;isolation:isolate}.mf-mitra p{margin:0 0 4mm}.mf-mitra-heading{display:flex;justify-content:space-between;align-items:start;margin-bottom:5mm;font-size:10.5pt}.mf-mitra-heading img{width:37mm;height:auto}.mf-mitra-title{border-bottom:4px double #333;padding-bottom:1mm;margin-right:5mm;margin-bottom:2mm}.mf-mitra-meta{border-collapse:collapse;margin-bottom:8mm}.mf-mitra-meta td{padding:0 2mm}.mf-mitra-meta td:first-child{width:24mm}.mf-mitra-table{border-collapse:collapse;table-layout:fixed;width:100%;margin-top:2mm}.mf-mitra-table td,.mf-mitra-table th{border:1px solid #111;padding:2mm;text-align:left;overflow-wrap:anywhere;vertical-align:middle}.mf-mitra-table th i{font-size:9pt;font-weight:normal}.mf-mitra-table .center{text-align:center}.mf-mitra-closing{margin-top:8mm!important;text-align:justify}.mf-mitra .mf-property-ttd{margin-left:2mm;margin-top:3mm;break-inside:avoid}
 
 .mf-property{padding:20mm 24mm;font:10pt/1.35 Arial,sans-serif;min-height:296mm;overflow-wrap:anywhere}.mf-property p{margin:0 0 14px;text-align:justify}.mf-property-head{display:grid;grid-template-columns:minmax(0,1fr) 58mm;gap:8mm;min-height:49mm;margin-bottom:1mm}.mf-property-meta{padding-top:12mm;min-width:0}.mf-property-meta table{width:100%;border-collapse:collapse}.mf-property-meta td{padding:0;vertical-align:top}.mf-property-meta td:first-child{width:19mm}.mf-property-meta td:nth-child(2){width:4mm}.mf-property-brand{font:8pt/1.2 Arial;color:#17365d}.mf-property-brand img{display:block;width:58mm;height:auto;margin-bottom:3px}.mf-property-to{margin:0 0 17px;line-height:1.35}.mf-property-subject{display:grid;grid-template-columns:17mm 4mm minmax(0,1fr);gap:0;margin-bottom:18px;break-inside:avoid}.mf-property-subject>div:last-child{text-align:justify}.mf-property-list{padding-left:21px;margin:0 0 18px}.mf-property-koreksiJT .mf-property-to{margin:3mm 0 4mm}.mf-property-koreksiJT .mf-property-head{min-height:0}.mf-property-koreksiJT table{font:inherit}.mf-property-koreksiJT .mf-property-data td:first-child{width:59mm}.mf-property-kyc .mf-property-to{margin:3mm 0 0}.mf-property-kyc .mf-property-list{list-style:decimal outside}.mf-property-list li{padding-left:4px;text-align:justify;margin-bottom:10px}.mf-property-ttd{margin-top:24px;break-inside:avoid;page-break-inside:avoid}.mf-property-ttd .mf-property-ink{height:23mm;display:flex;align-items:center}.mf-property-ink img{width:43mm;height:22mm;object-fit:contain;object-position:left center}.mf-property-title{font:bold 11pt Arial!important;text-decoration:underline;text-align:center!important;margin:0 0 24px!important}.mf-property-data{width:100%;border-collapse:collapse;margin:16px 0 23px}.mf-property-data td{vertical-align:top;padding:3px 0}.mf-property-data td:first-child{width:47mm}.mf-property-data td:nth-child(2){width:4mm}.mf-property-stnk{font-size:11pt}.mf-property-bds .mf-property-head{min-height:0}.mf-property-bds .mf-property-brand{position:relative;transform:translate(10mm,-7mm)}.mf-property-bds .mf-property-to{position:relative;margin-top:-8mm}.mf-property-angsuran{font-size:11pt;padding:15mm 19mm}.mf-property-angsuran .mf-property-head{min-height:51mm}.mf-property-amounts{width:100%;table-layout:fixed;border-collapse:collapse;margin:18px 0 22px;font:10pt/1.3 Arial}.mf-property-amounts th,.mf-property-amounts td{border:1px solid #111;padding:7px 4px;overflow-wrap:anywhere;text-align:center}.mf-property-amounts th{font-weight:bold}.mf-property-amounts td{height:12mm}.mf-property-sign-pair{display:grid;grid-template-columns:1fr 1fr;gap:8mm;break-inside:avoid}.mf-property-sign-pair>div{min-width:0}.mf-property-sign-pair .mf-property-ttd{margin-top:0}.mf-property-form-settings{margin-top:18px;border-top:1px solid #ccd8e8;padding-top:12px}.mf-property-form-settings summary{font-weight:bold;cursor:pointer}.mf-property-help{font:12px/1.5 Arial;color:#64748b}
+
+.mf-st-page{padding:16mm 20mm 15mm;font:10pt/1.35 Arial,sans-serif;color:#000;min-height:296mm;box-sizing:border-box;overflow-wrap:anywhere}
+.mf-st-top-logo{display:flex;justify-content:flex-end;margin-bottom:5mm}
+.mf-st-top-logo img{width:44mm;height:auto;max-height:20mm;object-fit:contain}
+.mf-st-title-block{text-align:center;margin-bottom:5mm}
+.mf-st-title{font-size:11pt!important;font-weight:bold!important;text-decoration:underline;margin:0 0 3px!important;letter-spacing:0.5px;text-align:center!important}
+.mf-st-nomor{font-size:10pt;font-weight:normal;margin:0;text-align:center}
+.mf-st-lead{text-align:justify;margin:0 0 2.5mm;font-size:10pt;line-height:1.35}
+.mf-st-party-table{width:100%;border-collapse:collapse;margin-bottom:3mm;font-size:10pt}
+.mf-st-party-table td{vertical-align:top;padding:1.5px 0}
+.mf-st-label{width:25mm}
+.mf-st-colon{width:4mm;text-align:center}
+.mf-st-val{text-align:left}
+.mf-st-table{width:100%;border-collapse:collapse;margin:3mm 0 4mm;font-size:9pt;table-layout:fixed}
+.mf-st-table th{background-color:#1e4b88;color:#ffffff;border:1px solid #000;padding:5px 4px;text-align:center;font-weight:bold;vertical-align:middle}
+.mf-st-table td{border:1px solid #000;padding:5px 6px;vertical-align:middle;line-height:1.3}
+.mf-st-td-center{text-align:center}
+.mf-st-td-upper{text-transform:uppercase}
+.mf-st-td-doc{text-align:left;font-size:8.5pt;line-height:1.25}
+.mf-st-closing{text-align:justify;margin:4mm 0 5mm;font-size:10pt;line-height:1.35}
+.mf-st-sign-area{margin-top:5mm;break-inside:avoid;page-break-inside:avoid}
+.mf-st-sign-box{width:85mm;text-align:left}
+.mf-st-bank,.mf-st-unit{font-size:10pt;line-height:1.3}
+.mf-st-ink{height:23mm;display:flex;align-items:center;margin:2px 0}
+.mf-st-ink img{max-height:22mm;width:auto;object-fit:contain}
+.mf-st-pejabat{font-size:10.5pt;line-height:1.3}
+.mf-st-jabatan{font-size:10pt;line-height:1.3}
 
 .mf-gov-page{padding:18mm 22mm 15mm;font:10.5pt/1.35 Arial,sans-serif;color:#000;overflow-wrap:anywhere}
 .mf-gov-kop{display:flex;align-items:center;justify-content:center;position:relative;min-height:24mm;margin-bottom:2px}
@@ -371,6 +441,81 @@ function render(type,values){
    '<p>Bersama surat ini, kami sampaikan hasil KYC calon debitur dengan data sebagai berikut.</p>'+identity+
    '<p>Berdasarkan hasil KYC Kepala Cabang dan MAL Area, kami sampaikan hasil verifikasi berikut.</p><ol class="mf-property-list">'+
    checks.map(text=>'<li>'+text+'</li>').join('')+'</ol><p>Demikian kami sampaikan untuk dapat diproses lebih lanjut.</p><p>Hormat kami,</p>'+sign()+'</article></div>';
+ }
+ if(type==='tugasAgunan'){
+  const advisLogo=window.ADVIS_MANDIRI_LOGO_BASE64||logos.branch||'/mandiri_logo.png';
+  const rawDate=values.tanggal||'2026-10-05';
+  const dayNames=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const monthNames=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  let dayText=values.hari||'';
+  let dateText='';
+  if(rawDate&&rawDate.includes('-')){
+   const dp=rawDate.split('-');
+   const y=parseInt(dp[0],10);
+   const m=parseInt(dp[1],10)-1;
+   const d=parseInt(dp[2],10);
+   const dtObj=new Date(y,m,d);
+   if(!dayText)dayText=dayNames[dtObj.getDay()]||'Senin';
+   dateText=String(d).padStart(2,'0')+' '+(monthNames[m]||'')+' '+y;
+  }else{
+   if(!dayText)dayText='Senin';
+   dateText=rawDate;
+  }
+  const items=Array.isArray(values.items)&&values.items.length>0?values.items:[
+   {rekPjm:'1310101771642',nama:'MOHAMAD ZAMZAM',dokumen:'SHGB NO. 8200 AN LATIFAH; SHT NO. 05484/2022; SKMHT NO. 5/2021; APHT NO. 11/2022, PENGECEKAN SETIPIKAT',tglOrder:'30/09/2026'},
+   {rekPjm:'1310102084391',nama:'HERI IMANUDIN FEVRIANSYAH',dokumen:'BPKB NP. P-04641502; BPKB NO. L-12894328, APLIKASI, PK, ASURANSI JIWA',tglOrder:'30/09/2026'}
+  ];
+  const tableRows=items.map((it,idx)=>'<tr>'+
+   '<td class="mf-st-td-center">'+(idx+1)+'</td>'+
+   '<td class="mf-st-td-center">'+esc(it.rekPjm||'-')+'</td>'+
+   '<td class="mf-st-td-upper"><b>'+esc(it.nama||'-')+'</b></td>'+
+   '<td class="mf-st-td-doc">'+esc(it.dokumen||'-')+'</td>'+
+   '<td class="mf-st-td-center">'+esc(it.tglOrder||'-')+'</td>'+
+  '</tr>').join('');
+  const showSign=values.tandaTangan!=='manual'&&values.pejabat==='Deki Elanda Pradikta'&&window.ADVIS_SIGNATURE_BASE64;
+  const signInk=showSign?'<img alt="Tanda tangan Deki Elanda Pradikta" src="'+esc(window.ADVIS_SIGNATURE_BASE64)+'">':'';
+  return '<div class="mf-document"><article class="mf-page mf-st-page">'+
+   '<div class="mf-st-top-logo"><img src="'+esc(advisLogo)+'" alt="Bank Mandiri"></div>'+
+   '<div class="mf-st-title-block">'+
+    '<h1 class="mf-st-title">SURAT TUGAS PENGAMBILAN DOKUMEN LEGAL DAN AGUNAN</h1>'+
+    '<div class="mf-st-nomor">No: '+v('nomor')+'</div>'+
+   '</div>'+
+   '<p class="mf-st-lead">Pada hari ini '+esc(dayText)+' tanggal '+esc(dateText)+' yang bertandatangan dibawah ini:</p>'+
+   '<table class="mf-st-party-table"><tbody>'+
+    '<tr><td class="mf-st-label">Nama</td><td class="mf-st-colon">:</td><td class="mf-st-val"><b>'+v('namaPemberi')+'</b></td></tr>'+
+    '<tr><td class="mf-st-label">NIP</td><td class="mf-st-colon">:</td><td class="mf-st-val">'+v('nipPemberi')+'</td></tr>'+
+    '<tr><td class="mf-st-label">Unit Kerja</td><td class="mf-st-colon">:</td><td class="mf-st-val">'+v('unitPemberi')+'</td></tr>'+
+    '<tr><td class="mf-st-label">Jabatan</td><td class="mf-st-colon">:</td><td class="mf-st-val">'+v('jabatanPemberi')+'</td></tr>'+
+   '</tbody></table>'+
+   '<p class="mf-st-lead">Bertindak dalam jabatan tersebut di atas dengan ini menugaskan:</p>'+
+   '<table class="mf-st-party-table"><tbody>'+
+    '<tr><td class="mf-st-label">Nama</td><td class="mf-st-colon">:</td><td class="mf-st-val"><b>'+v('namaPenerima')+'</b></td></tr>'+
+    '<tr><td class="mf-st-label">Nip</td><td class="mf-st-colon">:</td><td class="mf-st-val">'+v('nipPenerima')+'</td></tr>'+
+    '<tr><td class="mf-st-label">Unit Kerja</td><td class="mf-st-colon">:</td><td class="mf-st-val">'+v('unitPenerima')+'</td></tr>'+
+    '<tr><td class="mf-st-label">Jabatan</td><td class="mf-st-colon">:</td><td class="mf-st-val">'+v('jabatanPenerima')+'</td></tr>'+
+   '</tbody></table>'+
+   '<p class="mf-st-lead">'+v('tujuanTugas')+'</p>'+
+   '<table class="mf-st-table">'+
+    '<thead><tr>'+
+     '<th style="width:38px;">No</th>'+
+     '<th style="width:140px;">Rekening Pinjaman</th>'+
+     '<th style="width:160px;">Nama</th>'+
+     '<th>Dokumen</th>'+
+     '<th style="width:95px;">Tgl. Order</th>'+
+    '</tr></thead>'+
+    '<tbody>'+tableRows+'</tbody>'+
+   '</table>'+
+   '<p class="mf-st-closing">'+v('penutup')+'</p>'+
+   '<div class="mf-st-sign-area">'+
+    '<div class="mf-st-sign-box">'+
+     '<div class="mf-st-bank"><b>'+v('bankTtd')+'</b></div>'+
+     '<div class="mf-st-unit"><b>'+v('unitTtd')+'</b></div>'+
+     '<div class="mf-st-ink">'+signInk+'</div>'+
+     '<div class="mf-st-pejabat"><u><b>'+v('pejabat')+'</b></u></div>'+
+     '<div class="mf-st-jabatan">'+v('jabatan')+'</div>'+
+    '</div>'+
+   '</div>'+
+  '</article></div>';
  }
  if(type==='bds')content=subject('<b>Permohonan ganti nama user BDS</b>')+'<p>Sehubungan dengan adanya Surat Keputusan penempatan Penyelia Unit yang baru di KCP Bandung Jamsostek, sedangkan nama pengguna pada sistem Branch Delivery System (BDS) masih menggunakan nama Penyelia Unit sebelumnya, kami memohon bantuan untuk melakukan penggantian nama user BDS dengan data sebagai berikut:</p>'+info([['User Existing',v('existingNama')+' / '+v('existingId')],['User Baru',v('baruNama')+' / '+v('baruId')]])+'<p>Demikian surat permohonan ini dibuat, atas perhatian dan kerja samanya kami ucapkan terima kasih.</p>'+sign();
  if(type==='angsuran')content=subject('<b>Permohonan Penyesuaian Angsuran Debitur</b>')+'<p>Sehubungan dengan adanya ketidaksesuaian tagihan angsuran (jumlah tagihan pokok dan bunga) Debitur kami pasca dilakukan restrukturisasi kredit Nota No. '+v('nota')+' tanggal '+dt('tanggalNota')+', maka dengan ini kami mohon bantuannya untuk melakukan penyesuaian tagihan Debitur kami dengan data sebagai berikut :</p>'+info([['Nama Debitur',v('nama')],['No Rekening Pinjaman',v('rekening')],['No Rekening Tabungan (AGF)',v('agf')]])+'<table class="mf-property-amounts"><thead><tr>'+['Periode','Angsuran Pokok (Rp.)','Angsuran Bunga (Rp.)','TBYD (Rp)','BYDT (Rp)','Jumlah Angsuran (Rp.)'].map(t=>'<th>'+t+'</th>').join('')+'</tr></thead><tbody>'+Array.from({length:Math.max(1,Number(values.angsuranRows)||1)},(_,i)=>'<tr>'+['periode','pokok','bunga','tbyd','bydt','jumlah'].map(k=>'<td>'+v(k+(i?'_'+(i+1):''))+'</td>').join('')+'</tr>').join('')+'</tbody></table><p>Demikian kami sampaikan, atas bantuan dan kerjasamanya kami ucapkan terima kasih.</p><p>Menyetujui,</p><div class="mf-property-sign-pair">'+sign()+sign(true)+'</div>';
@@ -663,7 +808,144 @@ function setup(type,values={},preview=()=>{}){
   drawPoints();
  }
 
- if(type==='bds'){const panel=document.createElement('section');panel.innerHTML='<label for="bdsSignature">Tanda tangan</label><select id="bdsSignature" data-key="tandaTanganBds"><option value="otomatis">Otomatis (Deki Elanda Pradikta)</option><option value="manual">Manual / tanda tangan basah</option></select>';document.getElementById('mfFields').append(panel);panel.querySelector('select').value=values.tandaTanganBds||'otomatis';panel.querySelector('select').onchange=e=>{values.tandaTanganBds=e.target.value;preview();};}
+ if(type==='tugasAgunan'){
+   const root=document.getElementById('mfFields');
+   if(!root)return;
+   const sigPanel=document.createElement('section');
+   sigPanel.innerHTML='<label for="stSignature">Mode Tanda Tangan</label>'+
+    '<select id="stSignature">'+
+     '<option value="otomatis">Otomatis (Tanda Tangan Deki Elanda Pradikta)</option>'+
+     '<option value="manual">Manual / Tanda Tangan Basah (Kosong)</option>'+
+    '</select>'+
+    '<p class="mf-help">Penanda tangan default: <b>Deki Elanda Pradikta</b> (Penyelia Unit - Branch Bandung Jamsostek) lengkap dengan tanda tangan resmi.</p>';
+   root.prepend(sigPanel);
+   const sigSelect=sigPanel.querySelector('select');
+   sigSelect.value=values.tandaTangan||'otomatis';
+   sigSelect.onchange=e=>{values.tandaTangan=e.target.value;preview();};
+
+   const targetField=document.getElementById('mf_tujuanTugas');
+   const tablePanel=document.createElement('section');
+   tablePanel.className='mf-st-builder';
+   tablePanel.style='margin:16px 0;padding:14px;background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:8px;';
+   tablePanel.innerHTML='<h3 style="margin:0 0 4px;font-size:14px;font-weight:bold;color:#1e3a8a;">Tabel Dokumen Debitur yang Diambil</h3>'+
+    '<p class="mf-help" style="margin-bottom:12px;">Cari data debitur dari Database Booking untuk pengisian otomatis atau tambahkan baris secara manual.</p>'+
+    '<div style="margin-bottom:12px;background:#fff;padding:10px;border-radius:6px;border:1px solid #e2e8f0;">'+
+     '<label for="stDebtorSearch" style="font-weight:bold;font-size:12px;color:#1e40af;">Pencarian Debitur (Booking)</label>'+
+     '<input id="stDebtorSearch" placeholder="Ketik nama atau nomor rekening pinjaman..." autocomplete="off" style="width:100%;box-sizing:border-box;margin-top:4px;">'+
+     '<div id="stSearchResults" class="mf-help" style="max-height:180px;overflow-y:auto;margin-top:4px;"></div>'+
+    '</div>'+
+    '<div id="stItemsContainer"></div>'+
+    '<button type="button" id="stBtnAddRow" class="mf-button" style="margin-top:10px;width:100%;font-weight:bold;">+ Tambah Baris Debitur Manual</button>';
+
+   if(targetField&&targetField.nextElementSibling){
+    targetField.after(tablePanel);
+   }else{
+    root.append(tablePanel);
+   }
+
+   const itemsContainer=tablePanel.querySelector('#stItemsContainer');
+   const addRowBtn=tablePanel.querySelector('#stBtnAddRow');
+   const searchInput=tablePanel.querySelector('#stDebtorSearch');
+   const searchResults=tablePanel.querySelector('#stSearchResults');
+
+   if(!Array.isArray(values.items)){
+    values.items=[
+     {rekPjm:'1310101771642',nama:'MOHAMAD ZAMZAM',dokumen:'SHGB NO. 8200 AN LATIFAH; SHT NO. 05484/2022; SKMHT NO. 5/2021; APHT NO. 11/2022, PENGECEKAN SETIPIKAT',tglOrder:'30/09/2026'},
+     {rekPjm:'1310102084391',nama:'HERI IMANUDIN FEVRIANSYAH',dokumen:'BPKB NP. P-04641502; BPKB NO. L-12894328, APLIKASI, PK, ASURANSI JIWA',tglOrder:'30/09/2026'}
+    ];
+   }
+
+   function renderRows(){
+    itemsContainer.replaceChildren();
+    values.items.forEach((item,idx)=>{
+     const card=document.createElement('div');
+     card.style='border:1px solid #cbd5e1;border-radius:6px;padding:10px;margin-bottom:8px;background:#ffffff;box-shadow:0 1px 2px rgba(0,0,0,0.05);';
+     card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'+
+      '<span style="font-weight:bold;font-size:12px;color:#1e3a8a;">Debitur #'+(idx+1)+'</span>'+
+      '<button type="button" class="mf-button" style="padding:2px 8px;font-size:11px;color:#dc2626;border-color:#fca5a5;" data-del="'+idx+'">Hapus</button>'+
+     '</div>'+
+     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px;">'+
+      '<div><label style="font-size:11px;margin-bottom:2px;display:block;">No. Rekening Pinjaman</label>'+
+      '<input type="text" data-field="rekPjm" data-idx="'+idx+'" value="'+esc(item.rekPjm||'')+'" style="font-size:12px;padding:4px 6px;width:100%;box-sizing:border-box;"></div>'+
+      '<div><label style="font-size:11px;margin-bottom:2px;display:block;">Nama Debitur</label>'+
+      '<input type="text" data-field="nama" data-idx="'+idx+'" value="'+esc(item.nama||'')+'" style="font-size:12px;padding:4px 6px;width:100%;box-sizing:border-box;"></div>'+
+     '</div>'+
+     '<div style="margin-bottom:6px;"><label style="font-size:11px;margin-bottom:2px;display:block;">Rincian Dokumen Legal & Agunan</label>'+
+     '<textarea data-field="dokumen" data-idx="'+idx+'" rows="2" style="font-size:12px;padding:4px 6px;width:100%;box-sizing:border-box;">'+esc(item.dokumen||'')+'</textarea></div>'+
+     '<div><label style="font-size:11px;margin-bottom:2px;display:block;">Tgl. Order (DD/MM/YYYY)</label>'+
+     '<input type="text" data-field="tglOrder" data-idx="'+idx+'" value="'+esc(item.tglOrder||'')+'" style="font-size:12px;padding:4px 6px;width:130px;"></div>';
+     itemsContainer.append(card);
+    });
+
+    itemsContainer.querySelectorAll('[data-del]').forEach(btn=>{
+     btn.onclick=()=>{
+      const i=Number(btn.dataset.del);
+      values.items.splice(i,1);
+      renderRows();
+      preview();
+     };
+    });
+
+    itemsContainer.querySelectorAll('input,textarea').forEach(input=>{
+     input.oninput=()=>{
+      const i=Number(input.dataset.idx);
+      const f=input.dataset.field;
+      if(values.items[i]){
+       values.items[i][f]=input.value;
+       preview();
+      }
+     };
+    });
+   }
+
+   addRowBtn.onclick=()=>{
+    const today=new Date();
+    const dStr=String(today.getDate()).padStart(2,'0')+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+today.getFullYear();
+    values.items.push({rekPjm:'',nama:'',dokumen:'',tglOrder:dStr});
+    renderRows();
+    preview();
+   };
+
+   searchInput.oninput=e=>{
+    const q=e.target.value.trim().toLowerCase();
+    searchResults.replaceChildren();
+    if(q.length<2)return;
+    const records=typeof dbBooking!=='undefined'&&Array.isArray(dbBooking)?dbBooking:[];
+    const matches=records.filter(r=>[r.nama,r.cif,...(r.fasilitas||[]).map(f=>f.rekPjm)].join(' ').toLowerCase().includes(q)).slice(0,10);
+    if(!matches.length){
+     searchResults.textContent='Debitur tidak ditemukan di database.';
+     return;
+    }
+    matches.forEach(r=>{
+     (r.fasilitas||[{}]).forEach(f=>{
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='mf-button';
+      btn.style='display:block;width:100%;text-align:left;margin-top:4px;font-size:11.5px;padding:5px 8px;background:#f0fdf4;border-color:#86efac;';
+      btn.textContent=(r.nama||'')+' | Rek: '+(f.rekPjm||'-')+' | '+(f.jenisKredit||'Kredit');
+      btn.onclick=()=>{
+       const docs=[f.jaminanTambahan1,f.jaminanTambahan2,f.jaminanTambahan3].filter(v=>v&&v!=='-').join('; ');
+       const today=new Date();
+       const dStr=String(today.getDate()).padStart(2,'0')+'/'+String(today.getMonth()+1).padStart(2,'0')+'/'+today.getFullYear();
+       values.items.push({
+        rekPjm:f.rekPjm||'',
+        nama:(r.nama||'').toUpperCase(),
+        dokumen:docs||'APLIKASI, PK, ASURANSI JIWA',
+        tglOrder:dStr
+       });
+       searchInput.value='';
+       searchResults.replaceChildren();
+       renderRows();
+       preview();
+      };
+      searchResults.append(btn);
+     });
+    });
+   };
+
+   renderRows();
+  }
+  if(type==='bds'){const panel=document.createElement('section');panel.innerHTML='<label for="bdsSignature">Tanda tangan</label><select id="bdsSignature" data-key="tandaTanganBds"><option value="otomatis">Otomatis (Deki Elanda Pradikta)</option><option value="manual">Manual / tanda tangan basah</option></select>';document.getElementById('mfFields').append(panel);panel.querySelector('select').value=values.tandaTanganBds||'otomatis';panel.querySelector('select').onchange=e=>{values.tandaTanganBds=e.target.value;preview();};}
  if(type==='angsuran'){
   const root=document.getElementById('mfFields'),keys=['periode','pokok','bunga','tbyd','bydt','jumlah'];
   const panel=document.createElement('section'),rows=document.createElement('div');
