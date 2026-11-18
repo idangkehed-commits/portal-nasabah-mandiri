@@ -24,6 +24,7 @@
     function value(r){
       if(!r)throw Error('Data cache Excel tidak lengkap.');
       if(r.id===0xcf&&r.b.length===0)return null;
+      if(r.id===0xcb)return null;
       if(r.id===0xc9&&r.b.length===8){const n=r.v.getFloat64(0,true);if(!Number.isFinite(n))throw Error('Nominal cache Excel tidak valid.');return n;}
       if(r.id===0xcd)return string(r.b);
       if(r.id===0xca&&r.b.length===2)return Boolean(r.v.getUint16(0,true));
