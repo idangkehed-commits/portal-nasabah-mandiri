@@ -19,6 +19,9 @@ const order=[['nomor','Nomor surat'],['tanggal','Tanggal surat','date'],['lampir
 .mf-ajk{font-size:10.5pt;line-height:1.3;padding:16mm 20mm}.mf-ajk h1{font-size:12pt;line-height:1.4;margin-bottom:20px}.mf-ajk .mf-ident{margin:12px 0 16px}.mf-ajk .mf-ident td:first-child{width:165px}.mf-ajk .mf-ident td:nth-child(2){width:14px}.mf-ajk p{margin-bottom:12px}.mf-ajk-clauses{list-style:decimal;padding-left:22px;margin:0 0 16px}.mf-ajk-clauses li{text-align:justify;margin-bottom:9px;padding-left:3px}.mf-ajk-stamp-space{height:100px;display:flex;align-items:center;justify-content:center}.mf-ajk-stamp{width:68px;height:84px;border:1px dashed #999;display:flex;align-items:center;justify-content:center;font:9pt Arial;color:#666}.mf-ajk-sign{margin-left:auto;width:52%;text-align:center;break-inside:avoid}
 .mf-order{font-size:11pt;line-height:1.3;padding:18mm 20mm}.mf-order-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:-5px}.mf-order-head>div:first-child{position:relative;top:15px;min-width:0}.mf-order-head .mf-ident{font-size:11pt;line-height:1.35}.mf-order-head .mf-ident td{padding:1px 0}.mf-order-head .mf-ident td:nth-child(2){padding:1px 6px;width:14px}.mf-order-subject{margin-bottom:14px}.mf-order-subject .mf-ident{margin:0}.mf-order-subject .mf-ident td{padding:0}.mf-order-subject .mf-ident td:first-child{width:65px}.mf-order-subject .mf-ident td:nth-child(2){width:14px;padding:0 6px}.mf-order-head .mf-ident{margin:0;font-weight:normal}.mf-order-head .mf-ident td:first-child{width:65px}.mf-order-brand{position:relative;left:34px;top:-19px;width:220px;flex-shrink:0;font:8.5pt/1.25 Arial;color:#17365D}.mf-order-brand img{display:block;width:220px;height:auto;margin-bottom:4px}.mf-order-to{margin:0 0 16px;white-space:normal}.mf-order-table{width:100%;table-layout:fixed;border-collapse:collapse;margin:18px 0}.mf-order-table th,.mf-order-table td{border:1px solid #111;padding:5px;vertical-align:top;overflow-wrap:anywhere;font:10pt/1.3 Arial}.mf-order-table th{print-color-adjust:exact;-webkit-print-color-adjust:exact;background:#78c7ef;font-weight:bold;text-align:center}.mf-order-table th:nth-child(1){width:16%}.mf-order-table th:nth-child(2){width:18%}.mf-order-table th:nth-child(3){width:20%}.mf-order-table th:nth-child(4){width:30%}.mf-order-table th:nth-child(5){width:16%}.mf-order-table td{height:115px}.mf-order-sign{margin-top:25px;break-inside:avoid}.mf-order-sign .mf-sign-space{height:90px}.mf-order-sign-image{height:75px;margin:-6px 0;display:flex;align-items:center;justify-content:flex-start}.mf-order-sign-image img{max-height:75px;max-width:165px;object-fit:contain}
   @media(max-width:1050px){.mf-workspace{grid-template-columns:1fr;grid-template-rows:auto auto;overflow:auto}.mf-form{overflow:visible}.mf-preview{max-height:70vh}}@media(max-width:600px){#manualLetterModal{padding:8px}.mf-workspace{padding:12px}.mf-header{padding:12px}}
+    .html2pdf__container, .html2pdf__container *{box-sizing:border-box}
+  .html2pdf__container .mf-document{width:210mm!important;margin:0!important;background:#fff!important}
+  .html2pdf__container .mf-page{box-shadow:none!important;border:none!important;margin:0!important}
   `+(extra?.css||'');
   function values(){return drafts[type];}
   function val(k){return escape(values()[k] || '................').replace(/\n/g,'<br>');}
@@ -65,32 +68,16 @@ const order=[['nomor','Nomor surat'],['tanggal','Tanggal surat','date'],['lampir
     button.disabled=true;
     button.textContent='Membuat PDF...';
 
-    const previewEl=document.getElementById('mfPreview').querySelector('.mf-document')||document.getElementById('mfPreview').firstElementChild;
-    if(!previewEl){
+    const target=document.getElementById('mfPreview').querySelector('.mf-document')||document.getElementById('mfPreview').firstElementChild;
+    if(!target){
       button.disabled=false;
       button.textContent='Unduh PDF';
       alert('Konten surat belum siap.');
       return;
     }
 
-    const host=document.createElement('div');
-    host.id='mfPdfHost';
-    host.style.cssText='position:fixed;left:0;top:0;width:210mm;background:#fff;z-index:99999;font-family:Arial,sans-serif;color:#000;margin:0;padding:0;box-sizing:border-box;pointer-events:none;';
-
-    const styleTag=document.createElement('style');
-    styleTag.textContent=getCombinedCss() + `
-      #mfPdfHost, #mfPdfHost * { box-sizing: border-box; }
-      #mfPdfHost .mf-document { width: 210mm !important; margin: 0 !important; background: #fff !important; }
-      #mfPdfHost .mf-page { box-shadow: none !important; border: none !important; margin: 0 !important; }
-      #mfPdfHost .mf-st-table th { background-color: #1e4b88 !important; color: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    `;
-    host.appendChild(styleTag);
-
-    const clone=previewEl.cloneNode(true);
-    host.appendChild(clone);
-    document.body.appendChild(host);
-
     try{
+      await Promise.all(Array.from(target.querySelectorAll('img')).map(img=>img.decode?img.decode().catch(()=>{}):Promise.resolve()));
       const opt={
         margin:0,
         filename:filename+'.pdf',
@@ -100,20 +87,18 @@ const order=[['nomor','Nomor surat'],['tanggal','Tanggal surat','date'],['lampir
           useCORS:true,
           logging:false,
           scrollX:0,
-          scrollY:0,
-          windowWidth:794
+          scrollY:0
         },
         jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
         pagebreak:{mode:['css','legacy']}
       };
-      await html2pdf().set(opt).from(clone).save();
+      await html2pdf().set(opt).from(target).save();
     }
     catch(error){
       console.error('PDF formulir:',error);
       alert('PDF gagal dibuat. Gunakan Cetak dan pilih Simpan sebagai PDF.');
     }
     finally{
-      host.remove();
       button.disabled=false;
       button.textContent='Unduh PDF';
     }
