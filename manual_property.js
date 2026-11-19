@@ -173,7 +173,7 @@ function defaults(type){return {
     tujuan:'Direksi PT MEDAL CAHAYA BHUANA ARTA (MCBA)\nDi Tempat',
     perihal:'Pemberitahuan Persyaratan Penempatan Dana dalam Proses Fasilitas Kredit',
     nama:'PT Medal Cahaya Bhuana Arta (MCBA)',
-    namaDebitur:'PT Medal Cahaya Bhuana Arta (MCBA)',
+    namaDebitur:'PT Medal Cahaya Bhuana Arta (MCBA)',tampilkanTtd:false,
     nilaiKredit:'Rp240.000.000.000,-',
     terbilangKredit:'Dua Ratus Empat Puluh Miliar Rupiah',
     persenDana:'2% (dua persen)',
@@ -197,7 +197,7 @@ function defaults(type){return {
     tujuan:'PENGURUS PUSAT\nKOPERASI PRODUSEN CAHAYA PINTU NUSANTARA (KPCPN)\nDi Tempat',
     perihal:'Penempatan Dana untuk Dukungan Kelayakan Afiliasi KUR dan KUM',
     nama:'Koperasi Produsen Cahaya Pintu Nusantara (KPCPN)',
-    namaKoperasi:'Koperasi Produsen Cahaya Pintu Nusantara (KPCPN)',
+    namaKoperasi:'Koperasi Produsen Cahaya Pintu Nusantara (KPCPN)',tampilkanTtd:false,
     nilaiDana:'Rp10.000.000.000,-',
     terbilangDana:'Sepuluh Miliar Rupiah',
     poin2Tujuan:'Dana tersebut direncanakan sebagai dukungan likuiditas dan penguatan aspek kelayakan finansial KPCPN dalam rangka evaluasi kerja sama dan afiliasi program:\n- Kredit Usaha Rakyat (KUR).\n- Kredit Usaha Mikro (KUM).',
@@ -248,15 +248,16 @@ const css=`
 .mf-property{padding:20mm 24mm;font:10pt/1.35 Arial,sans-serif;min-height:296mm;overflow-wrap:anywhere}.mf-property p{margin:0 0 14px;text-align:justify}.mf-property-head{display:grid;grid-template-columns:minmax(0,1fr) 58mm;gap:8mm;min-height:49mm;margin-bottom:1mm}.mf-property-meta{padding-top:12mm;min-width:0}.mf-property-meta table{width:100%;border-collapse:collapse}.mf-property-meta td{padding:0;vertical-align:top}.mf-property-meta td:first-child{width:19mm}.mf-property-meta td:nth-child(2){width:4mm}.mf-property-brand{font:8pt/1.2 Arial;color:#17365d}.mf-property-brand img{display:block;width:58mm;height:auto;margin-bottom:3px}.mf-property-to{margin:0 0 17px;line-height:1.35}.mf-property-subject{display:grid;grid-template-columns:17mm 4mm minmax(0,1fr);gap:0;margin-bottom:18px;break-inside:avoid}.mf-property-subject>div:last-child{text-align:justify}.mf-property-list{padding-left:21px;margin:0 0 18px}.mf-property-koreksiJT .mf-property-to{margin:3mm 0 4mm}.mf-property-koreksiJT .mf-property-head{min-height:0}.mf-property-koreksiJT table{font:inherit}.mf-property-koreksiJT .mf-property-data td:first-child{width:59mm}.mf-property-kyc .mf-property-to{margin:3mm 0 0}.mf-property-kyc .mf-property-list{list-style:decimal outside}.mf-property-list li{padding-left:4px;text-align:justify;margin-bottom:10px}.mf-property-ttd{margin-top:24px;break-inside:avoid;page-break-inside:avoid}.mf-property-ttd .mf-property-ink{height:23mm;display:flex;align-items:center}.mf-property-ink img{width:43mm;height:22mm;object-fit:contain;object-position:left center}.mf-property-title{font:bold 11pt Arial!important;text-decoration:underline;text-align:center!important;margin:0 0 24px!important}.mf-property-data{width:100%;border-collapse:collapse;margin:16px 0 23px}.mf-property-data td{vertical-align:top;padding:3px 0}.mf-property-data td:first-child{width:47mm}.mf-property-data td:nth-child(2){width:4mm}.mf-property-stnk{font-size:11pt}.mf-property-bds .mf-property-head{min-height:0}.mf-property-bds .mf-property-brand{position:relative;transform:translate(10mm,-7mm)}.mf-property-bds .mf-property-to{position:relative;margin-top:-8mm}.mf-property-angsuran{font-size:11pt;padding:15mm 19mm}.mf-property-angsuran .mf-property-head{min-height:51mm}.mf-property-amounts{width:100%;table-layout:fixed;border-collapse:collapse;margin:18px 0 22px;font:10pt/1.3 Arial}.mf-property-amounts th,.mf-property-amounts td{border:1px solid #111;padding:7px 4px;overflow-wrap:anywhere;text-align:center}.mf-property-amounts th{font-weight:bold}.mf-property-amounts td{height:12mm}.mf-property-sign-pair{display:grid;grid-template-columns:1fr 1fr;gap:8mm;break-inside:avoid}.mf-property-sign-pair>div{min-width:0}.mf-property-sign-pair .mf-property-ttd{margin-top:0}.mf-property-form-settings{margin-top:18px;border-top:1px solid #ccd8e8;padding-top:12px}.mf-property-form-settings summary{font-weight:bold;cursor:pointer}.mf-property-help{font:12px/1.5 Arial;color:#64748b}
 
 
-.mf-property-mcba,.mf-property-kpcpn{padding:13mm 22mm 11mm;font:9.5pt/1.32 Arial,sans-serif;color:#000;box-sizing:border-box}
+.mf-property-mcba,.mf-property-kpcpn{padding:12mm 22mm 11mm;font:9.5pt/1.32 Arial,sans-serif;color:#000;box-sizing:border-box}
 .mf-property-mcba p,.mf-property-kpcpn p{margin:0 0 6px;text-align:justify}
-.mf-property-mcba .mf-property-head,.mf-property-kpcpn .mf-property-head{min-height:0;margin-bottom:2mm}
+.mf-property-mcba .mf-property-head,.mf-property-kpcpn .mf-property-head{display:flex!important;justify-content:space-between!important;align-items:flex-start!important;min-height:0!important;margin-bottom:0!important}
+.mf-property-mcba .mf-property-meta,.mf-property-kpcpn .mf-property-meta{padding-top:10mm!important;flex:1!important;min-width:0!important}
+.mf-property-mcba .mf-property-brand,.mf-property-kpcpn .mf-property-brand{width:58mm!important;flex-shrink:0!important;margin-left:auto!important;position:relative!important;top:-7mm!important;right:-6mm!important;font:8pt/1.2 Arial!important;color:#17365d!important}
+.mf-property-mcba .mf-property-brand img,.mf-property-kpcpn .mf-property-brand img{display:block!important;width:58mm!important;height:auto!important;margin-bottom:3px!important}
 .mf-property-mcba .mf-property-to,.mf-property-kpcpn .mf-property-to{margin:2.5mm 0 3mm}
 .mf-property-mcba .mf-property-subject,.mf-property-kpcpn .mf-property-subject{margin-bottom:8px}
+.mf-property-salute{margin-top:16px!important;margin-bottom:10px!important}
 .mf-property-mcba .mf-property-ttd,.mf-property-kpcpn .mf-property-ttd{margin-top:8px}
-.mf-mcba-nominal-box{margin:5px 0 7px;padding:6px 12px;background:#f8fafc;border:1px solid #cbd5e1;border-left:4px solid #1e4b88;text-align:center;border-radius:4px;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-.mf-mcba-nominal-val{font-size:12.5pt;font-weight:bold;color:#0f172a;line-height:1.25}
-.mf-mcba-nominal-sub{font-size:9pt;color:#334155;font-style:italic;margin-top:2px}
 .mf-mcba-calc-table{width:100%;border-collapse:collapse;margin:4px 0 6px;font:inherit}
 .mf-mcba-calc-table td{padding:2px 0;vertical-align:top}
 .mf-mcba-num{width:18px;font-weight:bold}
@@ -462,7 +463,7 @@ function render(type,values){
 
  const letterMeta='<table><tbody><tr><td>Nomor</td><td>:</td><td>'+v('nomor')+'</td></tr><tr><td>Tanggal</td><td>:</td><td>'+dt('tanggal')+'</td></tr><tr><td>Lampiran</td><td>:</td><td>'+v('lampiran')+'</td></tr></tbody></table>';
  const info=rows=>'<table class="mf-property-data"><tbody>'+rows.map(([label,value])=>'<tr><td>'+esc(label)+'</td><td>:</td><td>'+value+'</td></tr>').join('')+'</tbody></table>';
- const sign=(second=false)=>{const s=second?'2':'';const isPenempatan=type==='penempatanMcba'||type==='penempatanKpcpn';const image=(type==='sme'||isPenempatan)?(values.pejabat===yanuarName&&values.smeYanuarSignature?values.smeYanuarSignature:(values.pejabat==='Deki Elanda Pradikta'&&window.ADVIS_SIGNATURE_BASE64?window.ADVIS_SIGNATURE_BASE64:'')):type==='kyc'&&values.penandaTanganKyc==='yanuar'&&values.pejabat==='Yanuar Ishak Salahudin'?values.kycYanuarSignature:!second&&(type!=='kyc'||values.penandaTanganKyc==='deki')&&values.pejabat==='Deki Elanda Pradikta'&&(type!=='bds'||values.tandaTanganBds!=='manual')&&window.ADVIS_SIGNATURE_BASE64;return '<div class="mf-property-ttd"><div>'+v('bankTtd'+s)+'<br>'+v('unitTtd'+s)+'</div><div class="mf-property-ink">'+(image?'<img alt="Tanda tangan sesuai template" src="'+esc(image)+'">':'')+'</div><u><b>'+v('pejabat'+s)+'</b></u><br>'+v('jabatan'+s)+'</div>';};
+ const sign=(second=false)=>{const s=second?'2':'';const isPenempatan=type==='penempatanMcba'||type==='penempatanKpcpn';const showSignature=isPenempatan?(values.tampilkanTtd===true||values.tampilkanTtd==='true'):true;const image=showSignature?((type==='sme'||isPenempatan)?(values.pejabat===yanuarName&&values.smeYanuarSignature?values.smeYanuarSignature:(values.pejabat==='Deki Elanda Pradikta'&&window.ADVIS_SIGNATURE_BASE64?window.ADVIS_SIGNATURE_BASE64:'')):type==='kyc'&&values.penandaTanganKyc==='yanuar'&&values.pejabat==='Yanuar Ishak Salahudin'?values.kycYanuarSignature:!second&&(type!=='kyc'||values.penandaTanganKyc==='deki')&&values.pejabat==='Deki Elanda Pradikta'&&(type!=='bds'||values.tandaTanganBds!=='manual')&&window.ADVIS_SIGNATURE_BASE64):'';const bankUnitText=isPenempatan?'<b>'+v('bankTtd'+s)+'</b><br><b>'+v('unitTtd'+s)+'</b>':v('bankTtd'+s)+'<br>'+v('unitTtd'+s);return '<div class="mf-property-ttd"><div>'+bankUnitText+'</div><div class="mf-property-ink">'+(image?'<img alt="Tanda tangan sesuai template" src="'+esc(image)+'">':'')+'</div><u><b>'+v('pejabat'+s)+'</b></u><br>'+v('jabatan'+s)+'</div>';};
  if(type==='mitra'){
   return '<div class="mf-document"><article class="mf-page mf-mitra"><div class="mf-mitra-heading"><b>PETUNJUK TEKNIS OPERASIONAL<br>KREDIT SERBAGUNA MANDIRI (KSM)<br>LAMPIRAN 2 – FORMAT DOKUMEN RELATIONSHIP</b><img src="'+logos.branch+'" alt="Bank Mandiri"></div><div class="mf-mitra-title"><b>LAMPIRAN 2.2　: Format Surat Perubahan Data Mitra ID</b></div><table class="mf-mitra-meta">'+[['Nomor',v('nomor')],['Tanggal',dt('tanggal')],['Lampiran',v('lampiran')]].map(([k,t])=>'<tr><td>'+k+'</td><td>:</td><td>'+t+'</td></tr>').join('')+'</table><p>Kepada Yth,<br><b>PT Bank Mandiri (Persero) Tbk</b><br>Consumer Credit Risk &amp; Analytics Group<br>Di tempat</p><p>Perihal　 : <b><u>Permohonan Perubahan Data Mitra ID</u></b></p><p>Berikut kami sampaikan permohonan perubahan data Mitra ID sebagai berikut :</p><table class="mf-mitra-table"><colgroup><col style="width:35%"><col style="width:3%"><col style="width:31%"><col style="width:31%"></colgroup><tbody>'+[['Mitra ID','mitraId'],['Nama Mitra','namaMitra'],['Unit Pengelola Mitra ID','unitMitra']].map(([k,t])=>'<tr><th>'+k+'</th><td>:</td><td colspan="2">'+v(t)+'</td></tr>').join('')+'<tr><th>Perubahan Data Mitra ID<br><i>(Contoh: Perubahan Nama Instansi/PIC Konfirmasi Perusahaan, dll)</i></th><td></td><th class="center">Sebelum</th><th class="center">Menjadi</th></tr>'+Array.from({length:3},(_,i)=>'<tr><td>'+v('data'+i)+'</td><td>:</td><td>'+v('sebelum'+i)+'</td><td>'+v('menjadi'+i)+'</td></tr>').join('')+'</tbody></table><p class="mf-mitra-closing">Demikian disampaikan, mohon bantuannya untuk dapat melakukan penyesuaian/<i>setting</i> pada sistem LOS.</p><p>Hormat kami,</p>'+sign()+'</article></div>';
  }
@@ -503,9 +504,8 @@ function render(type,values){
    '<div class="mf-property-to">'+formatTo(values.tujuan)+'</div></div>'+
    '<div class="mf-property-brand"><img src="'+esc(advisLogo)+'" alt="Bank Mandiri"><b>'+v('bank')+'</b><br>'+v('cabang')+'<br>'+v('alamatKop')+'</div></div>'+
    subject('<b><u>'+v('perihal')+'</u></b>')+
-   '<p>Dengan hormat,</p>'+
-   '<p>Sehubungan dengan rencana pengajuan dan proses evaluasi fasilitas kredit atas nama <b>'+v('namaDebitur')+'</b>, dengan nilai fasilitas kredit yang diajukan sebesar:</p>'+
-   '<div class="mf-mcba-nominal-box"><div class="mf-mcba-nominal-val">'+v('nilaiKredit')+'</div><div class="mf-mcba-nominal-sub">('+v('terbilangKredit')+')</div></div>'+
+   '<p class="mf-property-salute">Dengan hormat,</p>'+
+   '<p>Sehubungan dengan rencana pengajuan dan proses evaluasi fasilitas kredit atas nama <b>'+v('namaDebitur')+'</b>, dengan nilai fasilitas kredit yang diajukan sebesar: <b>'+v('nilaiKredit')+' ('+v('terbilangKredit')+')</b>.</p>'+
    '<p>Bersama ini disampaikan bahwa terdapat rencana persyaratan penempatan dana sebesar <b>'+v('persenDana')+'</b> dari nilai fasilitas kredit yang diajukan, dengan perhitungan sebagai berikut:</p>'+
    '<table class="mf-mcba-calc-table"><tbody>'+
    '<tr><td class="mf-mcba-num">1.</td><td class="mf-mcba-lbl">Nilai fasilitas kredit</td><td class="mf-mcba-sep">:</td><td class="mf-mcba-val">'+v('nilaiKredit')+'</td></tr>'+
@@ -515,7 +515,7 @@ function render(type,values){
    (values.klausulPelaksanaan?'<p>'+v('klausulPelaksanaan')+'</p>':'')+
    (values.klausulPencairan?'<p>'+v('klausulPencairan')+'</p>':'')+
    (values.penutup?'<p>'+v('penutup')+'</p>':'')+
-   '<p style="margin-top:6px;margin-bottom:0;">Hormat kami,</p>'+
+   '<p style="margin-top:8px;margin-bottom:0;">Hormat kami,</p>'+
    sign()+'</article></div>';
  }
  if(type==='penempatanKpcpn'){
@@ -525,7 +525,7 @@ function render(type,values){
    '<div class="mf-property-to">'+formatTo(values.tujuan)+'</div></div>'+
    '<div class="mf-property-brand"><img src="'+esc(advisLogo)+'" alt="Bank Mandiri"><b>'+v('bank')+'</b><br>'+v('cabang')+'<br>'+v('alamatKop')+'</div></div>'+
    subject('<b><u>'+v('perihal')+'</u></b>')+
-   '<p>Dengan hormat,</p>'+
+   '<p class="mf-property-salute">Dengan hormat,</p>'+
    '<p>Sehubungan dengan pembahasan rencana kerja sama dan pengembangan fasilitas pembiayaan bagi <b>'+v('namaKoperasi')+'</b>, bersama ini disampaikan konsep dukungan penempatan dana dengan ketentuan sebagai berikut:</p>'+
    '<ol class="mf-kpcpn-list">'+
    '<li class="mf-kpcpn-item"><div class="mf-kpcpn-point-title">Nilai Penempatan Dana</div><div class="mf-point-p">Sebesar <b>'+v('nilaiDana')+'</b> ('+v('terbilangDana')+').</div></li>'+
@@ -863,29 +863,46 @@ function setup(type,values={},preview=()=>{}){
  }
  if(type==='penempatanMcba'||type==='penempatanKpcpn'){
   const panel=document.createElement('section');
-  panel.innerHTML='<label for="penempatanSigner">Pilihan penanda tangan</label>'+
+  panel.style='margin-bottom:14px;padding:12px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;';
+  panel.innerHTML='<label for="penempatanSigner" style="margin-top:0;font-weight:bold;">Pilihan penanda tangan</label>'+
    '<select id="penempatanSigner">'+
    '<option value="yanuar">Yanuar Ishak Salahudin — Branch Manager</option>'+
    '<option value="deki">Deki Elanda Pradikta — Micro Banking Manager</option>'+
    '<option value="manual">Isi manual / tanda tangan basah</option>'+
    '</select>'+
-   '<p id="penempatanSignerStatus" class="mf-property-help" role="status">Memuat tanda tangan Yanuar dari portal…</p>';
+   '<label style="display:flex;align-items:center;gap:8px;font-weight:bold;cursor:pointer;margin:12px 0 6px;">'+
+   '<input type="checkbox" id="penempatanTtdCheck" style="width:18px;height:18px;cursor:pointer;">'+
+   'Tampilkan gambar tanda tangan'+
+   '</label>'+
+   '<p id="penempatanSignerStatus" class="mf-property-help" role="status" style="margin:2px 0 0;font-size:11.5px;color:#64748b;">Tanda tangan dinonaktifkan (centang untuk menampilkan).</p>';
   document.getElementById('mfFields').prepend(panel);
 
-  const select=panel.querySelector('select');
+  const select=panel.querySelector('#penempatanSigner');
+  const ttdCheck=panel.querySelector('#penempatanTtdCheck');
   const status=panel.querySelector('#penempatanSignerStatus');
 
   delete values.smeYanuarSignature;
   loadYanuarSignature().then(img=>{
    if(!panel.isConnected)return;
    values.smeYanuarSignature=img;
-   if(select.value==='yanuar'){
-    status.textContent='Tanda tangan Yanuar siap digunakan.';
+   if(ttdCheck.checked){
+    status.textContent='Tanda tangan Yanuar ditampilkan.';
     preview();
    }
   }).catch(err=>{
-   if(panel.isConnected)status.textContent=err.message+' Ruang tanda tangan tetap tersedia.';
+   if(panel.isConnected&&ttdCheck.checked)status.textContent=err.message+' Ruang tanda tangan tetap tersedia.';
   });
+
+  ttdCheck.checked=values.tampilkanTtd===true||values.tampilkanTtd==='true';
+  ttdCheck.onchange=()=>{
+   values.tampilkanTtd=ttdCheck.checked;
+   if(ttdCheck.checked){
+    status.textContent=select.value==='yanuar'?(values.smeYanuarSignature?'Tanda tangan Yanuar ditampilkan.':'Memuat tanda tangan Yanuar…'):(select.value==='deki'?'Tanda tangan Deki ditampilkan.':'Mode manual tanpa gambar tanda tangan.');
+   }else{
+    status.textContent='Tanda tangan dinonaktifkan (mode tanda tangan basah).';
+   }
+   preview();
+  };
 
   select.value=values.penandaTanganChoice||(values.pejabat==='Deki Elanda Pradikta'?'deki':(values.pejabat===yanuarName?'yanuar':'manual'));
 
@@ -896,17 +913,17 @@ function setup(type,values={},preview=()=>{}){
     values.jabatan='Branch Manager';
     values.bankTtd='PT Bank Mandiri (Persero) Tbk';
     values.unitTtd='Branch Bandung Jamsostek';
-    status.textContent=values.smeYanuarSignature?'Tanda tangan Yanuar siap digunakan.':'Memuat tanda tangan Yanuar…';
+    if(ttdCheck.checked)status.textContent=values.smeYanuarSignature?'Tanda tangan Yanuar ditampilkan.':'Memuat tanda tangan Yanuar…';
    }else if(select.value==='deki'){
     values.pejabat='Deki Elanda Pradikta';
     values.jabatan='Micro Banking Manager';
     values.bankTtd='PT Bank Mandiri (Persero) Tbk';
     values.unitTtd='Branch Bandung Jamsostek';
-    status.textContent=window.ADVIS_SIGNATURE_BASE64?'Tanda tangan Deki Elanda Pradikta siap digunakan.':'Tanda tangan Deki aktif.';
+    if(ttdCheck.checked)status.textContent=window.ADVIS_SIGNATURE_BASE64?'Tanda tangan Deki ditampilkan.':'Tanda tangan Deki aktif.';
    }else{
     values.pejabat='';
     values.jabatan='';
-    status.textContent='Mode manual / tanda tangan basah tanpa gambar tanda tangan.';
+    if(ttdCheck.checked)status.textContent='Mode manual tanpa gambar tanda tangan.';
    }
    for(const k of ['pejabat','jabatan','bankTtd','unitTtd']){
     const el=document.getElementById('mf_'+k);
